@@ -30,7 +30,7 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   
-  .app{display:grid;grid-template-columns:1fr 340px;grid-template-rows:54px 38px 1fr 28px 45px;height:100dvh;width:100vw;min-height:0;min-width:0;overflow:hidden;}
+  .app{display:grid;grid-template-columns:1fr 340px;grid-template-rows:54px 38px 1fr 28px;height:100dvh;width:100vw;min-height:0;min-width:0;overflow:hidden;}
   
   header{grid-column:1/3;display:flex;align-items:center;gap:16px;padding:0 16px;background:linear-gradient(180deg,#0c121a,#080c12);border-bottom:1px solid var(--border);position:relative;min-height:54px;}
   header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.35;}
@@ -60,7 +60,6 @@
   .status-pill{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;background:rgba(57,255,136,.08);border:1px solid rgba(57,255,136,.2);font-size:9px;font-weight:700;letter-spacing:1px;color:var(--green);margin-left:auto;}
   .status-pill.err{background:rgba(255,46,136,.08);border-color:rgba(255,46,136,.2);color:var(--magenta);}
   .status-pill.conn{background:rgba(255,176,32,.08);border-color:rgba(255,176,32,.2);color:var(--amber);}
-  .status-pill.paused{background:rgba(168,85,247,.08);border-color:rgba(168,85,247,.2);color:var(--purple);}
   .status-dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;}
   .status-pill.live .status-dot{animation:pulse 1.6s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
@@ -79,7 +78,7 @@
   .ind-dropdown{position:relative;}
   .ind-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:600;font-size:11px;transition:.12s;}
   .ind-btn:hover{color:var(--cyan);border-color:var(--cyan);}
-  .ind-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:225px;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:6px;z-index:100;box-shadow:0 16px 40px rgba(0,0,0,.6);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s;max-height:480px;overflow-y:auto;}
+  .ind-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:225px;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:6px;z-index:100;box-shadow:0 16px 40px rgba(0,0,0,.6);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s;}
   .ind-menu.open{opacity:1;transform:translateY(0);pointer-events:auto;}
   .ind-block{border-bottom:1px solid var(--border);padding-bottom:2px;margin-bottom:2px;}
   .ind-block:last-child{border-bottom:none;margin-bottom:0;}
@@ -117,9 +116,8 @@
   .tool-btn.active { color: var(--cyan); border-color: var(--cyan); background: rgba(0,229,255,0.1); box-shadow: 0 0 8px rgba(0,229,255,0.2); }
 
   #chartsGrid{display:grid;gap:1px;background:var(--border);height:100%;width:100%;min-height:0;min-width:0;overflow:hidden;}
-  .chart-cell{position:relative;background:var(--bg);overflow:hidden;cursor:crosshair;min-height:0;min-width:0;display:flex;flex-direction:column;}
+  .chart-cell{position:relative;background:var(--bg);overflow:hidden;cursor:crosshair;min-height:0;min-width:0;}
   .chart-cell.active{outline:2px solid var(--cyan);outline-offset:-2px;z-index:5;}
-  .main-chart-area{position:relative;flex:1 1 auto;min-height:0;min-width:0;overflow:hidden;}
   .chart-container{width:100%;height:100%;position:absolute;top:0;left:0;min-height:0;min-width:0;}
   .chart-price-tag{position:absolute;top:8px;left:8px;z-index:10;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;pointer-events:none;display:flex;align-items:center;gap:8px;}
   .chart-price-tag .sym{font-weight:700;color:var(--cyan);}
@@ -129,14 +127,6 @@
   .overlay-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4;}
   .draw-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;}
   .draw-canvas.active{pointer-events:auto;cursor:crosshair;}
-
-  .cycle-pane{position:relative;flex-shrink:0;height:190px;border-top:1px solid var(--border);background:var(--bg);overflow:hidden;}
-  .cycle-pane.hidden{display:none;}
-  .cycle-chart-container{position:absolute;inset:0;}
-  .cycle-title{position:absolute;top:6px;left:8px;z-index:10;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;background:rgba(7,10,16,.6);padding:3px 6px;border-radius:4px;pointer-events:none;}
-  .cycle-diag{position:absolute;top:6px;right:8px;z-index:10;background:rgba(7,10,16,.82);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-size:9px;line-height:1.6;pointer-events:none;min-width:120px;}
-  .cycle-diag .row{display:flex;justify-content:space-between;gap:12px;white-space:nowrap;}
-  .cycle-diag .k{color:var(--muted);}
   
   .live-flow-box { position: absolute; z-index: 4; pointer-events: none; display: none; background: rgba(7,10,16,0.5); border-left: 1px solid rgba(0,229,255,.25); border-right: 1px solid rgba(0,229,255,.25); font-family: 'JetBrains Mono', monospace; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
   .flow-row { position: absolute; display: flex; align-items: center; width: 100%; border-top: 1px solid rgba(255,255,255,.05); box-sizing: border-box; }
@@ -153,7 +143,7 @@
   .flow-val.sell { color: var(--magenta); }
   .flow-val.buy { color: var(--green); }
 
-  .auto-scale-btn{position:absolute;right:8px;bottom:10px;z-index:10;width:24px;height:24px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:4px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;transition:.15s;}
+  .auto-scale-btn{position:absolute;right:8px;bottom:30px;z-index:10;width:24px;height:24px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:4px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;transition:.15s;}
   .auto-scale-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.2);}
   
   .chart-legend{position:absolute;top:45px;left:8px;z-index:10;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:9px;pointer-events:none;display:none;gap:8px;}
@@ -225,16 +215,6 @@
   footer .info{display:flex;gap:12px;align-items:center;}
   footer .sep{color:var(--border-strong);}
 
-  /* REPLAY / BACKTESTING BAR */
-  #replayBar{grid-column:1/3;display:flex;align-items:center;justify-content:center;gap:15px;background:#05070a;padding:8px 16px;border-top:1px solid var(--cyan);}
-  .rp-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:600;font-size:11px;transition:.12s;}
-  .rp-btn:hover{color:var(--cyan);border-color:var(--cyan);}
-  .rp-btn.danger{color:var(--magenta);border-color:var(--magenta);}
-  .rp-btn.danger:hover{background:var(--magenta);color:#1a0008;}
-  .rp-btn.play{background:var(--cyan);border:none;color:#000;font-weight:bold;}
-  .rp-btn.play:hover{background:#fff;}
-  #replayInfo{color:var(--muted);font-size:12px;margin-left:20px;}
-
   ::-webkit-scrollbar{width:5px;height:5px;}
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
@@ -242,7 +222,7 @@
 
   #flash{position:fixed;inset:0;pointer-events:none;z-index:200;background:radial-gradient(circle at 50% 50%, rgba(255,176,32,.3), transparent 65%);opacity:0;transition:opacity .35s;}
   #flash.on{opacity:1;}
-  #toast{position:fixed;bottom:60px;right:18px;z-index:300;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:12px 16px;max-width:340px;box-shadow:0 20px 50px rgba(0,0,0,.7);transform:translateX(120%);transition:transform .4s cubic-bezier(.16,1,.3,1);}
+  #toast{position:fixed;bottom:18px;right:18px;z-index:300;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:12px 16px;max-width:340px;box-shadow:0 20px 50px rgba(0,0,0,.7);transform:translateX(120%);transition:transform .4s cubic-bezier(.16,1,.3,1);}
   #toast.show{transform:translateX(0);}
   #toast.alarm{border-color:var(--amber);box-shadow:0 20px 50px rgba(255,176,32,.25);}
   #toast.error{border-color:var(--magenta);}
@@ -269,7 +249,7 @@
   <header>
     <div class="logo">
       <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg></div>
-      <h1>CYCLE TERMINAL<span>v6.0 // LW Panel + Backtesting</span></h1>
+      <h1>CYCLE TERMINAL<span>v5.6 // Clean Layout</span></h1>
     </div>
     <div class="asset-selector" id="assetSelector">
       <button type="button" class="asset-btn" id="assetBtn">
@@ -436,41 +416,6 @@
           </div>
         </div>
 
-        <div class="ind-block">
-          <div class="ind-item" data-ind="cycle">
-            <span>Ciclo LW <b class="ind-tag" id="tagCycle">L/5/1</b></span>
-            <div class="ind-actions">
-              <button type="button" class="ind-gear" data-opts="cycle" title="Opciones">⚙</button>
-              <div class="ind-toggle on"></div>
-            </div>
-          </div>
-          <div class="ind-options" id="opts-cycle">
-            <div class="opt-row">
-              <span class="opt-label">Anclaje</span>
-              <div class="opt-btn-group" id="cycleAnchorGroup">
-                <button type="button" class="opt-btn active" data-anchor="L">Piso</button>
-                <button type="button" class="opt-btn" data-anchor="H">Techo</button>
-              </div>
-            </div>
-            <div class="opt-row" style="margin-top:6px;">
-              <span class="opt-label">Left Bars</span>
-              <input type="number" class="opt-input" id="input-cycle-left" min="1" max="100" value="5">
-            </div>
-            <div class="opt-row" style="margin-top:6px;">
-              <span class="opt-label">Right Bars</span>
-              <input type="number" class="opt-input" id="input-cycle-right" min="1" max="50" value="1">
-            </div>
-            <div class="opt-row" style="margin-top:6px;">
-              <span class="opt-label">Forecast (barras)</span>
-              <input type="number" class="opt-input" id="input-cycle-forecast" min="10" max="150" value="60">
-            </div>
-            <div class="opt-row" style="margin-top:6px;">
-              <span class="opt-label">L Manual (0=auto)</span>
-              <input type="number" class="opt-input" id="input-cycle-manuall" min="0" max="300" value="0">
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
     <div class="toolbar-right">
@@ -542,16 +487,6 @@
     </div>
     <div id="footerClock">--:--:--</div>
   </footer>
-
-  <!-- BARRA DE BACKTESTING / REPLAY -->
-  <div id="replayBar">
-    <button id="rpStart" class="rp-btn">⏮ Inicio</button>
-    <button id="rpPrev" class="rp-btn">◀ Vela</button>
-    <button id="rpPlay" class="rp-btn play">▶ Play</button>
-    <button id="rpNext" class="rp-btn">Vela ▶</button>
-    <button id="rpEnd" class="rp-btn danger">⏭ Tiempo Real</button>
-    <span id="replayInfo">Modo Tiempo Real</span>
-  </div>
 </div>
 
 <script>
@@ -571,7 +506,7 @@ const DEFAULT_LAYOUT_SYMBOLS = ['BTCUSDT', 'GC=F', '^NDX', 'CLP=X'];
 
 const globalState = {
   interval: '5m',
-  indicators: { sma20: true, sma50: true, vwap: true, flow: true, fractal: true, vp: true, vpFractal: true, cycle: true },
+  indicators: { sma20: true, sma50: true, vwap: true, flow: true, fractal: true, vp: true, vpFractal: true },
   indicatorConfig: {
     sma20: { period: 20 },
     sma50: { period: 50 },
@@ -579,8 +514,7 @@ const globalState = {
     flow: { precisionMult: 1 },
     fractal: { lookback: 40, lookforward: 2 },
     vp: { rows: 24 },
-    vpFractal: { lookback: 40, lookforward: 2, rows: 24 },
-    cycle: { anchorType: 'L', leftBars: 5, rightBars: 1, forecastBars: 60, manualL: 0, smoothW: 3, emaLens: [20, 50, 200], bbLength: 20, bbMult: 2.0 }
+    vpFractal: { lookback: 40, lookforward: 2, rows: 24 }
   },
   activeTool: 'cursor',
   alarms: JSON.parse(localStorage.getItem('cycle_terminal_alarms_v4') || '[]'),
@@ -599,48 +533,6 @@ if(typeof LightweightCharts === 'undefined'){
   window.addEventListener('DOMContentLoaded', () => setTimeout(() => { if(typeof LightweightCharts === 'undefined') document.getElementById('chartsGrid').innerHTML = '<div style="padding:24px;color:#ff2e88;">Error cargando gráficos.</div>'; }, 4000));
 } else { initApp(); }
 
-function calcSMA(arr, period) {
-  const n = arr.length; const out = new Array(n);
-  for (let i = 0; i < n; i++) {
-    let sum = 0;
-    for (let k = 0; k < period; k++) {
-      const idx = i - k;
-      sum += idx >= 0 ? arr[idx] : arr[0];
-    }
-    out[i] = sum / period;
-  }
-  return out;
-}
-function calcEMA(arr, len) {
-  const n = arr.length; const out = new Array(n);
-  const mult = 2 / (len + 1);
-  out[0] = arr[0];
-  for (let i = 1; i < n; i++) out[i] = (arr[i] - out[i-1]) * mult + out[i-1];
-  return out;
-}
-function calcSTDEV(arr, period) {
-  const n = arr.length; const out = new Array(n);
-  const meanArr = calcSMA(arr, period);
-  for (let i = 0; i < n; i++) {
-    let sq = 0;
-    const m = meanArr[i];
-    for (let k = 0; k < period; k++) {
-      const idx = i - k;
-      const v = idx >= 0 ? arr[idx] : arr[0];
-      const d = v - m;
-      sq += d * d;
-    }
-    out[i] = Math.sqrt(sq / period);
-  }
-  return out;
-}
-function medianOf(arr) {
-  const s = [...arr].sort((a,b)=>a-b);
-  const m = s.length;
-  if (m === 0) return NaN;
-  return m % 2 ? s[(m-1)/2] : (s[m/2-1] + s[m/2]) / 2;
-}
-
 function initApp() {
   document.getElementById('assetBtn').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('assetDropdown').classList.toggle('open'); });
   document.addEventListener('click', () => { document.getElementById('assetDropdown').classList.remove('open'); document.getElementById('indMenu').classList.remove('open'); });
@@ -657,22 +549,13 @@ function initApp() {
         inst.calcVWAP(true);
         inst.updateFractals();
         inst.updateVpFractal();
-        inst.updateCycleIndicator();
         inst.requestDraw();
         inst.updateFlowBox();
       });
-      if (key === 'cycle') {
-        globalState.instances.forEach(inst => {
-          if (inst.cyclePaneEl) inst.cyclePaneEl.classList.toggle('hidden', !globalState.indicators.cycle);
-          if (inst.cycleChart && inst.cycleChartEl) {
-            inst.cycleChart.applyOptions({ width: inst.cycleChartEl.clientWidth, height: inst.cycleChartEl.clientHeight });
-            if (globalState.indicators.cycle) inst.updateCycleIndicator();
-          }
-        });
-      }
     });
   });
 
+  // Botón de opciones (engranaje) por indicador: abre/cierra su panel sin togglear el indicador
   document.querySelectorAll('.ind-gear').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -683,8 +566,10 @@ function initApp() {
       if (!wasOpen) panel.classList.add('open');
     });
   });
+  // Evita que clicks dentro del panel de opciones cierren el menú o togeleen el indicador
   document.querySelectorAll('.ind-options').forEach(panel => panel.addEventListener('click', (e) => e.stopPropagation()));
 
+  // Periodo de SMA 20 / SMA 50
   const smaPeriodInput = (key, tagId) => {
     const input = document.getElementById(`input-${key}-period`);
     input.addEventListener('click', (e) => e.stopPropagation());
@@ -700,6 +585,7 @@ function initApp() {
   smaPeriodInput('sma20', 'tagSma20');
   smaPeriodInput('sma50', 'tagSma50');
 
+  // Anclaje de VWAP (1h / 4h / D / W)
   document.querySelectorAll('#vwapAnchorGroup .opt-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -711,6 +597,7 @@ function initApp() {
     });
   });
 
+  // Precisión del OrderFlow (Fino / Normal / Grueso)
   document.querySelectorAll('#flowPrecisionGroup .opt-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -726,6 +613,7 @@ function initApp() {
     });
   });
 
+  // Periodo/config de Fractales (velas atrás / adelante)
   const fractalInput = (id, key) => {
     const input = document.getElementById(id);
     input.addEventListener('click', (e) => e.stopPropagation());
@@ -742,6 +630,7 @@ function initApp() {
   fractalInput('input-fractal-lookback', 'lookback');
   fractalInput('input-fractal-lookforward', 'lookforward');
 
+  // Filas del Volume Profile
   const vpInput = document.getElementById('input-vp-rows');
   vpInput.addEventListener('click', (e) => e.stopPropagation());
   vpInput.addEventListener('change', (e) => {
@@ -752,6 +641,7 @@ function initApp() {
     globalState.instances.forEach(inst => inst.requestDraw());
   });
 
+  // Config del indicador combinado VP Fractal (velas atrás / adelante / filas)
   const vpFractalInput = (id, key, max) => {
     const input = document.getElementById(id);
     input.addEventListener('click', (e) => e.stopPropagation());
@@ -768,45 +658,14 @@ function initApp() {
   vpFractalInput('input-vpFractal-lookforward', 'lookforward', 50);
   vpFractalInput('input-vpFractal-rows', 'rows', 100);
 
-  function updateCycleTag() {
-    const c = globalState.indicatorConfig.cycle;
-    document.getElementById('tagCycle').textContent = `${c.anchorType}/${c.leftBars}/${c.rightBars}`;
-  }
-  document.querySelectorAll('#cycleAnchorGroup .opt-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.querySelectorAll('#cycleAnchorGroup .opt-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      globalState.indicatorConfig.cycle.anchorType = btn.dataset.anchor;
-      updateCycleTag();
-      globalState.instances.forEach(inst => inst.updateCycleIndicator());
-    });
-  });
-  const cycleInput = (id, key, max, min) => {
-    const input = document.getElementById(id);
-    input.addEventListener('click', (e) => e.stopPropagation());
-    input.addEventListener('change', (e) => {
-      let v = parseInt(e.target.value, 10);
-      if (isNaN(v) || v < min) v = min; if (v > max) v = max;
-      e.target.value = v;
-      globalState.indicatorConfig.cycle[key] = v;
-      updateCycleTag();
-      globalState.instances.forEach(inst => inst.updateCycleIndicator());
-    });
-  };
-  cycleInput('input-cycle-left', 'leftBars', 100, 1);
-  cycleInput('input-cycle-right', 'rightBars', 50, 1);
-  cycleInput('input-cycle-forecast', 'forecastBars', 150, 10);
-  cycleInput('input-cycle-manuall', 'manualL', 300, 0);
-
   document.getElementById('customSymbol').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.value.trim()) { let val = e.target.value.trim().toUpperCase(); if(val.includes('USD') && !val.includes('USDT') && val.length <= 7) val += '=X'; changeActiveAsset(val); } });
   
-  document.querySelectorAll('.tf-pill').forEach(btn => btn.addEventListener('click', () => { if(replayMode) toggleReplayMode(false); document.querySelectorAll('.tf-pill').forEach(b => b.classList.remove('active')); btn.classList.add('active'); globalState.interval = btn.dataset.tf; globalState.instances.forEach(inst => inst.switchMarket(globalState.interval)); }));
-  document.getElementById('refreshBtn').addEventListener('click', () => { if(replayMode) toggleReplayMode(false); globalState.instances[globalState.activeChartIndex].switchMarket(globalState.interval); });
+  document.querySelectorAll('.tf-pill').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.tf-pill').forEach(b => b.classList.remove('active')); btn.classList.add('active'); globalState.interval = btn.dataset.tf; globalState.instances.forEach(inst => inst.switchMarket(globalState.interval)); }));
+  document.getElementById('refreshBtn').addEventListener('click', () => globalState.instances[globalState.activeChartIndex].switchMarket(globalState.interval));
   document.getElementById('clearAllAlarmsBtn').addEventListener('click', () => { const inst = globalState.instances[globalState.activeChartIndex]; globalState.alarms = globalState.alarms.filter(a => a.symbol !== inst.symbol); saveAlarms(); renderSidebarAlarms(); inst.syncAlarmPriceLines(); showToast('Alarmas eliminadas', `Se borraron las alarmas de ${inst.asset.name}`, 'alarm'); });
   document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active')); btn.classList.add('active'); document.getElementById('tab-' + btn.dataset.tab).classList.add('active'); }));
 
-  document.querySelectorAll('.layout-btn').forEach(btn => btn.addEventListener('click', () => { if(replayMode) toggleReplayMode(false); document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); setLayout(parseInt(btn.dataset.layout)); }));
+  document.querySelectorAll('.layout-btn').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); setLayout(parseInt(btn.dataset.layout)); }));
 
   document.getElementById('toolCursor').addEventListener('click', () => setTool('cursor'));
   document.getElementById('toolBrush').addEventListener('click', () => setTool('brush'));
@@ -851,25 +710,10 @@ function initApp() {
     }
   });
 
-  // Replay Listeners
-  document.getElementById('rpStart').addEventListener('click', () => toggleReplayMode(true));
-  document.getElementById('rpEnd').addEventListener('click', () => toggleReplayMode(false));
-  document.getElementById('rpNext').addEventListener('click', () => stepReplay(1));
-  document.getElementById('rpPrev').addEventListener('click', () => stepReplay(-1));
-  document.getElementById('rpPlay').addEventListener('click', () => {
-    const btn = document.getElementById('rpPlay');
-    if (!replayMode) toggleReplayMode(true);
-    if (replayIntervalId) {
-      clearInterval(replayIntervalId); replayIntervalId = null; btn.innerHTML = '▶ Play';
-    } else {
-      btn.innerHTML = '⏸ Pausa';
-      replayIntervalId = setInterval(() => stepReplay(1), 1000);
-    }
-  });
-
+  // Global Countdown Timer for all charts
   setInterval(() => {
     globalState.instances.forEach(inst => {
-      if (inst.currentPriceLine && inst.currentCandleCloseTime && !replayMode) {
+      if (inst.currentPriceLine && inst.currentCandleCloseTime) {
         const msLeft = inst.currentCandleCloseTime - Date.now();
         if (msLeft > 0) {
           const min = Math.floor(msLeft / 60000);
@@ -922,7 +766,6 @@ function setLayout(num) {
 }
 
 function setActiveChart(index) {
-  if(replayMode) toggleReplayMode(false);
   globalState.activeChartIndex = index;
   document.querySelectorAll('.chart-cell').forEach((el, i) => el.classList.toggle('active', i === index));
   updateHeaderAsset();
@@ -980,9 +823,7 @@ function createChartInstance(cell, asset, interval, index) {
     drawings: [], isDrawing: false, currentDrawing: null,
     vwapData: [],
     fractalMarkers: [], vpFractalMarkers: [], vpFractalRange: null,
-    drawThrottle: null,
-    cycleChart: null, cycleChartEl: null, cyclePaneEl: null, cycleDiagEl: null,
-    residualSeries: null, bbUpperSeries: null, bbLowerSeries: null, ema1Series: null, ema2Series: null, ema3Series: null, forecastSeries: null
+    drawThrottle: null
   };
 
   inst.requestDraw = function() {
@@ -996,20 +837,13 @@ function createChartInstance(cell, asset, interval, index) {
 
   inst.init = function() {
     inst.cell.innerHTML = `
-      <div class="main-chart-area">
-        <div class="chart-price-tag"><span class="sym">${inst.asset.name}</span> <span class="val">--</span> <span class="chg" style="font-size:10px;"></span></div>
-        <div class="chart-legend"><div><span class="k">O</span> <span class="lgO">--</span></div><div><span class="k">H</span> <span class="lgH" style="color:var(--green);">--</span></div><div><span class="k">L</span> <span class="lgL" style="color:var(--magenta);">--</span></div><div><span class="k">C</span> <span class="lgC">--</span></div></div>
-        <canvas class="overlay-canvas"></canvas>
-        <div class="live-flow-box"></div>
-        <canvas class="draw-canvas"></canvas>
-        <button class="auto-scale-btn">A</button>
-        <div class="chart-container"></div>
-      </div>
-      <div class="cycle-pane">
-        <div class="cycle-title">Ciclo LW</div>
-        <div class="cycle-diag"></div>
-        <div class="cycle-chart-container"></div>
-      </div>
+      <div class="chart-price-tag"><span class="sym">${inst.asset.name}</span> <span class="val">--</span> <span class="chg" style="font-size:10px;"></span></div>
+      <div class="chart-legend"><div><span class="k">O</span> <span class="lgO">--</span></div><div><span class="k">H</span> <span class="lgH" style="color:var(--green);">--</span></div><div><span class="k">L</span> <span class="lgL" style="color:var(--magenta);">--</span></div><div><span class="k">C</span> <span class="lgC">--</span></div></div>
+      <canvas class="overlay-canvas"></canvas>
+      <div class="live-flow-box"></div>
+      <canvas class="draw-canvas"></canvas>
+      <button class="auto-scale-btn">A</button>
+      <div class="chart-container"></div>
     `;
     inst.chartEl = inst.cell.querySelector('.chart-container');
     inst.overlayCanvas = inst.cell.querySelector('.overlay-canvas');
@@ -1018,9 +852,6 @@ function createChartInstance(cell, asset, interval, index) {
     inst.autoScaleBtn = inst.cell.querySelector('.auto-scale-btn');
     inst.legendEl = inst.cell.querySelector('.chart-legend');
     inst.priceTagEl = inst.cell.querySelector('.chart-price-tag');
-    inst.cyclePaneEl = inst.cell.querySelector('.cycle-pane');
-    inst.cycleChartEl = inst.cell.querySelector('.cycle-chart-container');
-    inst.cycleDiagEl = inst.cell.querySelector('.cycle-diag');
 
     inst.autoScaleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1070,60 +901,6 @@ function createChartInstance(cell, asset, interval, index) {
         color:'#ffb020', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false, lineStyle: LightweightCharts.LineStyle.Dotted, 
         autoscaleInfoProvider: () => null
     });
-
-    inst.cycleChart = LightweightCharts.createChart(inst.cycleChartEl, {
-      layout: { background:{type:'solid', color:'transparent'}, textColor:'#5f7387', fontFamily:"'JetBrains Mono', monospace", fontSize:9 },
-      grid: { vertLines:{color:'#101820'}, horzLines:{color:'#101820'} },
-      crosshair: { mode:LightweightCharts.CrosshairMode.Normal, vertLine:{color:'rgba(0,229,255,.4)',width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:'#00e5ff'}, horzLine:{color:'rgba(0,229,255,.25)',width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:'#00e5ff'} },
-      rightPriceScale: { borderColor:'#1c2733' },
-      timeScale: {
-        borderColor:'#1c2733', timeVisible:true, secondsVisible:false,
-        tickMarkFormatter: (time, tickMarkType) => {
-          const date = new Date(time * 1000);
-          if (tickMarkType === LightweightCharts.TickMarkType.Year) return date.toLocaleDateString('es-CL', { timeZone: TZ, year: 'numeric' });
-          if (tickMarkType === LightweightCharts.TickMarkType.Month) return date.toLocaleDateString('es-CL', { timeZone: TZ, month: 'short' });
-          if (tickMarkType === LightweightCharts.TickMarkType.DayOfMonth) return date.toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' });
-          return date.toLocaleTimeString('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false });
-        }
-      },
-      localization: {
-        timeFormatter: (timestamp) => new Date(timestamp * 1000).toLocaleTimeString('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-      },
-      width: inst.cycleChartEl.clientWidth,
-      height: inst.cycleChartEl.clientHeight
-    });
-
-    const cycleResizeObserver = new ResizeObserver(() => {
-      if (inst.cycleChartEl.clientWidth > 0 && inst.cycleChartEl.clientHeight > 0) {
-        inst.cycleChart.applyOptions({ width: inst.cycleChartEl.clientWidth, height: inst.cycleChartEl.clientHeight });
-      }
-    });
-    cycleResizeObserver.observe(inst.cycleChartEl);
-
-    inst.residualSeries = inst.cycleChart.addLineSeries({ color:'#00e5ff', lineWidth:1, priceLineVisible:false, lastValueVisible:true, title:'Residual' });
-    inst.residualSeries.createPriceLine({ price:0, color:'rgba(150,160,170,.45)', lineWidth:1, lineStyle:LightweightCharts.LineStyle.Solid, axisLabelVisible:false });
-    inst.bbUpperSeries = inst.cycleChart.addLineSeries({ color:'rgba(255,176,32,.55)', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
-    inst.bbLowerSeries = inst.cycleChart.addLineSeries({ color:'rgba(255,176,32,.55)', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
-    inst.ema1Series = inst.cycleChart.addLineSeries({ color:'#ffe066', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
-    inst.ema2Series = inst.cycleChart.addLineSeries({ color:'#4d7fff', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
-    inst.ema3Series = inst.cycleChart.addLineSeries({ color:'#ff5566', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
-    inst.forecastSeries = inst.cycleChart.addLineSeries({ color:'#ffb020', lineWidth:2, lineStyle:LightweightCharts.LineStyle.Dashed, priceLineVisible:false, lastValueVisible:false });
-
-    let syncingRange = false;
-    inst.chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
-      if (syncingRange || !range) return;
-      syncingRange = true;
-      try { inst.cycleChart.timeScale().setVisibleLogicalRange(range); } catch(e) {}
-      syncingRange = false;
-    });
-    inst.cycleChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
-      if (syncingRange || !range) return;
-      syncingRange = true;
-      try { inst.chart.timeScale().setVisibleLogicalRange(range); } catch(e) {}
-      syncingRange = false;
-    });
-
-    if (!globalState.indicators.cycle) inst.cyclePaneEl.classList.add('hidden');
 
     inst.chart.timeScale().subscribeVisibleTimeRangeChange(() => { inst.requestDraw(); inst.drawDrawCanvas(); });
     inst.chart.timeScale().subscribeVisibleLogicalRangeChange(range => { if (range && range.from < 5 && !inst.isLoadingHistory && !inst.noMoreHistory && inst.lastCandles.length > 0) inst.loadMoreHistory(); });
@@ -1235,7 +1012,7 @@ function createChartInstance(cell, asset, interval, index) {
       for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; data.candles.push({ time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }); data.vols.push({ time, value: q.volume[i] || 0, color: q.close[i] >= q.open[i] ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); }
     }
     inst.lastCandles = data.candles; inst.candleSeries.setData(data.candles); inst.volSeries.setData(data.vols);
-    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator(); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
+    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
     if(data.candles.length){ inst.lastPrice = data.candles[data.candles.length-1].close; inst.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null; inst.lastCandleTime = data.candles[data.candles.length-1].time; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = data.candles[data.candles.length-1].high; inst.currentCandleLow = data.candles[data.candles.length-1].low; inst.bucketSize = computeBucketSize(inst); inst.updatePriceDisplay(inst.lastPrice, null); }
     inst.status = 'live'; updateStatusPill(); inst.requestDraw();
   };
@@ -1256,7 +1033,7 @@ function createChartInstance(cell, asset, interval, index) {
         data = { candles: [], vols: [] };
         for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; data.candles.push({ time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }); data.vols.push({ time, value: q.volume[i] || 0, color: q.close[i] >= q.open[i] ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); }
       }
-      if (data.candles.length > 0) { const range = inst.chart.timeScale().getVisibleLogicalRange(); inst.lastCandles = [...data.candles, ...inst.lastCandles]; inst.candleSeries.setData(inst.lastCandles); inst.volSeries.setData([...data.vols, ...inst.volSeries.data()]); if (range) inst.chart.timeScale().setVisibleLogicalRange({ from: range.from + data.candles.length, to: range.to + data.candles.length }); inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator(); }
+      if (data.candles.length > 0) { const range = inst.chart.timeScale().getVisibleLogicalRange(); inst.lastCandles = [...data.candles, ...inst.lastCandles]; inst.candleSeries.setData(inst.lastCandles); inst.volSeries.setData([...data.vols, ...inst.volSeries.data()]); if (range) inst.chart.timeScale().setVisibleLogicalRange({ from: range.from + data.candles.length, to: range.to + data.candles.length }); inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); }
       else { inst.noMoreHistory = true; }
     } catch(e) { console.error(e); inst.noMoreHistory = true; } finally { inst.isLoadingHistory = false; }
   };
@@ -1264,19 +1041,19 @@ function createChartInstance(cell, asset, interval, index) {
   inst.connectBinanceWS = function() {
     const wsUrl = `wss://stream.binance.com:9443/stream?streams=${inst.symbol.toLowerCase()}@kline_${inst.interval}/${inst.symbol.toLowerCase()}@aggTrade`;
     const ws = new WebSocket(wsUrl); inst.ws = ws;
-    ws.onopen = () => { if(!replayMode) { inst.status = 'live'; updateStatusPill(); } };
-    ws.onerror = () => { if(!replayMode) { inst.status = 'err'; updateStatusPill(); } };
-    ws.onclose = () => { if(!replayMode) { inst.status = 'err'; updateStatusPill(); setTimeout(() => { if(inst.asset.src === 'binance' && !replayMode) inst.connectBinanceWS(); }, 3000); } };
+    ws.onopen = () => { inst.status = 'live'; updateStatusPill(); };
+    ws.onerror = () => { inst.status = 'err'; updateStatusPill(); };
+    ws.onclose = () => { inst.status = 'err'; updateStatusPill(); setTimeout(() => { if(inst.asset.src === 'binance') inst.connectBinanceWS(); }, 3000); };
     ws.onmessage = (msg) => {
-      if(replayMode) return; // Ignore live updates during replay
       const res = JSON.parse(msg.data); const stream = res.stream; const data = res.data;
       if(stream.includes('@kline')) {
         const k = data.k; const candle = { time: Math.floor(k.t/1000), open: parseFloat(k.o)||0, high: parseFloat(k.h)||0, low: parseFloat(k.l)||0, close: parseFloat(k.c)||0, vol: parseFloat(k.v)||0 };
         inst.candleSeries.update(candle); inst.volSeries.update({ time: candle.time, value: parseFloat(k.v)||0, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' });
         if(inst.lastCandles.length){ const last = inst.lastCandles[inst.lastCandles.length-1]; if(last.time === candle.time){ last.close = candle.close; last.high = Math.max(last.high, candle.high); last.low = Math.min(last.low, candle.low); last.vol = candle.vol; } else { inst.lastCandles.push(candle); if(inst.lastCandles.length > 600) inst.lastCandles.shift(); } }
         inst.prevPrice = inst.lastPrice; inst.lastPrice = candle.close; inst.lastCandleTime = candle.time;
+        // k.T is the actual close time of this kline (ms epoch) — do NOT add another interval on top of it.
         inst.currentCandleCloseTime = k.T; inst.currentCandleHigh = candle.high; inst.currentCandleLow = candle.low;
-        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator(); }
+        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; inst.updateFractals(); inst.updateVpFractal(); }
         inst.updatePriceDisplay(candle.close, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst);
         inst.calcVWAP(k.x); 
         if(globalState.activeChartIndex === inst.index) updateSidebarFlow(); inst.requestDraw();
@@ -1293,14 +1070,13 @@ function createChartInstance(cell, asset, interval, index) {
 
   inst.startYahooPolling = function() {
     inst.pollTimer = setInterval(async () => {
-      if(replayMode) return;
       try {
         const yInt = inst.interval === '1h' ? '60m' : inst.interval === '1d' ? '1d' : inst.interval === '1w' ? '1wk' : (inst.interval === '4h' ? '60m' : inst.interval);
         const url = `https://corsproxy.io/?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${inst.symbol}?interval=${yInt}&range=1d`)}`;
         const res = await fetch(url); if(!res.ok) return; const d = await res.json(); const result = d.chart.result[0]; const ts = result.timestamp; const q = result.indicators.quote[0];
         for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; const candle = { time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }; inst.candleSeries.update(candle); inst.volSeries.update({ time, value: q.volume[i] || 0, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); if(inst.lastCandles.length){ const last = inst.lastCandles[inst.lastCandles.length-1]; if(last.time === time){ last.close = candle.close; last.high = Math.max(last.high, candle.high); last.low = Math.min(last.low, candle.low); last.vol = candle.vol; } else { inst.lastCandles.push(candle); if(inst.lastCandles.length > 600) inst.lastCandles.shift(); } } }
         inst.prevPrice = inst.lastPrice; inst.lastPrice = q.close[ts.length-1]; inst.lastCandleTime = ts[ts.length-1]; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = q.high[ts.length-1]; inst.currentCandleLow = q.low[ts.length-1];
-        inst.updatePriceDisplay(inst.lastPrice, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator();
+        inst.updatePriceDisplay(inst.lastPrice, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal();
       } catch(e){ console.error(e); }
     }, 10000);
   };
@@ -1311,7 +1087,8 @@ function createChartInstance(cell, asset, interval, index) {
     if(prev != null && prev !== price) { valEl.style.textShadow = price > prev ? '0 0 8px var(--green)' : '0 0 8px var(--magenta)'; setTimeout(() => valEl.style.textShadow = 'none', 300); }
     if(inst.candleSeries){ 
       if(inst.currentPriceLine) inst.candleSeries.removePriceLine(inst.currentPriceLine); 
-      inst.currentPriceLine = inst.candleSeries.createPriceLine({ price: price, color: 'rgba(0, 229, 255, 0.4)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: replayMode ? 'REPLAY' : '00:00' }); 
+      // Transparent Dashed Line
+      inst.currentPriceLine = inst.candleSeries.createPriceLine({ price: price, color: 'rgba(0, 229, 255, 0.4)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: '00:00' }); 
     }
   };
 
@@ -1370,6 +1147,9 @@ function createChartInstance(cell, asset, interval, index) {
     }
   };
 
+  // Detecta puntos fractales (techos y pisos) sobre un set de velas dado.
+  // Un techo es una vela cuyo máximo supera al de TODAS las velas en [i-back, i+fwd] (menos ella misma).
+  // Un piso es análogo pero con mínimos. Devuelve listas ordenadas por tiempo ascendente.
   inst.computeFractalPoints = function(back, fwd, candles) {
     candles = candles || inst.lastCandles;
     const highs = [], lows = [];
@@ -1388,6 +1168,8 @@ function createChartInstance(cell, asset, interval, index) {
     return { highs, lows };
   };
 
+  // Combina los markers de los distintos indicadores (Fractales + VP Fractal) en una sola
+  // llamada a setMarkers, ya que la serie solo admite un set de markers a la vez.
   inst.syncMarkers = function() {
     if(!inst.candleSeries) return;
     let markers = [];
@@ -1410,6 +1192,9 @@ function createChartInstance(cell, asset, interval, index) {
     inst.syncMarkers();
   };
 
+  // Indicador combinado: detecta fractales (por defecto 40 atrás / 2 adelante) pero solo conserva
+  // el más reciente de cada lado (techo y piso). Cuando aparece uno nuevo del mismo lado, reemplaza
+  // al anterior. Entre esos dos puntos vigentes se dibuja un volume profile del tramo.
   inst.updateVpFractal = function() {
     if(!inst.candleSeries) return;
     if(!globalState.indicators.vpFractal || inst.lastCandles.length === 0) { inst.vpFractalMarkers = []; inst.vpFractalRange = null; inst.syncMarkers(); inst.requestDraw(); return; }
@@ -1427,174 +1212,8 @@ function createChartInstance(cell, asset, interval, index) {
     inst.requestDraw();
   };
 
-  inst.updateCycleIndicator = function() {
-    if (!inst.cycleChart) return;
-    const cfg = globalState.indicatorConfig.cycle;
-    const clearAll = () => {
-      inst.residualSeries.setData([]); inst.ema1Series.setData([]); inst.ema2Series.setData([]); inst.ema3Series.setData([]);
-      inst.bbUpperSeries.setData([]); inst.bbLowerSeries.setData([]); inst.forecastSeries.setData([]);
-      if (inst.cycleDiagEl) inst.cycleDiagEl.innerHTML = '';
-    };
-    if (!globalState.indicators.cycle) { clearAll(); return; }
-    const candles = inst.lastCandles;
-    if (!candles || candles.length < 30) {
-      clearAll();
-      if (inst.cycleDiagEl) inst.cycleDiagEl.innerHTML = `<div class="row"><span class="k">Estado</span><span>historial insuficiente</span></div>`;
-      return;
-    }
-
-    const closes = candles.map(c => c.close);
-    const times = candles.map(c => c.time);
-    const n = closes.length;
-
-    const back = cfg.leftBars, fwd = cfg.rightBars;
-    const { highs, lows } = inst.computeFractalPoints(back, fwd, candles);
-    const anchorPts = cfg.anchorType === 'H' ? highs : lows;
-    const anchors = anchorPts.map(p => p.index);
-
-    if (anchors.length < 2) {
-      clearAll();
-      if (inst.cycleDiagEl) inst.cycleDiagEl.innerHTML = `<div class="row"><span class="k">Estado</span><span>anclas insuficientes</span></div>`;
-      return;
-    }
-
-    const deltas = [];
-    for (let i = 0; i < anchors.length - 1; i++) deltas.push(anchors[i+1] - anchors[i]);
-    const Lnatural = Math.max(4, Math.round(medianOf(deltas)));
-    let L = cfg.manualL > 0 ? cfg.manualL : Lnatural;
-    L = Math.max(4, Math.min(300, L));
-
-    const cmaArr = calcSMA(closes, L);
-    const residual = closes.map((c, i) => c - cmaArr[i]);
-
-    const ema1 = calcEMA(residual, cfg.emaLens[0]);
-    const ema2 = calcEMA(residual, cfg.emaLens[1]);
-    const ema3 = calcEMA(residual, cfg.emaLens[2]);
-    const bbBasis = calcSMA(residual, cfg.bbLength);
-    const bbDev = calcSTDEV(residual, cfg.bbLength).map(v => v * cfg.bbMult);
-    const bbUpper = bbBasis.map((v, i) => v + bbDev[i]);
-    const bbLower = bbBasis.map((v, i) => v - bbDev[i]);
-
-    const halfL = Math.floor(L / 2), halfR = L - halfL;
-    const idealSum = new Array(L).fill(0), wCounts = new Array(L).fill(0);
-    const halflifeCycles = 6;
-    anchors.forEach((a, ai) => {
-      const w = Math.pow(0.5, (anchors.length - 1 - ai) / halflifeCycles);
-      for (let k = -halfL; k < halfR; k++) {
-        const pos = a + k;
-        if (pos >= 0 && pos < n) {
-          let slot = (k + halfL) % L; if (slot < 0) slot += L;
-          idealSum[slot] += residual[pos] * w;
-          wCounts[slot] += w;
-        }
-      }
-    });
-    let idealWave = idealSum.map((s, i) => wCounts[i] > 0 ? s / wCounts[i] : 0);
-    if (cfg.smoothW > 1) {
-      const sw = Math.floor(cfg.smoothW / 2);
-      const base = idealWave.slice();
-      idealWave = idealWave.map((_, k) => {
-        let sum = 0, cnt = 0;
-        for (let wi = -sw; wi <= sw; wi++) { let idx = (k + wi) % L; if (idx < 0) idx += L; sum += base[idx]; cnt++; }
-        return sum / cnt;
-      });
-    }
-
-    const recentWindow = Math.max(4, L);
-    const recentSlice = residual.slice(Math.max(0, n - recentWindow));
-    const recentMean = recentSlice.reduce((a, b) => a + b, 0) / recentSlice.length;
-    const recentVar = recentSlice.reduce((a, b) => a + (b - recentMean) * (b - recentMean), 0) / recentSlice.length;
-    const recentStdev = Math.sqrt(Math.max(recentVar, 0));
-    const idealMean = idealWave.reduce((a, b) => a + b, 0) / L;
-    const idealVar = idealWave.reduce((a, b) => a + (b - idealMean) * (b - idealMean), 0) / L;
-    const idealStdev = Math.sqrt(Math.max(idealVar, 0));
-    const naturalScale = idealStdev > 0.00001 ? recentStdev / idealStdev : 1;
-    idealWave = idealWave.map(v => v * naturalScale);
-
-    const lastAnchor = anchors[anchors.length - 1];
-    let bestShift = 0, bestErr = Infinity;
-    const lookback = Math.min(L, n - 1);
-    for (let sh = -2; sh <= 2; sh++) {
-      let err = 0;
-      for (let k = 0; k < lookback; k++) {
-        const idx = n - 1 - k;
-        let phase = (idx - lastAnchor - sh) % L; if (phase < 0) phase += L;
-        err += Math.abs(residual[idx] - idealWave[phase]);
-      }
-      if (err < bestErr) { bestErr = err; bestShift = sh; }
-    }
-
-    const tail = residual.slice(Math.max(0, n - 3));
-    const smoothResid = tail.reduce((a, b) => a + b, 0) / tail.length;
-    let phaseNow = (n - 1 - lastAnchor - bestShift) % L; if (phaseNow < 0) phaseNow += L;
-    const continuityOffset = smoothResid - idealWave[phaseNow];
-
-    let cvPct = null;
-    if (deltas.length >= 2) {
-      const meanD = deltas.reduce((a, b) => a + b, 0) / deltas.length;
-      const varD = deltas.reduce((a, b) => a + (b - meanD) * (b - meanD), 0) / deltas.length;
-      const stdD = Math.sqrt(varD);
-      if (meanD > 0) cvPct = (stdD / meanD) * 100;
-    }
-    let corrSum = 0, corrCnt = 0;
-    anchors.forEach(a => {
-      let s1 = 0, s2 = 0, s11 = 0, s22 = 0, s12 = 0, cnt = 0;
-      for (let k = -halfL; k < halfR; k++) {
-        const pos = a + k;
-        if (pos >= 0 && pos < n) {
-          let slot = (k + halfL) % L; if (slot < 0) slot += L;
-          const v1 = residual[pos], v2 = idealWave[slot];
-          s1 += v1; s2 += v2; s11 += v1*v1; s22 += v2*v2; s12 += v1*v2; cnt++;
-        }
-      }
-      if (cnt > 5) {
-        const m1 = s1/cnt, m2 = s2/cnt;
-        const cov = s12/cnt - m1*m2;
-        const var1 = s11/cnt - m1*m1, var2 = s22/cnt - m2*m2;
-        const denom = Math.sqrt(var1*var2);
-        if (denom > 1e-9) { corrSum += cov/denom; corrCnt++; }
-      }
-    });
-    const waveConsistencyPct = corrCnt > 0 ? (corrSum/corrCnt) * 100 : null;
-    const cvScore = cvPct != null ? Math.max(0, 100 - cvPct) : null;
-    const waveScore = waveConsistencyPct != null ? Math.max(0, waveConsistencyPct) : null;
-    let healthScore = null;
-    if (cvScore != null && waveScore != null) healthScore = cvScore*0.5 + waveScore*0.5;
-    else if (cvScore != null) healthScore = cvScore;
-    else if (waveScore != null) healthScore = waveScore;
-
-    const toPoints = (arr) => { const out = []; for (let i=0;i<arr.length;i++) if (isFinite(arr[i])) out.push({ time: times[i], value: arr[i] }); return out; };
-    inst.residualSeries.setData(toPoints(residual));
-    inst.ema1Series.setData(toPoints(ema1));
-    inst.ema2Series.setData(toPoints(ema2));
-    inst.ema3Series.setData(toPoints(ema3));
-    inst.bbUpperSeries.setData(toPoints(bbUpper));
-    inst.bbLowerSeries.setData(toPoints(bbLower));
-
-    const lastTime = times[n-1];
-    const intervalSec = (INTERVAL_MS[inst.interval] || 60000) / 1000;
-    const hideForecast = healthScore != null && healthScore < 30;
-    const forecastPts = [{ time: lastTime, value: residual[n-1] }];
-    if (!hideForecast) {
-      for (let k = 1; k <= cfg.forecastBars; k++) {
-        const targetIdx = n - 1 + k;
-        let phase = (targetIdx - lastAnchor - bestShift) % L; if (phase < 0) phase += L;
-        forecastPts.push({ time: lastTime + k*intervalSec, value: idealWave[phase] + continuityOffset });
-      }
-    }
-    inst.forecastSeries.setData(hideForecast ? [] : forecastPts);
-
-    if (inst.cycleDiagEl) {
-      const healthColor = healthScore == null ? 'var(--muted)' : (healthScore >= 70 ? 'var(--green)' : healthScore >= 40 ? 'var(--amber)' : 'var(--magenta)');
-      inst.cycleDiagEl.innerHTML = `
-        <div class="row"><span class="k">L</span><span>${L}${cfg.manualL > 0 ? ' (manual)' : ' (auto)'}</span></div>
-        <div class="row"><span class="k">Anclas</span><span>${anchors.length}</span></div>
-        <div class="row"><span class="k">Salud</span><span style="color:${healthColor};">${healthScore == null ? 'n/d' : healthScore.toFixed(0) + '%'}</span></div>
-        ${hideForecast ? '<div class="row"><span class="k">Forecast</span><span style="color:var(--magenta);">oculto</span></div>' : ''}
-      `;
-    }
-  };
-
+  // Calcula un volume profile (histograma de volumen por nivel de precio) para las velas
+  // comprendidas en un rango de tiempo [fromTime, toTime]. rows = cantidad de filas/niveles.
   inst.computeVolumeProfileForRange = function(fromTime, toTime, rows) {
     if(!inst.lastCandles.length) return null;
     const candles = inst.lastCandles.filter(c => c.time >= fromTime && c.time <= toTime);
@@ -1624,6 +1243,7 @@ function createChartInstance(cell, asset, interval, index) {
     return inst.computeVolumeProfileForRange(range.from, range.to, globalState.indicatorConfig.vp.rows || 24);
   };
 
+  // Volume Profile de rango visible — barras ancladas al borde DERECHO del gráfico.
   inst.drawVolumeProfile = function(ctx, canvas) {
     const vp = inst.computeVisibleVolumeProfile();
     if(!vp) return;
@@ -1661,6 +1281,8 @@ function createChartInstance(cell, asset, interval, index) {
     }
   };
 
+  // VP Fractal — volume profile confinado al tramo horizontal entre el último fractal de techo
+  // y el último de piso, mostrando cómo se distribuyó el volumen "entre tramos".
   inst.drawVpFractalProfile = function(ctx, canvas) {
     if(!globalState.indicators.vpFractal || !inst.vpFractalRange) return;
     const { top, bottom } = inst.vpFractalRange;
@@ -1725,7 +1347,7 @@ function createChartInstance(cell, asset, interval, index) {
 
   inst.updateFlowBox = function() {
     const box = inst.flowBoxEl;
-    if(!globalState.indicators.flow || inst.asset.src !== 'binance' || !inst.lastCandles.length || replayMode) {
+    if(!globalState.indicators.flow || inst.asset.src !== 'binance' || !inst.lastCandles.length) {
       box.style.display = 'none';
       return;
     }
@@ -1754,15 +1376,17 @@ function createChartInstance(cell, asset, interval, index) {
 
     const boxTop = Math.min(highCoord, lowCoord);
     const boxHeight = Math.abs(lowCoord - highCoord);
+    // Necesitamos al menos ~6px por nivel para que se pueda distinguir uno de otro
     if (boxHeight < 6) { box.style.display = 'none'; return; }
 
-    levels.sort((a, b) => b.price - a.price);
+    levels.sort((a, b) => b.price - a.price); // de mayor a menor precio, de arriba hacia abajo
     const maxTotal = Math.max(...levels.map(l => l.total), 0.000001);
     const MAX_BAR_PX = 34;
     
     let html = '';
     levels.forEach(l => {
       const isPoc = l.total === maxTotal && l.total > 0;
+      // El nivel ocupa el tramo de precio [price, price + bucketSize)
       const yTop = inst.candleSeries.priceToCoordinate(l.price + inst.bucketSize);
       const yBottom = inst.candleSeries.priceToCoordinate(l.price);
       if(yTop === null || yBottom === null) return;
@@ -1831,29 +1455,15 @@ function createChartInstance(cell, asset, interval, index) {
 
 function updateStatusPill() {
   const inst = globalState.instances[globalState.activeChartIndex]; if(!inst) return;
-  const pill = document.getElementById('statusPill'); pill.classList.remove('live','err','conn','paused');
-  if(replayMode) {
-    pill.classList.add('paused');
-    document.getElementById('statusText').textContent = 'REPLAY';
-  } else {
-    if(inst.status === 'live') pill.classList.add('live');
-    else if(inst.status === 'err') pill.classList.add('err');
-    else if(inst.status === 'conn') pill.classList.add('conn');
-    document.getElementById('statusText').textContent = inst.status.toUpperCase();
-  }
+  const pill = document.getElementById('statusPill'); pill.classList.remove('live','err','conn');
+  if(inst.status === 'live') pill.classList.add('live');
+  else if(inst.status === 'err') pill.classList.add('err');
+  else if(inst.status === 'conn') pill.classList.add('conn');
+  document.getElementById('statusText').textContent = inst.status.toUpperCase();
 }
 
 function updateSidebarFlow() {
   const inst = globalState.instances[globalState.activeChartIndex]; if(!inst) return;
-  if(replayMode) {
-    document.getElementById('ofBuyBar').style.width = '50%';
-    document.getElementById('ofSellBar').style.width = '50%';
-    document.getElementById('ofBuyBar').textContent = 'N/A';
-    document.getElementById('ofSellBar').textContent = 'N/A';
-    document.getElementById('ofBuyVol').textContent = '0.00';
-    document.getElementById('ofSellVol').textContent = '0.00';
-    return;
-  }
   const total = inst.liveBuyVol + inst.liveSellVol;
   let buyPct = 50, sellPct = 50;
   if(total > 0){ buyPct = (inst.liveBuyVol / total) * 100; sellPct = (inst.liveSellVol / total) * 100; }
@@ -1941,86 +1551,6 @@ function showToast(title, msg, type) {
 
 function fmt(p) { if(p == null || isNaN(p)) return '--'; if(p >= 1000) return p.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); if(p >= 1) return p.toFixed(4); if(p >= 0.01) return p.toFixed(5); return p.toFixed(8); }
 function fmtNum(n) { if(n >= 1e12) return (n/1e12).toFixed(2) + 'T'; if(n >= 1e9) return (n/1e9).toFixed(2) + 'B'; if(n >= 1e6) return (n/1e6).toFixed(2) + 'M'; if(n >= 1e3) return (n/1e3).toFixed(2) + 'K'; return n.toFixed(2); }
-
-// ============================================================
-// LÓGICA DE BACKTESTING (REPLAY)
-// ============================================================
-let replayMode = false;
-let replayIndex = 0;
-let replayTotal = 0;
-let replayIntervalId = null;
-
-function toggleReplayMode(startMode) {
-  const inst = globalState.instances[globalState.activeChartIndex];
-  if (!inst || !inst.lastCandles.length) return;
-
-  if (startMode) {
-    replayMode = true;
-    if (replayIntervalId) { clearInterval(replayIntervalId); replayIntervalId = null; document.getElementById('rpPlay').innerHTML = '▶ Play'; }
-    
-    // Pausar WebSocket/Polling temporalmente
-    if (inst.ws) { try { inst.ws.onclose = null; inst.ws.close(); } catch(e){} inst.ws = null; }
-    if (inst.pollTimer) { clearInterval(inst.pollTimer); inst.pollTimer = null; }
-    updateStatusPill();
-
-    replayTotal = inst.lastCandles.length;
-    replayIndex = Math.max(10, replayTotal - 100);
-    
-    inst.candleSeries.setData(inst.lastCandles.slice(0, replayIndex));
-    inst.volSeries.setData(inst.lastCandles.slice(0, replayIndex).map(c => ({ time: c.time, value: c.vol, color: c.close >= c.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' })));
-    
-    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator();
-    inst.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, replayIndex - 50), to: replayIndex + 5 });
-    document.getElementById('replayInfo').textContent = `Vela: ${replayIndex} / ${replayTotal}`;
-    showToast("Modo Backtesting", "Replay iniciado. Usa los controles.", "alarm");
-  } else {
-    if (replayIntervalId) { clearInterval(replayIntervalId); replayIntervalId = null; document.getElementById('rpPlay').innerHTML = '▶ Play'; }
-    replayMode = false;
-    inst.candleSeries.setData(inst.lastCandles);
-    inst.volSeries.setData(inst.lastCandles.map(c => ({ time: c.time, value: c.vol, color: c.close >= c.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' })));
-    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator();
-    inst.chart.timeScale().fitContent();
-    document.getElementById('replayInfo').textContent = `Modo Tiempo Real`;
-    // Reconectar
-    inst.switchMarket(inst.interval);
-    showToast("Modo Tiempo Real", "Reanudando conexión en vivo.", "alarm");
-  }
-}
-
-function stepReplay(steps = 1) {
-  const inst = globalState.instances[globalState.activeChartIndex];
-  if (!inst || !replayMode) return;
-
-  replayIndex += steps;
-  if (replayIndex >= replayTotal) {
-    toggleReplayMode(false);
-    showToast("Backtesting finalizado", "Se ha alcanzado el tiempo real actual.", "alarm");
-    return;
-  }
-  if (replayIndex < 0) replayIndex = 0;
-
-  const candle = inst.lastCandles[replayIndex];
-  inst.candleSeries.update(candle);
-  inst.volSeries.update({ time: candle.time, value: candle.vol, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' });
-  
-  inst.prevPrice = inst.lastPrice;
-  inst.lastPrice = candle.close;
-  inst.lastCandleTime = candle.time;
-  inst.currentCandleHigh = candle.high;
-  inst.currentCandleLow = candle.low;
-  
-  inst.updateSMA(); inst.calcVWAP(false); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator();
-  inst.updatePriceDisplay(candle.close, inst.prevPrice);
-  
-  if(inst.prevPrice !== null) checkAlarms(inst);
-
-  document.getElementById('replayInfo').textContent = `Vela: ${replayIndex} / ${replayTotal}`;
-  
-  const range = inst.chart.timeScale().getVisibleLogicalRange();
-  if (range && range.to < replayIndex + 2) {
-    inst.chart.timeScale().scrollToPosition(replayIndex, false);
-  }
-}
 </script>
 </body>
 </html>
