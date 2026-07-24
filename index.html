@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Orderflow y Alertas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            text-align: center;
+            padding: 40px;
+        }
+        .container {
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-width: 400px;
+            width: 100%;
+        }
+        #price {
+            font-size: 42px;
+            font-weight: bold;
+            color: #38bdf8;
+            margin: 15px 0;
+        }
+        input, button {
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            width: 90%;
+        }
+        input {
+            background-color: #334155;
+            color: #fff;
+            text-align: center;
+        }
+        button {
+            background-color: #10b981;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #059669;
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        .alert-triggered {
+            color: #f43f5e !important;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Monitor BTC / USDT</h2>
+        <div id="price">Conectando...</div>
+        
+        <div>
+            <label for="targetPrice">Meta de Precio para Alerta:</label><br>
+            <input type="number" id="targetPrice" placeholder="Ej: 95000">
+            <br>
+            <button onclick="activarAlerta()">Fijar Meta</button>
+        </div>
+        
+        <div id="status">Sin alerta configurada</div>
+    </div>
+
+    <script>
+        let metaPrecio = null;
+        let alertaSonada = false;
+
+        function activarAlerta() {
+            const inputVal = document.getElementById('targetPrice').value;
+            if (!inputVal) return;
+            
+            metaPrecio = parseFloat(inputVal);
+            alertaSonada = false;
+            document.getElementById('status').innerText = "✅ Alerta activa en: $" + metaPrecio;
+            document.getElementById('status').style.color = "#38bdf8";
+        }
+
+        // Conexión en tiempo real con el WebSocket público de Binance
+        const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const precioActual = parseFloat(data.p);
+
+            // Actualizar interfaz visual
+            const priceElement = document.getElementById('price');
+            priceElement.innerText = "$" + precioActual.toLocaleString('en-US', {minimumFractionDigits: 2});
+
+            // Verificar si se alcanzó la meta
+            if (metaPrecio !== null && !alertaSonada) {
+                if (precioActual >= metaPrecio) {
+                    alertaSonada = true;
+                    document.getElementById('status').innerText = "🚨 ¡META ALCANZADA! Precio: $" + precioActual;
+                    document.getElementById('status').className = "alert-triggered";
+                    
+                    // Alerta nativa del navegador y sonido opcional
+                    alert("¡Alerta! El precio alcanzó tu meta: $" + precioActual);
+                }
+            }
+        };
+
+        ws.onerror = function(error) {
+            document.getElementById('price').innerText = "Error de conexión";
+        };
+    </script>
+
+</body>
+</html>
