@@ -197,6 +197,34 @@
   .bt-res-stat .v.pos{color:var(--green);}
   .bt-res-stat .v.neg{color:var(--magenta);}
 
+  .btn-secondary{background:var(--panel-2);border:1px solid var(--border-strong);color:var(--text);font-weight:700;font-family:inherit;font-size:10px;padding:8px;border-radius:5px;cursor:pointer;transition:.15s;letter-spacing:1px;text-transform:uppercase;width:100%;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .btn-secondary:hover{border-color:var(--cyan);color:var(--cyan);}
+  .btn-secondary:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-secondary:disabled:hover{border-color:var(--border-strong);color:var(--text);}
+
+  #btWindow{position:fixed;top:70px;right:60px;width:560px;max-width:calc(100vw - 40px);background:#0b1119;border:1px solid var(--border-strong);border-radius:10px;box-shadow:0 24px 60px rgba(0,0,0,.65),0 0 0 1px rgba(255,176,32,.08);z-index:400;display:none;flex-direction:column;overflow:hidden;}
+  #btWindow.show{display:flex;}
+  #btWindow.dragging{opacity:.92;}
+  #btWinHeader{display:flex;align-items:center;gap:8px;padding:10px 12px;background:linear-gradient(180deg,#111a25,#0c141c);border-bottom:1px solid var(--border);cursor:grab;user-select:none;}
+  #btWinHeader:active{cursor:grabbing;}
+  #btWinHeader .ttl{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--amber);display:flex;align-items:center;gap:7px;}
+  #btWinHeader .sub{font-size:9px;color:var(--muted);margin-left:2px;}
+  #btWinClose{margin-left:auto;background:var(--panel-2);border:1px solid var(--border);color:var(--muted);width:24px;height:24px;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s;font-size:13px;line-height:1;}
+  #btWinClose:hover{color:var(--magenta);border-color:var(--magenta);background:rgba(255,46,136,.08);}
+  #btWinBody{padding:14px;overflow-y:auto;max-height:70vh;}
+  .btw-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:10px;}
+  .btw-stat{background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:9px 10px;}
+  .btw-stat .k{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
+  .btw-stat .v{font-family:'Orbitron',sans-serif;font-weight:700;font-size:14px;margin-top:3px;}
+  .btw-stat .v.pos{color:var(--green);}
+  .btw-stat .v.neg{color:var(--magenta);}
+  .btw-stat .v.neutral{color:var(--cyan);}
+  .btw-chart-wrap{background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-top:4px;}
+  .btw-chart-title{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:flex;justify-content:space-between;}
+  .btw-chart-title span.hl{color:var(--amber);}
+  #btEquityCanvas{width:100%;height:180px;display:block;}
+  .btw-foot{font-size:9px;color:var(--muted);line-height:1.4;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
+
   .field{background:var(--panel-2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:10px;padding:8px 9px;border-radius:5px;outline:none;width:100%;transition:.12s;}
   .field:focus{border-color:var(--cyan);background:rgba(0,229,255,.03);}
   .field::placeholder{color:var(--muted);}
@@ -264,6 +292,38 @@
 
 <div id="flash"></div>
 <div id="toast"><div class="t-title" id="toastTitle">--</div><div class="t-msg" id="toastMsg">--</div></div>
+
+<div id="btWindow">
+  <div id="btWinHeader">
+    <span class="ttl">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 3 5-8"/></svg>
+      RESULTADOS BACKTEST
+    </span>
+    <span class="sub" id="btWinSubtitle"></span>
+    <button type="button" id="btWinClose" title="Cerrar">✕</button>
+  </div>
+  <div id="btWinBody">
+    <div class="btw-grid">
+      <div class="btw-stat"><div class="k">Profit Neto</div><div class="v" id="btwNetProfit">--</div></div>
+      <div class="btw-stat"><div class="k">Retorno %</div><div class="v" id="btwReturn">--</div></div>
+      <div class="btw-stat"><div class="k">Profit Factor</div><div class="v" id="btwProfitFactor">--</div></div>
+      <div class="btw-stat"><div class="k">Máx Drawdown</div><div class="v" id="btwMaxDD">--</div></div>
+      <div class="btw-stat"><div class="k">Trades</div><div class="v neutral" id="btwTrades">--</div></div>
+      <div class="btw-stat"><div class="k">Win Rate</div><div class="v neutral" id="btwWinRate">--</div></div>
+      <div class="btw-stat"><div class="k">Ganancia Prom.</div><div class="v pos" id="btwAvgWin">--</div></div>
+      <div class="btw-stat"><div class="k">Pérdida Prom.</div><div class="v neg" id="btwAvgLoss">--</div></div>
+      <div class="btw-stat"><div class="k">Máx Ganancia</div><div class="v pos" id="btwMaxWin">--</div></div>
+      <div class="btw-stat"><div class="k">Máx Pérdida</div><div class="v neg" id="btwMaxLoss">--</div></div>
+      <div class="btw-stat"><div class="k">Racha Pérdidas</div><div class="v neg" id="btwMaxLossStreak">--</div></div>
+      <div class="btw-stat"><div class="k">Equity Final</div><div class="v neutral" id="btwFinalEquity">--</div></div>
+    </div>
+    <div class="btw-chart-wrap">
+      <div class="btw-chart-title"><span>Curva de Equity</span><span class="hl" id="btwEquityRange"></span></div>
+      <canvas id="btEquityCanvas"></canvas>
+    </div>
+    <div class="btw-foot">Simulación educativa sobre velas históricas ya cargadas (no incluye slippage, comisiones ni ejecución real). No es garantía de resultados futuros.</div>
+  </div>
+</div>
 
 <div id="drawToolbar">
   <div class="drag-handle" id="dragHandle"></div>
@@ -600,6 +660,10 @@
           </div>
 
           <button type="button" class="btn-primary amber" id="runBacktestBtn" style="margin-top:12px;">Ejecutar Backtest</button>
+          <button type="button" class="btn-secondary" id="toggleBtWindowBtn" disabled>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            Ver Resultados
+          </button>
 
           <div class="bt-results" id="btResults">
             <div class="bt-res-grid">
@@ -680,7 +744,8 @@ const globalState = {
   audioCtx: null,
   activeChartIndex: 0,
   instances: [],
-  selectedItem: null 
+  selectedItem: null,
+  btLastResults: null
 };
 
 function saveAlarms(){ try { localStorage.setItem('cycle_terminal_alarms_v4', JSON.stringify(globalState.alarms)); } catch(e){} }
@@ -892,6 +957,39 @@ function initApp() {
     });
   });
   document.getElementById('runBacktestBtn').addEventListener('click', runBacktest);
+
+  // Ventana flotante de resultados: toggle, cerrar y arrastrar
+  const btWindow = document.getElementById('btWindow');
+  const btWinHeader = document.getElementById('btWinHeader');
+  document.getElementById('toggleBtWindowBtn').addEventListener('click', () => {
+    if (!globalState.btLastResults) return;
+    if (btWindow.classList.contains('show')) closeBtWindow();
+    else { renderBtWindow(); openBtWindow(); }
+  });
+  document.getElementById('btWinClose').addEventListener('click', closeBtWindow);
+
+  let btDragging = false, btOffsetX = 0, btOffsetY = 0;
+  btWinHeader.addEventListener('mousedown', (e) => {
+    if (e.target.id === 'btWinClose') return;
+    btDragging = true;
+    const rect = btWindow.getBoundingClientRect();
+    btOffsetX = e.clientX - rect.left; btOffsetY = e.clientY - rect.top;
+    btWindow.classList.add('dragging');
+    btWindow.style.right = 'auto';
+    btWindow.style.left = rect.left + 'px';
+    btWindow.style.top = rect.top + 'px';
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!btDragging) return;
+    let newLeft = e.clientX - btOffsetX;
+    let newTop = e.clientY - btOffsetY;
+    newLeft = Math.max(0, Math.min(window.innerWidth - 60, newLeft));
+    newTop = Math.max(0, Math.min(window.innerHeight - 40, newTop));
+    btWindow.style.left = newLeft + 'px';
+    btWindow.style.top = newTop + 'px';
+  });
+  window.addEventListener('mouseup', () => { if (btDragging) { btDragging = false; btWindow.classList.remove('dragging'); } });
+  window.addEventListener('resize', () => { if (btWindow.classList.contains('show') && globalState.btLastResults) drawEquityCurve(globalState.btLastResults.equityCurve, globalState.btLastResults.wallet); });
 
   window.addEventListener('keydown', (e) => {
     if(e.altKey && e.key.toLowerCase() === 'a') {
@@ -1997,6 +2095,13 @@ function runBacktest() {
   let position = null; // {dir, entry, stop, target, riskAmt}
   let dailyPnl = 0, curDayKey = null, dailyLossHit = false;
 
+  // Trackers para las métricas extendidas
+  const tradePnls = [];
+  const equityCurve = [{ time: candles[Math.max(adxPeriod*2+2, 30)] ? candles[Math.max(adxPeriod*2+2, 30)].time : candles[0].time, value: equity }];
+  let grossProfit = 0, grossLoss = 0;
+  let maxWin = 0, maxLoss = 0;
+  let curLossStreak = 0, maxLossStreak = 0;
+
   for (let i = Math.max(adxPeriod*2+2, 30); i < candles.length; i++) {
     const c = candles[i];
     const d = dayKey(c.time);
@@ -2018,6 +2123,12 @@ function runBacktest() {
         trades++; if (pnl > 0) wins++;
         peakEquity = Math.max(peakEquity, equity);
         maxDD = Math.max(maxDD, (peakEquity - equity) / peakEquity * 100);
+
+        tradePnls.push(pnl);
+        equityCurve.push({ time: c.time, value: equity });
+        if (pnl > 0) { grossProfit += pnl; if (pnl > maxWin) maxWin = pnl; curLossStreak = 0; }
+        else { grossLoss += Math.abs(pnl); if (Math.abs(pnl) > maxLoss) maxLoss = Math.abs(pnl); curLossStreak++; if (curLossStreak > maxLossStreak) maxLossStreak = curLossStreak; }
+
         position = null;
       }
     }
@@ -2054,15 +2165,148 @@ function runBacktest() {
 
   const totalReturnPct = ((equity - wallet) / wallet) * 100;
   const winRate = trades > 0 ? (wins / trades) * 100 : 0;
+  const netProfit = equity - wallet;
+  const losses = trades - wins;
+  const avgWin = wins > 0 ? grossProfit / wins : 0;
+  const avgLoss = losses > 0 ? grossLoss / losses : 0;
+  const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : (grossProfit > 0 ? Infinity : 0);
 
   document.getElementById('btResTrades').textContent = trades;
   document.getElementById('btResWinRate').textContent = winRate.toFixed(1) + '%';
   const retEl = document.getElementById('btResReturn'); retEl.textContent = (totalReturnPct >= 0 ? '+' : '') + totalReturnPct.toFixed(2) + '%'; retEl.className = 'v ' + (totalReturnPct >= 0 ? 'pos' : 'neg');
   document.getElementById('btResDD').textContent = '-' + maxDD.toFixed(2) + '%';
   document.getElementById('btResults').classList.add('show');
+
+  globalState.btLastResults = {
+    wallet, equity, netProfit, totalReturnPct, profitFactor, maxDD, trades, wins, losses, winRate,
+    avgWin, avgLoss, maxWin, maxLoss, maxLossStreak, equityCurve, assetName: inst.asset.name, candleCount: candles.length
+  };
+  const toggleBtn = document.getElementById('toggleBtWindowBtn');
+  toggleBtn.disabled = false;
+
+  renderBtWindow();
+  openBtWindow();
+
   showToast('Backtest completo', `${trades} operaciones sobre ${candles.length} velas cargadas de ${inst.asset.name}`, 'success');
 }
 window.runBacktest = runBacktest;
+
+function fmtMoney(n) {
+  if (n == null || isNaN(n)) return '--';
+  const sign = n < 0 ? '-' : '';
+  const abs = Math.abs(n);
+  return sign + '$' + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function renderBtWindow() {
+  const r = globalState.btLastResults;
+  if (!r) return;
+
+  document.getElementById('btWinSubtitle').textContent = `${r.assetName} · ${r.trades} trades · ${r.candleCount} velas`;
+
+  const netEl = document.getElementById('btwNetProfit');
+  netEl.textContent = fmtMoney(r.netProfit); netEl.className = 'v ' + (r.netProfit >= 0 ? 'pos' : 'neg');
+
+  const retEl = document.getElementById('btwReturn');
+  retEl.textContent = (r.totalReturnPct >= 0 ? '+' : '') + r.totalReturnPct.toFixed(2) + '%'; retEl.className = 'v ' + (r.totalReturnPct >= 0 ? 'pos' : 'neg');
+
+  const pfEl = document.getElementById('btwProfitFactor');
+  pfEl.textContent = r.profitFactor === Infinity ? '∞' : r.profitFactor.toFixed(2); pfEl.className = 'v ' + (r.profitFactor >= 1 ? 'pos' : 'neg');
+
+  document.getElementById('btwMaxDD').textContent = '-' + r.maxDD.toFixed(2) + '%';
+  document.getElementById('btwTrades').textContent = r.trades;
+  document.getElementById('btwWinRate').textContent = r.winRate.toFixed(1) + '%';
+  document.getElementById('btwAvgWin').textContent = fmtMoney(r.avgWin);
+  document.getElementById('btwAvgLoss').textContent = fmtMoney(-r.avgLoss);
+  document.getElementById('btwMaxWin').textContent = fmtMoney(r.maxWin);
+  document.getElementById('btwMaxLoss').textContent = fmtMoney(-r.maxLoss);
+  document.getElementById('btwMaxLossStreak').textContent = r.maxLossStreak;
+  document.getElementById('btwFinalEquity').textContent = fmtMoney(r.equity);
+
+  const rangeEl = document.getElementById('btwEquityRange');
+  rangeEl.textContent = `${fmtMoney(r.wallet)} → ${fmtMoney(r.equity)}`;
+
+  drawEquityCurve(r.equityCurve, r.wallet);
+}
+
+function drawEquityCurve(curve, startEquity) {
+  const canvas = document.getElementById('btEquityCanvas');
+  const wrap = canvas.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+  const w = wrap.clientWidth - 20;
+  const h = 180;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  if (!curve || curve.length < 2) {
+    ctx.fillStyle = '#5f7387';
+    ctx.font = "10px 'JetBrains Mono', monospace";
+    ctx.fillText('Sin operaciones suficientes para graficar la curva', 10, h / 2);
+    return;
+  }
+
+  const values = curve.map(p => p.value);
+  let minV = Math.min(...values, startEquity), maxV = Math.max(...values, startEquity);
+  if (minV === maxV) { minV -= 1; maxV += 1; }
+  const pad = (maxV - minV) * 0.08;
+  minV -= pad; maxV += pad;
+
+  const marginL = 4, marginR = 4, marginT = 6, marginB = 16;
+  const plotW = w - marginL - marginR;
+  const plotH = h - marginT - marginB;
+  const xFor = (i) => marginL + (i / (curve.length - 1)) * plotW;
+  const yFor = (v) => marginT + plotH - ((v - minV) / (maxV - minV)) * plotH;
+
+  // Línea base (equity inicial)
+  const baseY = yFor(startEquity);
+  ctx.strokeStyle = 'rgba(255,255,255,.15)';
+  ctx.setLineDash([3, 3]);
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(marginL, baseY); ctx.lineTo(w - marginR, baseY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Área de relleno bajo la curva
+  const finalPositive = values[values.length - 1] >= startEquity;
+  const lineColor = finalPositive ? '#39ff88' : '#ff2e88';
+  const fillColor = finalPositive ? 'rgba(57,255,136,0.12)' : 'rgba(255,46,136,0.12)';
+
+  ctx.beginPath();
+  ctx.moveTo(xFor(0), yFor(values[0]));
+  for (let i = 1; i < curve.length; i++) ctx.lineTo(xFor(i), yFor(values[i]));
+  ctx.lineTo(xFor(curve.length - 1), marginT + plotH);
+  ctx.lineTo(xFor(0), marginT + plotH);
+  ctx.closePath();
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(xFor(0), yFor(values[0]));
+  for (let i = 1; i < curve.length; i++) ctx.lineTo(xFor(i), yFor(values[i]));
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = 1.6;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Etiquetas min/max
+  ctx.fillStyle = '#5f7387';
+  ctx.font = "8px 'JetBrains Mono', monospace";
+  ctx.textAlign = 'left';
+  ctx.fillText(fmtMoney(maxV), marginL + 2, marginT + 8);
+  ctx.fillText(fmtMoney(minV), marginL + 2, marginT + plotH - 2);
+}
+
+function openBtWindow() {
+  document.getElementById('btWindow').classList.add('show');
+}
+function closeBtWindow() {
+  document.getElementById('btWindow').classList.remove('show');
+}
+window.closeBtWindow = closeBtWindow;
 
 let toastTimer;
 function showToast(title, msg, type) {
