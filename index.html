@@ -97,11 +97,12 @@
   .chart-legend.show{display:flex;}
   .chart-legend span.k{color:var(--muted);}
   
+  /* Delete Alarm Button Styled as Extension of Axis Label */
   #chartDeleteAlarm {
-    position: absolute; z-index: 6; display: none; width: 20px; height: 20px;
-    background: var(--magenta); border-radius: 4px; cursor: pointer; color: #fff;
-    font-weight: bold; align-items: center; justify-content: center; font-size: 12px;
-    right: 65px; box-shadow: 0 0 10px rgba(255,46,136,0.5);
+    position: absolute; z-index: 7; display: none; width: 16px; height: 16px;
+    background: var(--cyan); border-radius: 3px; cursor: pointer; color: #031014;
+    font-weight: 900; align-items: center; justify-content: center; font-size: 11px;
+    right: 60px; box-shadow: 0 0 8px rgba(0,229,255,0.4); line-height: 16px; text-align: center;
   }
 
   .auto-scale-btn{position:absolute;right:70px;bottom:60px;z-index:10;width:28px;height:28px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:5px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;transition:.15s;}
@@ -206,7 +207,7 @@
       <div class="logo-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg>
       </div>
-      <h1>CYCLE TERMINAL<span>v3.1 // Footprint Heatmap</span></h1>
+      <h1>CYCLE TERMINAL<span>v3.2 // Infinite History</span></h1>
     </div>
 
     <div class="asset-selector" id="assetSelector">
@@ -344,7 +345,7 @@
       <span class="sep">•</span>
       <span>Arrastra las alarmas en el gráfico</span>
       <span class="sep">•</span>
-      <span>Pasa el mouse sobre una alarma para ver la X de borrar</span>
+      <span>Scroll izquierdo para cargar historial infinito</span>
     </div>
     <div id="footerClock">--:--:--</div>
   </footer>
@@ -400,11 +401,13 @@ const state = {
   tgChatId: localStorage.getItem('tg_chatid') || '',
   hoveredAlarm: null,
   draggingAlarm: null,
+  isHoveringDelete: false,
   liveBuyVol: 0,
   liveSellVol: 0,
-  candleFlows: {}, // Persistent flow data per candle time
+  candleFlows: {},
   bucketSize: 1,
   lastMouseY: null,
+  isLoadingHistory: false,
 };
 
 function loadAlarms(){ try { state.alarms = JSON.parse(localStorage.getItem('cycle_terminal_alarms_v3') || '[]'); } catch(e){ state.alarms = []; } }
@@ -449,11 +452,23 @@ function initApp(){
     drawFlowCanvas();
   });
 
+  // Lazy Loading Logic
+  state.chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+    if (range && range.from < 5 && !state.isLoadingHistory && state.lastCandles.length > 0) {
+      loadMoreHistory();
+    }
+  });
+
+  const delBtn = document.getElementById('chartDeleteAlarm');
+  
+  // Prevent blink by tracking if mouse is over the delete button
+  delBtn.addEventListener('mouseenter', () => { state.isHoveringDelete = true; });
+  delBtn.addEventListener('mouseleave', () => { state.isHoveringDelete = false; });
+
   state.chart.subscribeCrosshairMove(param => {
     const legend = document.getElementById('chartLegend');
-    const delBtn = document.getElementById('chartDeleteAlarm');
     
-    if (state.draggingAlarm) return;
+    if (state.draggingAlarm || state.isHoveringDelete) return; // Freeze if dragging or deleting
     
     if(param.point) state.lastMouseY = param.point.y;
     
@@ -488,20 +503,21 @@ function initApp(){
       const yCoord = state.candleSeries.priceToCoordinate(state.hoveredAlarm.price);
       if (yCoord !== null) {
         delBtn.style.display = 'flex';
-        delBtn.style.top = (yCoord - 10) + 'px';
+        delBtn.style.top = (yCoord - 8) + 'px'; // Center vertically
       }
     } else {
       chartEl.style.cursor = 'default';
       delBtn.style.display = 'none';
     }
-    drawFlowCanvas(); // redraw flow in case of pan
+    drawFlowCanvas(); 
   });
 
-  document.getElementById('chartDeleteAlarm').addEventListener('click', () => {
+  delBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
     if(state.hoveredAlarm) {
       removeAlarm(state.hoveredAlarm.id);
       state.hoveredAlarm = null;
-      document.getElementById('chartDeleteAlarm').style.display = 'none';
+      delBtn.style.display = 'none';
     }
   });
 
@@ -552,7 +568,7 @@ function initApp(){
     if (state.hoveredAlarm) {
       state.draggingAlarm = state.hoveredAlarm;
       chartEl.style.cursor = 'grabbing';
-      document.getElementById('chartDeleteAlarm').style.display = 'none';
+      delBtn.style.display = 'none';
       e.preventDefault(); e.stopPropagation();
     }
   }, true);
@@ -605,14 +621,21 @@ function initApp(){
     showToast('Alarmas eliminadas', `Se borraron todas las alarmas de ${state.asset.name}`, 'alarm');
   });
 
-  // Resize listener for canvas
   const resizeObserver = new ResizeObserver(() => drawFlowCanvas());
   resizeObserver.observe(chartEl);
 
-  async function loadHistoryYahoo(symbol, interval){
+  async function loadHistoryYahoo(symbol, interval, isLazy = false, period2 = null){
     const yInt = interval === '1h' ? '60m' : interval === '1d' ? '1d' : interval === '1w' ? '1wk' : (interval === '4h' ? '60m' : interval);
     const range = yInt === '1m' ? '1d' : yInt === '5m' ? '5d' : yInt === '15m' ? '5d' : yInt === '60m' ? '1mo' : '1y';
-    const url = `https://corsproxy.io/?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${yInt}&range=${range}`)}`;
+    
+    let url;
+    if (isLazy && period2) {
+      const period1 = period2 - (365 * 24 * 3600); // 1 year back
+      url = `https://corsproxy.io/?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${yInt}&period1=${period1}&period2=${period2}`)}`;
+    } else {
+      url = `https://corsproxy.io/?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${yInt}&range=${range}`)}`;
+    }
+
     const res = await fetch(url); if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const result = data.chart.result[0];
@@ -629,13 +652,59 @@ function initApp(){
     return { candles, vols };
   }
 
-  async function loadHistoryBinance(symbol, interval){
-    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=500`;
+  async function loadHistoryBinance(symbol, interval, isLazy = false, endTime = null){
+    let url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=500`;
+    if (isLazy && endTime) {
+      url += `&endTime=${endTime}`;
+    }
     const res = await fetch(url); if(!res.ok) throw new Error('HTTP ' + res.status);
     const raw = await res.json();
     const candles = raw.map(k => ({ time: Math.floor(k[0]/1000), open: parseFloat(k[1]), high: parseFloat(k[2]), low: parseFloat(k[3]), close: parseFloat(k[4]) }));
     const vols = raw.map(k => ({ time: Math.floor(k[0]/1000), value: parseFloat(k[5]), color: parseFloat(k[4]) >= parseFloat(k[1]) ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }));
     return { candles, vols };
+  }
+
+  async function loadMoreHistory() {
+    if (state.lastCandles.length === 0) return;
+    state.isLoadingHistory = true;
+    
+    const firstCandle = state.lastCandles[0];
+    try {
+      let data;
+      if(state.asset.src === 'binance') {
+        data = await loadHistoryBinance(state.symbol, state.interval, true, (firstCandle.time * 1000) - 1);
+      } else {
+        data = await loadHistoryYahoo(state.symbol, state.interval, true, firstCandle.time);
+      }
+
+      if (data.candles.length > 0) {
+        // Save current view to restore scroll position
+        const range = state.chart.timeScale().getVisibleLogicalRange();
+        
+        // Prepend new candles
+        state.lastCandles = [...data.candles, ...state.lastCandles];
+        
+        // Update chart without changing view
+        state.candleSeries.setData(state.lastCandles);
+        state.volSeries.setData(state.lastCandles.map((c, i) => {
+          // Recalculate vol colors just in case, or just use data.vols
+          return data.vols[i] || state.volSeries.data()[i]; // Fallback
+        }));
+        
+        // Restore view exactly offset by the new candles loaded
+        if (range) {
+          state.chart.timeScale().setVisibleLogicalRange({
+            from: range.from + data.candles.length,
+            to: range.to + data.candles.length
+          });
+        }
+        updateSMA();
+      }
+    } catch(e) {
+      console.error("Error loading more history:", e);
+    } finally {
+      state.isLoadingHistory = false;
+    }
   }
 
   async function loadHistory(){
@@ -652,7 +721,6 @@ function initApp(){
       updateSMA();
       state.chart.timeScale().fitContent();
 
-      // Clear old flow data on asset/interval switch
       state.candleFlows = {};
       state.liveBuyVol = 0;
       state.liveSellVol = 0;
@@ -763,9 +831,8 @@ function initApp(){
         updatePriceDisplay(candle.close, state.prevPrice);
         if(state.prevPrice !== null) checkAlarms(candle.close, state.prevPrice);
 
-        if(k.x) { // Candle closed
+        if(k.x) { 
           state.liveBuyVol = 0; state.liveSellVol = 0;
-          // Keep the flow data in state.candleFlows, don't delete it!
         }
         updateOrderFlowUI(); 
         drawFlowCanvas();
@@ -781,7 +848,7 @@ function initApp(){
         
         if(!state.candleFlows[time].levels[bucket]) state.candleFlows[time].levels[bucket] = { buy: 0, sell: 0 };
         
-        if(data.m) { // Seller is maker
+        if(data.m) { 
           state.liveSellVol += vol;
           state.candleFlows[time].levels[bucket].sell += vol;
           state.candleFlows[time].maxVol = Math.max(state.candleFlows[time].maxVol, state.candleFlows[time].levels[bucket].sell);
@@ -894,19 +961,16 @@ function initApp(){
         const buyRatio = l.buy / maxVol;
         const sellRatio = l.sell / maxVol;
 
-        // Draw Buy (Left)
         if (l.buy > 0) {
           ctx.fillStyle = `rgba(57, 255, 136, ${0.15 + buyRatio * 0.7})`;
           ctx.fillRect(x - (buyRatio * barWidth / 2), y - 3, buyRatio * barWidth / 2, 6);
         }
 
-        // Draw Sell (Right)
         if (l.sell > 0) {
           ctx.fillStyle = `rgba(255, 46, 136, ${0.15 + sellRatio * 0.7})`;
           ctx.fillRect(x, y - 3, sellRatio * barWidth / 2, 6);
         }
 
-        // Draw Text (only if significant)
         ctx.font = "7px 'JetBrains Mono', monospace";
         ctx.textBaseline = "middle";
         
