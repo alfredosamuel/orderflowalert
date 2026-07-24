@@ -78,10 +78,26 @@
   .ind-dropdown{position:relative;}
   .ind-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:600;font-size:11px;transition:.12s;}
   .ind-btn:hover{color:var(--cyan);border-color:var(--cyan);}
-  .ind-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:180px;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:6px;z-index:100;box-shadow:0 16px 40px rgba(0,0,0,.6);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s;}
+  .ind-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:225px;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:6px;z-index:100;box-shadow:0 16px 40px rgba(0,0,0,.6);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s;}
   .ind-menu.open{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .ind-block{border-bottom:1px solid var(--border);padding-bottom:2px;margin-bottom:2px;}
+  .ind-block:last-child{border-bottom:none;margin-bottom:0;}
   .ind-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:5px;cursor:pointer;font-size:11px;transition:.12s;}
   .ind-item:hover{background:rgba(0,229,255,.06);}
+  .ind-tag{color:var(--cyan);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:10px;margin-left:3px;}
+  .ind-actions{display:flex;align-items:center;gap:8px;}
+  .ind-gear{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:3px;transition:.12s;line-height:1;}
+  .ind-gear:hover{color:var(--cyan);background:rgba(0,229,255,.08);}
+  .ind-options{display:none;padding:2px 10px 8px;}
+  .ind-options.open{display:block;}
+  .opt-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .opt-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .opt-input{width:60px;background:var(--panel-2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:10px;padding:4px 6px;border-radius:4px;outline:none;}
+  .opt-input:focus{border-color:var(--cyan);}
+  .opt-btn-group{display:flex;gap:3px;}
+  .opt-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:9px;font-weight:700;padding:4px 7px;border-radius:4px;cursor:pointer;transition:.12s;}
+  .opt-btn:hover{color:var(--text);border-color:var(--border-strong);}
+  .opt-btn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,229,255,.08);}
   .ind-toggle{width:26px;height:14px;background:rgba(255,255,255,.1);border-radius:7px;position:relative;transition:.2s;}
   .ind-toggle.on{background:var(--cyan);}
   .ind-toggle::after{content:'';position:absolute;top:2px;left:2px;width:10px;height:10px;background:#fff;border-radius:50%;transition:.2s;}
@@ -266,10 +282,80 @@
     <div class="ind-dropdown" id="indDropdown">
       <button type="button" class="ind-btn" id="indBtn">Indicadores ▾</button>
       <div class="ind-menu" id="indMenu">
-        <div class="ind-item" data-ind="sma20"><span>SMA 20</span><div class="ind-toggle on"></div></div>
-        <div class="ind-item" data-ind="sma50"><span>SMA 50</span><div class="ind-toggle on"></div></div>
-        <div class="ind-item" data-ind="vwap"><span>VWAP</span><div class="ind-toggle on"></div></div>
-        <div class="ind-item" data-ind="flow"><span>OrderFlow</span><div class="ind-toggle on"></div></div>
+
+        <div class="ind-block">
+          <div class="ind-item" data-ind="sma20">
+            <span>SMA <b class="ind-tag" id="tagSma20">20</b></span>
+            <div class="ind-actions">
+              <button type="button" class="ind-gear" data-opts="sma20" title="Opciones">⚙</button>
+              <div class="ind-toggle on"></div>
+            </div>
+          </div>
+          <div class="ind-options" id="opts-sma20">
+            <div class="opt-row">
+              <span class="opt-label">Periodo</span>
+              <input type="number" class="opt-input" id="input-sma20-period" min="2" max="500" value="20">
+            </div>
+          </div>
+        </div>
+
+        <div class="ind-block">
+          <div class="ind-item" data-ind="sma50">
+            <span>SMA <b class="ind-tag" id="tagSma50">50</b></span>
+            <div class="ind-actions">
+              <button type="button" class="ind-gear" data-opts="sma50" title="Opciones">⚙</button>
+              <div class="ind-toggle on"></div>
+            </div>
+          </div>
+          <div class="ind-options" id="opts-sma50">
+            <div class="opt-row">
+              <span class="opt-label">Periodo</span>
+              <input type="number" class="opt-input" id="input-sma50-period" min="2" max="500" value="50">
+            </div>
+          </div>
+        </div>
+
+        <div class="ind-block">
+          <div class="ind-item" data-ind="vwap">
+            <span>VWAP <b class="ind-tag" id="tagVwap">D</b></span>
+            <div class="ind-actions">
+              <button type="button" class="ind-gear" data-opts="vwap" title="Opciones">⚙</button>
+              <div class="ind-toggle on"></div>
+            </div>
+          </div>
+          <div class="ind-options" id="opts-vwap">
+            <div class="opt-row">
+              <span class="opt-label">Anclaje</span>
+              <div class="opt-btn-group" id="vwapAnchorGroup">
+                <button type="button" class="opt-btn" data-anchor="1h">1h</button>
+                <button type="button" class="opt-btn" data-anchor="4h">4h</button>
+                <button type="button" class="opt-btn active" data-anchor="D">D</button>
+                <button type="button" class="opt-btn" data-anchor="W">W</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ind-block">
+          <div class="ind-item" data-ind="flow">
+            <span>OrderFlow <b class="ind-tag" id="tagFlow">Normal</b></span>
+            <div class="ind-actions">
+              <button type="button" class="ind-gear" data-opts="flow" title="Opciones">⚙</button>
+              <div class="ind-toggle on"></div>
+            </div>
+          </div>
+          <div class="ind-options" id="opts-flow">
+            <div class="opt-row">
+              <span class="opt-label">Precisión</span>
+              <div class="opt-btn-group" id="flowPrecisionGroup">
+                <button type="button" class="opt-btn" data-prec="0.5">Fino</button>
+                <button type="button" class="opt-btn active" data-prec="1">Normal</button>
+                <button type="button" class="opt-btn" data-prec="2">Grueso</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
     <div class="toolbar-right">
@@ -355,11 +441,18 @@ const ASSETS = [
 ];
 
 const INTERVAL_MS = { '1m': 60000, '5m': 300000, '15m': 900000, '1h': 3600000, '4h': 14400000, '1d': 86400000, '1w': 604800000 };
+const VWAP_ANCHOR_SECONDS = { '1h': 3600, '4h': 14400, 'D': 86400, 'W': 604800 };
 const DEFAULT_LAYOUT_SYMBOLS = ['BTCUSDT', 'GC=F', '^NDX', 'CLP=X'];
 
 const globalState = {
   interval: '5m',
   indicators: { sma20: true, sma50: true, vwap: true, flow: true },
+  indicatorConfig: {
+    sma20: { period: 20 },
+    sma50: { period: 50 },
+    vwap: { anchor: 'D' },
+    flow: { precisionMult: 1 }
+  },
   activeTool: 'cursor',
   alarms: JSON.parse(localStorage.getItem('cycle_terminal_alarms_v4') || '[]'),
   tgToken: localStorage.getItem('tg_token') || '',
@@ -393,6 +486,64 @@ function initApp() {
         inst.calcVWAP(true);
         inst.requestDraw();
         inst.updateFlowBox();
+      });
+    });
+  });
+
+  // Botón de opciones (engranaje) por indicador: abre/cierra su panel sin togglear el indicador
+  document.querySelectorAll('.ind-gear').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const key = btn.dataset.opts;
+      const panel = document.getElementById('opts-' + key);
+      const wasOpen = panel.classList.contains('open');
+      document.querySelectorAll('.ind-options').forEach(p => p.classList.remove('open'));
+      if (!wasOpen) panel.classList.add('open');
+    });
+  });
+  // Evita que clicks dentro del panel de opciones cierren el menú o togeleen el indicador
+  document.querySelectorAll('.ind-options').forEach(panel => panel.addEventListener('click', (e) => e.stopPropagation()));
+
+  // Periodo de SMA 20 / SMA 50
+  const smaPeriodInput = (key, tagId) => {
+    const input = document.getElementById(`input-${key}-period`);
+    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('change', (e) => {
+      let v = parseInt(e.target.value, 10);
+      if (isNaN(v) || v < 2) v = 2; if (v > 500) v = 500;
+      e.target.value = v;
+      globalState.indicatorConfig[key].period = v;
+      document.getElementById(tagId).textContent = v;
+      globalState.instances.forEach(inst => inst.updateSMA());
+    });
+  };
+  smaPeriodInput('sma20', 'tagSma20');
+  smaPeriodInput('sma50', 'tagSma50');
+
+  // Anclaje de VWAP (1h / 4h / D / W)
+  document.querySelectorAll('#vwapAnchorGroup .opt-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('#vwapAnchorGroup .opt-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      globalState.indicatorConfig.vwap.anchor = btn.dataset.anchor;
+      document.getElementById('tagVwap').textContent = btn.dataset.anchor;
+      globalState.instances.forEach(inst => inst.calcVWAP(true));
+    });
+  });
+
+  // Precisión del OrderFlow (Fino / Normal / Grueso)
+  document.querySelectorAll('#flowPrecisionGroup .opt-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('#flowPrecisionGroup .opt-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      globalState.indicatorConfig.flow.precisionMult = parseFloat(btn.dataset.prec);
+      document.getElementById('tagFlow').textContent = btn.textContent;
+      globalState.instances.forEach(inst => {
+        inst.bucketSize = computeBucketSize(inst);
+        inst.candleFlows = {};
+        inst.requestDraw();
       });
     });
   });
@@ -543,6 +694,11 @@ function populateDropdown() {
   });
   dd.innerHTML = html;
   dd.querySelectorAll('.asset-option').forEach(opt => opt.addEventListener('click', (e) => { e.stopPropagation(); changeActiveAsset(opt.dataset.sym); dd.classList.remove('open'); }));
+}
+
+function computeBucketSize(inst) {
+  const base = inst.lastPrice > 1000 ? 1 : inst.lastPrice > 50 ? 0.1 : 0.001;
+  return base * (globalState.indicatorConfig.flow.precisionMult || 1);
 }
 
 function createChartInstance(cell, asset, interval, index) {
@@ -746,7 +902,7 @@ function createChartInstance(cell, asset, interval, index) {
     }
     inst.lastCandles = data.candles; inst.candleSeries.setData(data.candles); inst.volSeries.setData(data.vols);
     inst.updateSMA(); inst.calcVWAP(true); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
-    if(data.candles.length){ inst.lastPrice = data.candles[data.candles.length-1].close; inst.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null; inst.lastCandleTime = data.candles[data.candles.length-1].time; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = data.candles[data.candles.length-1].high; inst.currentCandleLow = data.candles[data.candles.length-1].low; inst.bucketSize = inst.lastPrice > 1000 ? 1 : inst.lastPrice > 50 ? 0.1 : 0.001; inst.updatePriceDisplay(inst.lastPrice, null); }
+    if(data.candles.length){ inst.lastPrice = data.candles[data.candles.length-1].close; inst.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null; inst.lastCandleTime = data.candles[data.candles.length-1].time; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = data.candles[data.candles.length-1].high; inst.currentCandleLow = data.candles[data.candles.length-1].low; inst.bucketSize = computeBucketSize(inst); inst.updatePriceDisplay(inst.lastPrice, null); }
     inst.status = 'live'; updateStatusPill(); inst.requestDraw();
   };
 
@@ -828,14 +984,17 @@ function createChartInstance(cell, asset, interval, index) {
   inst.updateSMA = function() {
     if(!inst.lastCandles.length) return;
     const calc = (period) => { const out = []; for(let i = period-1; i < inst.lastCandles.length; i++){ let sum = 0; for(let j = 0; j < period; j++) sum += inst.lastCandles[i-j].close; out.push({ time: inst.lastCandles[i].time, value: sum/period }); } return out; };
-    inst.sma20Series.setData(globalState.indicators.sma20 ? calc(20) : []);
-    inst.sma50Series.setData(globalState.indicators.sma50 && inst.lastCandles.length >= 50 ? calc(50) : []);
+    const p20 = globalState.indicatorConfig.sma20.period;
+    const p50 = globalState.indicatorConfig.sma50.period;
+    inst.sma20Series.setData(globalState.indicators.sma20 && inst.lastCandles.length >= p20 ? calc(p20) : []);
+    inst.sma50Series.setData(globalState.indicators.sma50 && inst.lastCandles.length >= p50 ? calc(p50) : []);
   };
 
   inst.calcVWAP = function(fullReset = false) {
     if(!globalState.indicators.vwap) { if(inst.vwapSeries) inst.vwapSeries.setData([]); return; }
     const now = Date.now() / 1000;
-    const dayAgo = now - 86400;
+    const lookbackSec = VWAP_ANCHOR_SECONDS[globalState.indicatorConfig.vwap.anchor] || 86400;
+    const dayAgo = now - lookbackSec;
     
     let cumPV = 0, cumV = 0;
     let startIdx = 0;
