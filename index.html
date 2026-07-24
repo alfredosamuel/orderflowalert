@@ -29,9 +29,10 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;overflow:hidden;}
 
-  .app{display:grid;grid-template-columns:1fr 340px;grid-template-rows:54px 38px 1fr 28px;height:100vh;width:100vw;}
-
-  header{grid-column:1/3;display:flex;align-items:center;gap:16px;padding:0 16px;background:linear-gradient(180deg,#0c121a,#080c12);border-bottom:1px solid var(--border);position:relative;}
+  /* FIX: Added overflow hidden and strict min-height/min-width 0 to prevent grid stretching */
+  .app{display:grid;grid-template-columns:1fr 340px;grid-template-rows:54px 38px 1fr 28px;height:100vh;width:100vw;overflow:hidden;}
+  
+  header{grid-column:1/3;display:flex;align-items:center;gap:16px;padding:0 16px;background:linear-gradient(180deg,#0c121a,#080c12);border-bottom:1px solid var(--border);position:relative;min-height:54px;}
   header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.35;}
   .logo{display:flex;align-items:center;gap:10px;white-space:nowrap;}
   .logo-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--cyan),#0099bb);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(0,229,255,.35);}
@@ -63,7 +64,7 @@
   .status-pill.live .status-dot{animation:pulse 1.6s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 
-  .toolbar{grid-column:1/3;display:flex;align-items:center;gap:8px;padding:0 16px;background:var(--bg-2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .toolbar{grid-column:1/3;display:flex;align-items:center;gap:8px;padding:0 16px;background:var(--bg-2);border-bottom:1px solid var(--border);flex-wrap:wrap;min-height:38px;}
   .tf-group{display:flex;gap:2px;}
   .tf-pill{padding:5px 11px;border-radius:5px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;border:1px solid transparent;background:transparent;font-family:inherit;transition:.12s;}
   .tf-pill:hover{color:var(--text);background:rgba(255,255,255,.03);}
@@ -98,8 +99,9 @@
   .tool-btn:hover { color: var(--text); border-color: var(--border-strong); }
   .tool-btn.active { color: var(--cyan); border-color: var(--cyan); background: rgba(0,229,255,0.1); box-shadow: 0 0 8px rgba(0,229,255,0.2); }
 
-  #chartsGrid{display:grid;gap:1px;background:var(--border);height:100%;width:100%;}
-  .chart-cell{position:relative;background:var(--bg);overflow:hidden;cursor:crosshair;}
+  /* FIX: Added min-height: 0 and min-width: 0 to grid items */
+  #chartsGrid{display:grid;gap:1px;background:var(--border);height:100%;width:100%;min-height:0;min-width:0;overflow:hidden;}
+  .chart-cell{position:relative;background:var(--bg);overflow:hidden;cursor:crosshair;min-height:0;min-width:0;}
   .chart-cell.active{outline:2px solid var(--cyan);outline-offset:-2px;z-index:5;}
   .chart-container{width:100%;height:100%;position:absolute;top:0;left:0;}
   .chart-price-tag{position:absolute;top:8px;left:8px;z-index:10;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;pointer-events:none;display:flex;align-items:center;gap:8px;}
@@ -115,8 +117,8 @@
   .chart-legend.show{display:flex;}
   .chart-legend span.k{color:var(--muted);}
 
-  aside{background:var(--panel);display:flex;overflow:hidden;}
-  .side-content{flex:1;overflow-y:auto;overflow-x:hidden;}
+  aside{background:var(--panel);display:flex;overflow:hidden;min-width:340px;}
+  .side-content{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;}
   .tab-nav{width:50px;border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding-top:15px;gap:10px;background:var(--bg-2);}
   .tab-btn{width:40px;height:40px;border-radius:8px;background:transparent;border:1px solid transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;writing-mode:vertical-rl;letter-spacing:1px;font-size:9px;font-weight:700;}
   .tab-btn:hover{color:var(--text);background:rgba(255,255,255,0.05);}
@@ -152,7 +154,7 @@
   .of-stat .k{color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.5px;}
   .of-stat .v{font-family:'Orbitron',sans-serif;font-weight:700;font-size:11px;margin-top:2px;}
 
-  .alarm-scroll{flex:1;overflow-y:auto;padding-right:4px;}
+  .alarm-scroll{flex:1;overflow-y:auto;padding-right:4px;min-height:0;}
   .alarm-card{background:var(--panel-2);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:5px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:.15s;}
   .alarm-card.triggered{border-left-color:var(--amber);opacity:.5;}
   .alarm-card.selected{border-color:var(--amber);box-shadow:0 0 10px rgba(255,176,32,0.2);}
@@ -171,12 +173,12 @@
   .stat .k{color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
   .stat .v{font-weight:600;font-family:'JetBrains Mono',monospace;}
 
-  .log-scroll{flex:1;overflow-y:auto;max-height:140px;padding-right:4px;}
+  .log-scroll{flex:1;overflow-y:auto;max-height:140px;padding-right:4px;min-height:0;}
   .log-entry{font-size:9px;color:var(--muted);padding:5px 0;border-bottom:1px dashed var(--border);line-height:1.4;}
   .log-entry .t{color:var(--cyan);font-weight:600;}
   .log-entry .s{color:var(--green);}
 
-  footer{grid-column:1/3;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--bg-2);border-top:1px solid var(--border);font-size:9px;color:var(--muted);letter-spacing:.5px;}
+  footer{grid-column:1/3;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--bg-2);border-top:1px solid var(--border);font-size:9px;color:var(--muted);letter-spacing:.5px;min-height:28px;}
   footer .info{display:flex;gap:12px;align-items:center;}
   footer .sep{color:var(--border-strong);}
 
@@ -214,7 +216,7 @@
   <header>
     <div class="logo">
       <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg></div>
-      <h1>CYCLE TERMINAL<span>v5.1 // Pro Trader Suite</span></h1>
+      <h1>CYCLE TERMINAL<span>v5.2 // Pro Trader Suite</span></h1>
     </div>
     <div class="asset-selector" id="assetSelector">
       <button type="button" class="asset-btn" id="assetBtn">
@@ -522,7 +524,7 @@ function createChartInstance(cell, asset, interval, index) {
     hoveredAlarm: null, lastMouseY: null, isLoadingHistory: false, noMoreHistory: false,
     flowCanvas: null, overlayCanvas: null, drawCanvas: null, chartEl: null, legendEl: null, priceTagEl: null, status: 'conn',
     drawings: [], isDrawing: false, currentDrawing: null,
-    cvdData: [], orderBlocks: [], imbalances: [], vwapData: [], vwapState: null,
+    cvdData: [], orderBlocks: [], imbalances: [], vwapData: [],
     drawThrottle: null
   };
 
@@ -551,20 +553,38 @@ function createChartInstance(cell, asset, interval, index) {
     inst.legendEl = inst.cell.querySelector('.chart-legend');
     inst.priceTagEl = inst.cell.querySelector('.chart-price-tag');
 
+    // FIX: Replaced autoSize with explicit width/height and a strict ResizeObserver
     inst.chart = LightweightCharts.createChart(inst.chartEl, {
       layout: { background:{type:'solid', color:'transparent'}, textColor:'#5f7387', fontFamily:"'JetBrains Mono', monospace", fontSize:9 },
       grid: { vertLines:{color:'#101820'}, horzLines:{color:'#101820'} },
       crosshair: { mode:LightweightCharts.CrosshairMode.Normal, vertLine:{color:'rgba(0,229,255,.4)',width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:'#00e5ff'}, horzLine:{color:'rgba(0,229,255,.4)',width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:'#00e5ff'} },
       rightPriceScale: { borderColor:'#1c2733', scaleMargins:{top:0.1, bottom:0.2} },
       timeScale: { borderColor:'#1c2733', timeVisible:true, secondsVisible:false },
-      autoSize: true
+      width: inst.chartEl.clientWidth,
+      height: inst.chartEl.clientHeight
     });
+    
+    const resizeObserver = new ResizeObserver(() => {
+      if (inst.chartEl.clientWidth > 0 && inst.chartEl.clientHeight > 0) {
+        inst.chart.applyOptions({ width: inst.chartEl.clientWidth, height: inst.chartEl.clientHeight });
+      }
+      inst.drawOverlayCanvas();
+      inst.drawFlowCanvas();
+      inst.drawDrawCanvas();
+    });
+    resizeObserver.observe(inst.chartEl);
+
     inst.candleSeries = inst.chart.addCandlestickSeries({ upColor:'#39ff88', downColor:'#ff2e88', borderUpColor:'#39ff88', borderDownColor:'#ff2e88', wickUpColor:'rgba(57,255,136,.7)', wickDownColor:'rgba(255,46,136,.7)' });
     inst.volSeries = inst.chart.addHistogramSeries({ priceFormat:{type:'volume'}, priceScaleId:'', color:'#2a3a4a' });
     inst.volSeries.priceScale().applyOptions({ scaleMargins:{top:0.85, bottom:0} });
     inst.sma20Series = inst.chart.addLineSeries({ color:'#00e5ff', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
     inst.sma50Series = inst.chart.addLineSeries({ color:'#a855f7', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
-    inst.vwapSeries = inst.chart.addLineSeries({ color:'#ffb020', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false, lineStyle: LightweightCharts.LineStyle.Dotted, autoscaleInfoProvider: () => null });
+    
+    // FIX: Isolate VWAP autoscale completely so NaN volumes don't break the chart scale
+    inst.vwapSeries = inst.chart.addLineSeries({ 
+        color:'#ffb020', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false, lineStyle: LightweightCharts.LineStyle.Dotted, 
+        autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 0 }, margins: { above: 0, below: 0 } }) 
+    });
 
     inst.chart.timeScale().subscribeVisibleTimeRangeChange(() => { inst.drawOverlayCanvas(); inst.drawFlowCanvas(); inst.drawDrawCanvas(); });
     inst.chart.timeScale().subscribeVisibleLogicalRangeChange(range => { if (range && range.from < 5 && !inst.isLoadingHistory && !inst.noMoreHistory && inst.lastCandles.length > 0) inst.loadMoreHistory(); });
@@ -644,7 +664,6 @@ function createChartInstance(cell, asset, interval, index) {
       if(d){ inst.legendEl.classList.add('show'); inst.legendEl.querySelector('.lgO').textContent = fmt(d.open); inst.legendEl.querySelector('.lgH').textContent = fmt(d.high); inst.legendEl.querySelector('.lgL').textContent = fmt(d.low); inst.legendEl.querySelector('.lgC').textContent = fmt(d.close); }
     });
 
-    new ResizeObserver(() => { inst.drawOverlayCanvas(); inst.drawFlowCanvas(); inst.drawDrawCanvas(); }).observe(inst.chartEl);
     inst.switchMarket(interval);
   };
 
@@ -666,7 +685,7 @@ function createChartInstance(cell, asset, interval, index) {
     if(inst.asset.src === 'binance') {
       const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${inst.symbol}&interval=${inst.interval}&limit=500`); if(!res.ok) throw new Error('HTTP ' + res.status);
       const raw = await res.json();
-      data = { candles: raw.map(k => ({ time: Math.floor(k[0]/1000), open: parseFloat(k[1]), high: parseFloat(k[2]), low: parseFloat(k[3]), close: parseFloat(k[4]), vol: parseFloat(k[5]) })), vols: raw.map(k => ({ time: Math.floor(k[0]/1000), value: parseFloat(k[5]), color: parseFloat(k[4]) >= parseFloat(k[1]) ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' })) };
+      data = { candles: raw.map(k => ({ time: Math.floor(k[0]/1000), open: parseFloat(k[1])||0, high: parseFloat(k[2])||0, low: parseFloat(k[3])||0, close: parseFloat(k[4])||0, vol: parseFloat(k[5])||0 })), vols: raw.map(k => ({ time: Math.floor(k[0]/1000), value: parseFloat(k[5])||0, color: parseFloat(k[4]) >= parseFloat(k[1]) ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' })) };
     } else {
       const yInt = inst.interval === '1h' ? '60m' : inst.interval === '1d' ? '1d' : inst.interval === '1w' ? '1wk' : (inst.interval === '4h' ? '60m' : inst.interval);
       const range = yInt === '1m' ? '1d' : yInt === '5m' ? '5d' : yInt === '15m' ? '5d' : yInt === '60m' ? '1mo' : '1y';
@@ -689,7 +708,7 @@ function createChartInstance(cell, asset, interval, index) {
       if(inst.asset.src === 'binance') {
         const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${inst.symbol}&interval=${inst.interval}&limit=500&endTime=${(firstCandle.time * 1000) - 1}`); if(!res.ok) return;
         const raw = await res.json();
-        data = { candles: raw.map(k => ({ time: Math.floor(k[0]/1000), open: parseFloat(k[1]), high: parseFloat(k[2]), low: parseFloat(k[3]), close: parseFloat(k[4]), vol: parseFloat(k[5]) })), vols: raw.map(k => ({ time: Math.floor(k[0]/1000), value: parseFloat(k[5]), color: parseFloat(k[4]) >= parseFloat(k[1]) ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' })) };
+        data = { candles: raw.map(k => ({ time: Math.floor(k[0]/1000), open: parseFloat(k[1])||0, high: parseFloat(k[2])||0, low: parseFloat(k[3])||0, close: parseFloat(k[4])||0, vol: parseFloat(k[5])||0 })), vols: raw.map(k => ({ time: Math.floor(k[0]/1000), value: parseFloat(k[5])||0, color: parseFloat(k[4]) >= parseFloat(k[1]) ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' })) };
       } else {
         const yInt = inst.interval === '1h' ? '60m' : inst.interval === '1d' ? '1d' : inst.interval === '1w' ? '1wk' : (inst.interval === '4h' ? '60m' : inst.interval);
         const p1 = firstCandle.time - (365 * 24 * 3600); const p2 = firstCandle.time;
@@ -712,8 +731,8 @@ function createChartInstance(cell, asset, interval, index) {
     ws.onmessage = (msg) => {
       const res = JSON.parse(msg.data); const stream = res.stream; const data = res.data;
       if(stream.includes('@kline')) {
-        const k = data.k; const candle = { time: Math.floor(k.t/1000), open: parseFloat(k.o), high: parseFloat(k.h), low: parseFloat(k.l), close: parseFloat(k.c), vol: parseFloat(k.v) };
-        inst.candleSeries.update(candle); inst.volSeries.update({ time: candle.time, value: parseFloat(k.v), color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' });
+        const k = data.k; const candle = { time: Math.floor(k.t/1000), open: parseFloat(k.o)||0, high: parseFloat(k.h)||0, low: parseFloat(k.l)||0, close: parseFloat(k.c)||0, vol: parseFloat(k.v)||0 };
+        inst.candleSeries.update(candle); inst.volSeries.update({ time: candle.time, value: parseFloat(k.v)||0, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' });
         if(inst.lastCandles.length){ const last = inst.lastCandles[inst.lastCandles.length-1]; if(last.time === candle.time){ last.close = candle.close; last.high = Math.max(last.high, candle.high); last.low = Math.min(last.low, candle.low); last.vol = candle.vol; } else { inst.lastCandles.push(candle); if(inst.lastCandles.length > 600) inst.lastCandles.shift(); } }
         inst.prevPrice = inst.lastPrice; inst.lastPrice = candle.close; inst.lastCandleTime = candle.time; inst.currentCandleCloseTime = k.T + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = candle.high; inst.currentCandleLow = candle.low;
         inst.updatePriceDisplay(candle.close, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst);
@@ -774,9 +793,13 @@ function createChartInstance(cell, asset, interval, index) {
         for(let i=startIdx; i<inst.lastCandles.length; i++) {
             const c = inst.lastCandles[i];
             const typicalPrice = (c.high + c.low + c.close) / 3;
-            cumPV += typicalPrice * c.vol;
-            cumV += c.vol;
-            if(cumV > 0) inst.vwapData.push({ time: c.time, value: cumPV / cumV });
+            const vol = c.vol || 0;
+            // FIX: Sanitize to prevent NaN values from breaking autoscale
+            if (!isNaN(typicalPrice) && vol > 0) {
+                cumPV += typicalPrice * vol;
+                cumV += vol;
+                if(cumV > 0) inst.vwapData.push({ time: c.time, value: cumPV / cumV });
+            }
         }
         inst.vwapSeries.setData(inst.vwapData);
     } else {
@@ -784,12 +807,18 @@ function createChartInstance(cell, asset, interval, index) {
         for(let i=startIdx; i<inst.lastCandles.length - 1; i++) {
             const c = inst.lastCandles[i];
             const typicalPrice = (c.high + c.low + c.close) / 3;
-            cumPV += typicalPrice * c.vol;
-            cumV += c.vol;
+            const vol = c.vol || 0;
+            if (!isNaN(typicalPrice) && vol > 0) {
+                cumPV += typicalPrice * vol;
+                cumV += vol;
+            }
         }
         const typicalPrice = (lastCandle.high + lastCandle.low + lastCandle.close) / 3;
-        cumPV += typicalPrice * lastCandle.vol;
-        cumV += lastCandle.vol;
+        const vol = lastCandle.vol || 0;
+        if (!isNaN(typicalPrice) && vol > 0) {
+            cumPV += typicalPrice * vol;
+            cumV += vol;
+        }
         if(cumV > 0) inst.vwapSeries.update({ time: lastCandle.time, value: cumPV / cumV });
     }
   };
@@ -799,10 +828,11 @@ function createChartInstance(cell, asset, interval, index) {
     if(!inst.lastCandles.length) return;
 
     let cumDelta = 0;
-    const volAvg = inst.lastCandles.slice(-20).reduce((a,c) => a+c.vol, 0) / 20;
+    const volAvg = inst.lastCandles.slice(-20).reduce((a,c) => a+(c.vol||0), 0) / 20;
 
     inst.lastCandles.forEach((c, i) => {
-      const delta = c.close >= c.open ? c.vol * 0.55 : -c.vol * 0.45;
+      const vol = c.vol || 0;
+      const delta = c.close >= c.open ? vol * 0.55 : -vol * 0.45;
       cumDelta += delta;
       inst.cvdData.push({ time: c.time, value: cumDelta });
 
@@ -817,7 +847,7 @@ function createChartInstance(cell, asset, interval, index) {
         }
       }
 
-      if (c.vol > volAvg * 1.5 && Math.abs(c.close - c.open) < (c.high - c.low) * 0.3) {
+      if (vol > volAvg * 1.5 && Math.abs(c.close - c.open) < (c.high - c.low) * 0.3) {
         inst.imbalances.push({ time: c.time, high: c.high, low: c.low });
       }
     });
@@ -872,7 +902,7 @@ function createChartInstance(cell, asset, interval, index) {
       const cvdHeight = canvas.height * 0.15;
       const cvdTop = canvas.height - cvdHeight - 20;
       
-      ctx.save(); // Fix: Save before clip
+      ctx.save(); 
       ctx.beginPath();
       ctx.rect(0, cvdTop, canvas.width, cvdHeight);
       ctx.clip(); 
@@ -895,7 +925,7 @@ function createChartInstance(cell, asset, interval, index) {
         });
         ctx.stroke();
       }
-      ctx.restore(); // Fix: Restore after clip
+      ctx.restore(); 
     }
   };
 
