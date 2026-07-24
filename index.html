@@ -96,19 +96,19 @@
   .chart-legend.show{display:flex;}
   .chart-legend span.k{color:var(--muted);}
   
+  /* FOOTPRINT ON CANDLE */
   #liveFlowBox {
-    position: absolute; z-index: 5; pointer-events: none; display: none;
-    background: rgba(7,10,16,0.92); border: 1px solid var(--amber);
-    border-radius: 4px; padding: 6px; font-size: 9px; font-family: 'JetBrains Mono', monospace;
-    min-width: 130px; box-shadow: 0 4px 15px rgba(255, 176, 32, 0.2);
+    position: absolute; z-index: 4; pointer-events: none; display: none;
+    border-radius: 2px; padding: 1px;
+    background: transparent; border-left: 2px solid var(--amber);
+    font-size: 8px; font-family: 'JetBrains Mono', monospace;
+    overflow: hidden;
+    flex-direction: column-reverse; /* Highest price at top */
+    justify-content: space-around;
   }
-  .flow-row { display: flex; justify-content: space-between; gap: 8px; margin: 1px 0; align-items: center; }
-  .flow-price { color: var(--muted); min-width: 45px; text-align: right; }
-  .flow-buy { color: var(--green); min-width: 40px; text-align: right; padding: 1px 4px; border-radius: 2px; }
-  .flow-sell { color: var(--magenta); min-width: 40px; text-align: right; padding: 1px 4px; border-radius: 2px; }
-  .flow-header { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 2px; margin-bottom: 4px; font-weight: bold; color: var(--text); font-size: 8px; text-transform: uppercase; letter-spacing: 1px;}
-  .flow-header span { min-width: 45px; text-align: right;}
-  .flow-header span:nth-child(2), .flow-header span:nth-child(3) { min-width: 40px; }
+  .flow-row { display: flex; justify-content: space-between; gap: 4px; align-items: center; width: 100%; padding: 0 2px; }
+  .flow-buy { color: var(--green); font-weight: 700; opacity: 0.9; }
+  .flow-sell { color: var(--magenta); font-weight: 700; opacity: 0.9; }
 
   .auto-scale-btn{position:absolute;right:70px;bottom:60px;z-index:10;width:28px;height:28px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:5px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;transition:.15s;}
   .auto-scale-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.2);}
@@ -201,7 +201,7 @@
       <div class="logo-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg>
       </div>
-      <h1>CYCLE TERMINAL<span>v2.3 // Gold Futures Fix</span></h1>
+      <h1>CYCLE TERMINAL<span>v2.4 // Footprint on Candle</span></h1>
     </div>
 
     <div class="asset-selector" id="assetSelector">
@@ -286,7 +286,7 @@
       </div>
       <div class="tg-help">Crea un bot en <a href="https://t.me/BotFather" target="_blank">@BotFather</a> y obtén tu ID en <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a>. Recuerda darle a START a tu bot.</div>
       <div class="form-grid">
-        <input type="text" class="field" id="tgToken" placeholder="Pega AQUÍ el Token (no código HTML)">
+        <input type="text" class="field" id="tgToken" placeholder="Pega AQUÍ el Token (123456:ABC...)">
         <input type="text" class="field" id="tgChatId" placeholder="Chat ID">
         <button type="button" class="btn-primary" id="testTgBtn" style="background:linear-gradient(135deg,var(--purple),#7c3aed);">Probar Telegram</button>
       </div>
@@ -363,6 +363,8 @@ const state = {
   prevPrice: null,
   lastCandles: [],
   lastCandleTime: null,
+  currentCandleHigh: null,
+  currentCandleLow: null,
   showSMA20: true,
   showSMA50: true,
   showFlow: true,
@@ -495,7 +497,6 @@ function initApp(){
         state.draggingAlarm.triggered = false;
         state.draggingAlarm.triggeredAt = null;
         
-        // FIX: Use applyOptions to move the line directly without recreating it
         const line = state.alarmPriceLines.get(state.draggingAlarm.id);
         if(line) {
           line.applyOptions({ price: newPrice, title: 'Alarma ' + fmt(newPrice) });
@@ -515,7 +516,12 @@ function initApp(){
     }
   });
 
-  document.getElementById('autoScaleBtn').addEventListener('click', () => state.chart.timeScale().fitContent());
+  // FIX: Auto-scale button now resets both horizontal and vertical zoom
+  document.getElementById('autoScaleBtn').addEventListener('click', () => {
+    state.chart.timeScale().fitContent();
+    state.chart.priceScale('right').applyOptions({ autoScale: true });
+  });
+  
   document.getElementById('toggleFlow').addEventListener('click', () => {
     state.showFlow = !state.showFlow;
     document.getElementById('toggleFlow').classList.toggle('on', state.showFlow);
@@ -524,12 +530,8 @@ function initApp(){
   });
 
   async function loadHistoryYahoo(symbol, interval){
-    // Yahoo interval mapping
     const yInt = interval === '1h' ? '60m' : interval === '1d' ? '1d' : interval === '1w' ? '1wk' : (interval === '4h' ? '60m' : interval);
-    
-    // Range mapping to ensure enough data for intraday
     const range = yInt === '1m' ? '1d' : yInt === '5m' ? '5d' : yInt === '15m' ? '5d' : yInt === '60m' ? '1mo' : '1y';
-    
     const url = `https://corsproxy.io/?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${yInt}&range=${range}`)}`;
     const res = await fetch(url); if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
@@ -574,6 +576,8 @@ function initApp(){
         state.lastPrice = data.candles[data.candles.length-1].close;
         state.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null;
         state.lastCandleTime = data.candles[data.candles.length-1].time;
+        state.currentCandleHigh = data.candles[data.candles.length-1].high;
+        state.currentCandleLow = data.candles[data.candles.length-1].low;
         state.bucketSize = state.lastPrice > 1000 ? 1 : state.lastPrice > 50 ? 0.1 : 0.001;
         updatePriceDisplay(state.lastPrice, null);
       }
@@ -667,13 +671,16 @@ function initApp(){
         state.prevPrice = state.lastPrice;
         state.lastPrice = candle.close;
         state.lastCandleTime = candle.time;
+        state.currentCandleHigh = candle.high;
+        state.currentCandleLow = candle.low;
         updatePriceDisplay(candle.close, state.prevPrice);
         if(state.prevPrice !== null) checkAlarms(candle.close, state.prevPrice);
 
         if(k.x) {
           state.liveBuyVol = 0; state.liveSellVol = 0; state.livePriceLevels = {};
-          updateOrderFlowUI(); updateFlowBoxContent();
         }
+        updateOrderFlowUI(); 
+        updateFlowBoxContent();
       }
       
       if(stream.includes('@aggTrade')){
@@ -731,6 +738,8 @@ function initApp(){
         state.prevPrice = state.lastPrice;
         state.lastPrice = q.close[ts.length-1];
         state.lastCandleTime = ts[ts.length-1];
+        state.currentCandleHigh = q.high[ts.length-1];
+        state.currentCandleLow = q.low[ts.length-1];
         updatePriceDisplay(state.lastPrice, state.prevPrice);
         if(state.prevPrice !== null) checkAlarms(state.lastPrice, state.prevPrice);
       } catch(e){ console.error(e); }
@@ -759,25 +768,27 @@ function initApp(){
       return;
     }
     
-    const levels = Object.entries(state.livePriceLevels).map(([k, v]) => ({price: parseFloat(k), ...v}));
+    let levels = Object.entries(state.livePriceLevels).map(([k, v]) => ({price: parseFloat(k), ...v}));
     if(levels.length === 0) {
       box.style.display = 'none';
       return;
     }
-    levels.sort((a, b) => b.price - a.price);
     
-    const maxLevels = levels.slice(0, 12);
-    const maxBuy = Math.max(...maxLevels.map(l => l.buy), 0.0001);
-    const maxSell = Math.max(...maxLevels.map(l => l.sell), 0.0001);
+    // Filter levels to only those within the current candle's high and low
+    levels = levels.filter(l => l.price >= state.currentCandleLow && l.price <= state.currentCandleHigh);
+    if(levels.length === 0) {
+        box.style.display = 'none';
+        return;
+    }
     
-    let html = '<div class="flow-header"><span>Price</span><span>Buy</span><span>Sell</span></div>';
-    maxLevels.forEach(l => {
-      const buyPct = (l.buy / maxBuy * 100).toFixed(0);
-      const sellPct = (l.sell / maxSell * 100).toFixed(0);
+    // Sort ascending so column-reverse puts highest at top
+    levels.sort((a, b) => a.price - b.price);
+    
+    let html = '';
+    levels.forEach(l => {
       html += `<div class="flow-row">
-                 <span class="flow-price">${fmt(l.price)}</span>
-                 <span class="flow-buy" style="background: linear-gradient(90deg, rgba(57,255,136,0.2) ${buyPct}%, transparent ${buyPct}%);">${fmtNum(l.buy)}</span>
-                 <span class="flow-sell" style="background: linear-gradient(270deg, rgba(255,46,136,0.2) ${sellPct}%, transparent ${sellPct}%);">${fmtNum(l.sell)}</span>
+                 <span class="flow-buy">${fmtNum(l.buy)}</span>
+                 <span class="flow-sell">${fmtNum(l.sell)}</span>
                </div>`;
     });
     box.innerHTML = html;
@@ -786,7 +797,7 @@ function initApp(){
 
   function updateFlowBoxPosition() {
     const box = document.getElementById('liveFlowBox');
-    if(!state.showFlow || box.innerHTML === '' || !state.lastCandleTime) {
+    if(!state.showFlow || box.innerHTML === '' || !state.lastCandleTime || !state.currentCandleHigh || !state.currentCandleLow) {
       box.style.display = 'none';
       return;
     }
@@ -797,16 +808,16 @@ function initApp(){
       return;
     }
     
-    box.style.display = 'block';
-    box.style.left = (timeCoord + 15) + 'px'; 
+    const highCoord = state.candleSeries.priceToCoordinate(state.currentCandleHigh);
+    const lowCoord = state.candleSeries.priceToCoordinate(state.currentCandleLow);
     
-    const priceCoord = state.candleSeries.priceToCoordinate(state.lastPrice);
-    if(priceCoord !== null) {
-      let top = priceCoord - box.offsetHeight / 2;
-      const chartEl = document.getElementById('chart');
-      if(top < 10) top = 10; 
-      if(top + box.offsetHeight > chartEl.clientHeight - 10) top = chartEl.clientHeight - box.offsetHeight - 10;
-      box.style.top = top + 'px';
+    if(highCoord !== null && lowCoord !== null) {
+      box.style.display = 'flex';
+      box.style.flexDirection = 'column-reverse';
+      box.style.left = timeCoord + 'px';
+      box.style.top = Math.min(highCoord, lowCoord) + 'px';
+      box.style.height = Math.abs(highCoord - lowCoord) + 'px';
+      box.style.width = '60px'; // Fixed width for the text inside the candle
     }
   }
 
@@ -861,7 +872,7 @@ function initApp(){
             <div class="alarm-price">${fmt(a.price)}</div>
             <div class="alarm-meta">Cruce · ${diffText} · ${time}</div>
           </div>
-          <button type="button" class="del-btn" onclick="removeAlarm('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+          <button type="button" class="del-btn" onclick="removeAlarm('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2  0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
         </div>`;
       }).join('');
     }
@@ -930,17 +941,18 @@ function initApp(){
   }
 
   async function sendTelegram(alarm, price){
-    // Validación fuerte contra tokens pegados por error
     if(!state.tgToken || state.tgToken.includes('<') || state.tgToken.length < 40 || !state.tgToken.includes(':')) {
-        showToast('Error Telegram', 'El Token es inválido. Asegúrate de pegar solo el token que te dio BotFather.', 'error');
+        showToast('Error Telegram', 'El Token es inválido. Asegúrate de copiarlo completo (ej: 123456:ABC...).', 'error');
         return;
     }
     
     const msg = `🚨 ALARM TRIGGERED\n\nAsset: ${alarm.assetName}\nPrice Crossed: $${fmt(alarm.price)}\nCurrent Price: $${fmt(price)}`;
-    const url = `https://api.telegram.org/bot${state.tgToken}/sendMessage`;
+    const originalUrl = `https://api.telegram.org/bot${state.tgToken}/sendMessage`;
+    // Use CORS proxy to bypass GitHub Pages restrictions
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originalUrl)}`;
     
     try {
-        const response = await fetch(url, {
+        const response = await fetch(proxyUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: state.tgChatId, text: msg })
