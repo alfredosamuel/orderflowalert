@@ -29,7 +29,7 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;overflow:hidden;}
 
-  .app{display:grid;grid-template-columns:1fr 340px;grid-template-rows:54px 38px 1fr 28px;height:100vh;width:100vw;}
+  .app{display:grid;grid-template-columns:1fr 360px;grid-template-rows:54px 38px 1fr 28px;height:100vh;width:100vw;}
 
   header{grid-column:1/3;display:flex;align-items:center;gap:16px;padding:0 16px;background:linear-gradient(180deg,#0c121a,#080c12);border-bottom:1px solid var(--border);position:relative;}
   header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.35;}
@@ -99,21 +99,36 @@
   /* FOOTPRINT ON CANDLE */
   #liveFlowBox {
     position: absolute; z-index: 4; pointer-events: none; display: none;
-    border-radius: 2px; padding: 1px;
-    background: transparent; border-left: 2px solid var(--amber);
-    font-size: 8px; font-family: 'JetBrains Mono', monospace;
-    overflow: hidden;
-    flex-direction: column-reverse; /* Highest price at top */
-    justify-content: space-around;
+    border-radius: 2px; padding: 1px; background: transparent; 
+    border-left: 2px solid var(--amber); font-size: 8px; font-family: 'JetBrains Mono', monospace;
+    overflow: hidden; flex-direction: column-reverse; justify-content: space-around;
   }
   .flow-row { display: flex; justify-content: space-between; gap: 4px; align-items: center; width: 100%; padding: 0 2px; }
   .flow-buy { color: var(--green); font-weight: 700; opacity: 0.9; }
   .flow-sell { color: var(--magenta); font-weight: 700; opacity: 0.9; }
 
+  /* ALARM DELETE X ON CHART */
+  #chartDeleteAlarm {
+    position: absolute; z-index: 6; display: none; width: 20px; height: 20px;
+    background: var(--magenta); border-radius: 4px; cursor: pointer; color: #fff;
+    font-weight: bold; align-items: center; justify-content: center; font-size: 12px;
+    right: 65px; box-shadow: 0 0 10px rgba(255,46,136,0.5);
+  }
+
   .auto-scale-btn{position:absolute;right:70px;bottom:60px;z-index:10;width:28px;height:28px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:5px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;transition:.15s;}
   .auto-scale-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.2);}
 
-  aside{background:var(--panel);display:flex;flex-direction:column;overflow:hidden;}
+  /* SIDEBAR TABS LAYOUT */
+  aside{background:var(--panel);display:flex;overflow:hidden;}
+  .side-content{flex:1;overflow-y:auto;overflow-x:hidden;}
+  .tab-nav{width:50px;border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding-top:15px;gap:10px;background:var(--bg-2);}
+  .tab-btn{width:40px;height:40px;border-radius:8px;background:transparent;border:1px solid transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;writing-mode:vertical-rl;letter-spacing:1px;font-size:9px;font-weight:700;}
+  .tab-btn:hover{color:var(--text);background:rgba(255,255,255,0.05);}
+  .tab-btn.active{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,0.2);}
+  
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  
   .side-section{padding:12px 14px;border-bottom:1px solid var(--border);}
   .side-section.flex{flex:1;min-height:0;display:flex;flex-direction:column;}
   .side-title{display:flex;align-items:center;gap:6px;font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
@@ -130,6 +145,8 @@
   .form-grid{display:flex;flex-direction:column;gap:7px;}
   .btn-primary{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#031014;font-weight:800;font-family:inherit;font-size:11px;padding:9px;border:none;border-radius:5px;cursor:pointer;transition:.15s;letter-spacing:1px;text-transform:uppercase;}
   .btn-primary:hover{box-shadow:0 6px 20px rgba(0,229,255,.35);transform:translateY(-1px);}
+  .btn-danger{background:rgba(255,46,136,.1);border:1px solid var(--magenta);color:var(--magenta);padding:7px;border-radius:5px;cursor:pointer;font-family:inherit;font-size:10px;font-weight:700;letter-spacing:1px;width:100%;margin-top:8px;}
+  .btn-danger:hover{background:var(--magenta);color:#1a0008;}
 
   .of-section{background:rgba(0,229,255,.03);}
   .of-bar-container{display:flex;height:18px;border-radius:4px;overflow:hidden;background:var(--panel-2);border:1px solid var(--border);margin-bottom:6px;}
@@ -201,7 +218,7 @@
       <div class="logo-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg>
       </div>
-      <h1>CYCLE TERMINAL<span>v2.4 // Footprint on Candle</span></h1>
+      <h1>CYCLE TERMINAL<span>v3.0 // Countdown & Tabs</span></h1>
     </div>
 
     <div class="asset-selector" id="assetSelector">
@@ -259,62 +276,81 @@
       <div><span class="k">C</span> <span id="lgC">--</span></div>
     </div>
     <div id="liveFlowBox"></div>
+    <div id="chartDeleteAlarm">✕</div>
     <button type="button" class="auto-scale-btn" id="autoScaleBtn" title="Ajustar a la vista">A</button>
     <div id="chart"></div>
   </div>
 
   <aside>
-    <div class="side-section of-section">
-      <div class="side-title">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 12h4l3-9 3 18 3-9h2"/></svg>
-        Totales Vela Actual
+    <div class="side-content">
+      
+      <!-- TAB 1: ORDER FLOW -->
+      <div class="tab-panel active" id="tab-flow">
+        <div class="side-section of-section">
+          <div class="side-title">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 12h4l3-9 3 18 3-9h2"/></svg>
+            Totales Vela Actual
+          </div>
+          <div class="of-bar-container">
+            <div class="of-bar-buy" id="ofBuyBar" style="width:50%;">0%</div>
+            <div class="of-bar-sell" id="ofSellBar" style="width:50%;">0%</div>
+          </div>
+          <div class="of-stats">
+            <div class="of-stat"><div class="k">Compra (Base)</div><div class="v" id="ofBuyVol" style="color:var(--green);">0.00</div></div>
+            <div class="of-stat"><div class="k">Venta (Base)</div><div class="v" id="ofSellVol" style="color:var(--magenta);">0.00</div></div>
+          </div>
+        </div>
+        <div class="side-section">
+          <div class="side-title">Stats 24h</div>
+          <div class="stat-grid">
+            <div class="stat"><span class="k">Máx</span><span class="v" id="statHigh" style="color:var(--green);">--</span></div>
+            <div class="stat"><span class="k">Mín</span><span class="v" id="statLow" style="color:var(--magenta);">--</span></div>
+            <div class="stat"><span class="k">Vol</span><span class="v" id="statVol">--</span></div>
+            <div class="stat"><span class="k">Vol USD</span><span class="v" id="statVolUsd">--</span></div>
+          </div>
+        </div>
+        <div class="side-section" style="max-height:220px;display:flex;flex-direction:column;">
+          <div class="side-title">Historial</div>
+          <div class="log-scroll" id="logList"><div class="empty">sin eventos aún</div></div>
+        </div>
       </div>
-      <div class="of-bar-container">
-        <div class="of-bar-buy" id="ofBuyBar" style="width:50%;">0%</div>
-        <div class="of-bar-sell" id="ofSellBar" style="width:50%;">0%</div>
+
+      <!-- TAB 2: ALARMS -->
+      <div class="tab-panel" id="tab-alarms">
+        <div class="side-section flex">
+          <div class="side-title">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Alarmas — <span style="color:var(--cyan);" id="alarmSymLabel">BTCUSDT</span>
+            <span class="count" id="alarmCount">0</span>
+          </div>
+          <div class="alarm-scroll" id="alarmList"><div class="empty">Pon el mouse en el gráfico y presiona Alt+A</div></div>
+          <button type="button" class="btn-danger" id="clearAllAlarmsBtn">Eliminar Todas</button>
+        </div>
       </div>
-      <div class="of-stats">
-        <div class="of-stat"><div class="k">Compra (Base)</div><div class="v" id="ofBuyVol" style="color:var(--green);">0.00</div></div>
-        <div class="of-stat"><div class="k">Venta (Base)</div><div class="v" id="ofSellVol" style="color:var(--magenta);">0.00</div></div>
+
+      <!-- TAB 3: TELEGRAM -->
+      <div class="tab-panel" id="tab-tg">
+        <div class="side-section tg-section">
+          <div class="side-title">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            Telegram Celular
+          </div>
+          <div class="tg-help">Crea un bot en <a href="https://t.me/BotFather" target="_blank">@BotFather</a> y obtén tu ID en <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a>. Recuerda darle a START a tu bot.</div>
+          <div class="form-grid">
+            <input type="text" class="field" id="tgToken" placeholder="Pega AQUÍ el Token (123456:ABC...)">
+            <input type="text" class="field" id="tgChatId" placeholder="Chat ID">
+            <button type="button" class="btn-primary" id="testTgBtn" style="background:linear-gradient(135deg,var(--purple),#7c3aed);">Probar Telegram</button>
+          </div>
+        </div>
       </div>
+
     </div>
 
-    <div class="side-section tg-section">
-      <div class="side-title">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-        Telegram Celular
-      </div>
-      <div class="tg-help">Crea un bot en <a href="https://t.me/BotFather" target="_blank">@BotFather</a> y obtén tu ID en <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a>. Recuerda darle a START a tu bot.</div>
-      <div class="form-grid">
-        <input type="text" class="field" id="tgToken" placeholder="Pega AQUÍ el Token (123456:ABC...)">
-        <input type="text" class="field" id="tgChatId" placeholder="Chat ID">
-        <button type="button" class="btn-primary" id="testTgBtn" style="background:linear-gradient(135deg,var(--purple),#7c3aed);">Probar Telegram</button>
-      </div>
-    </div>
-
-    <div class="side-section flex">
-      <div class="side-title">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Alarmas Activas — <span style="color:var(--cyan);" id="alarmSymLabel">BTCUSDT</span>
-        <span class="count" id="alarmCount">0</span>
-      </div>
-      <div class="alarm-scroll" id="alarmList"><div class="empty">Pon el mouse en el gráfico y presiona Alt+A</div></div>
-    </div>
-
-    <div class="side-section">
-      <div class="side-title">Stats 24h</div>
-      <div class="stat-grid">
-        <div class="stat"><span class="k">Máx</span><span class="v" id="statHigh" style="color:var(--green);">--</span></div>
-        <div class="stat"><span class="k">Mín</span><span class="v" id="statLow" style="color:var(--magenta);">--</span></div>
-        <div class="stat"><span class="k">Vol</span><span class="v" id="statVol">--</span></div>
-        <div class="stat"><span class="k">Vol USD</span><span class="v" id="statVolUsd">--</span></div>
-      </div>
-    </div>
-
-    <div class="side-section" style="max-height:170px;display:flex;flex-direction:column;">
-      <div class="side-title">Historial</div>
-      <div class="log-scroll" id="logList"><div class="empty">sin eventos aún</div></div>
-    </div>
+    <nav class="tab-nav">
+      <button type="button" class="tab-btn active" data-tab="flow">FLOW</button>
+      <button type="button" class="tab-btn" data-tab="alarms">ALARM</button>
+      <button type="button" class="tab-btn" data-tab="tg">TG</button>
+    </nav>
   </aside>
 
   <footer>
@@ -323,7 +359,7 @@
       <span class="sep">•</span>
       <span>Arrastra las alarmas en el gráfico</span>
       <span class="sep">•</span>
-      <span>Order Flow vía WebSocket (Solo Binance)</span>
+      <span>Pasa el mouse sobre una alarma para ver la X de borrar</span>
     </div>
     <div id="footerClock">--:--:--</div>
   </footer>
@@ -346,6 +382,10 @@ const ASSETS = [
   { symbol:'EURUSD=X', name:'EUR/USD', full:'Euro Dolar (Yahoo)', icon:'€', color:'#4a90e2', src:'yahoo' },
 ];
 
+const INTERVAL_MS = {
+  '1m': 60000, '5m': 300000, '15m': 900000, '1h': 3600000, '4h': 14400000, '1d': 86400000, '1w': 604800000
+};
+
 const state = {
   symbol: 'BTCUSDT',
   asset: ASSETS[0],
@@ -363,6 +403,7 @@ const state = {
   prevPrice: null,
   lastCandles: [],
   lastCandleTime: null,
+  currentCandleCloseTime: null,
   currentCandleHigh: null,
   currentCandleLow: null,
   showSMA20: true,
@@ -425,6 +466,8 @@ function initApp(){
 
   state.chart.subscribeCrosshairMove(param => {
     const legend = document.getElementById('chartLegend');
+    const delBtn = document.getElementById('chartDeleteAlarm');
+    
     if (state.draggingAlarm) return;
     
     if(param.point) state.lastMouseY = param.point.y;
@@ -432,7 +475,9 @@ function initApp(){
     if(!param.time || !param.seriesData || !param.seriesData.size){
       legend.classList.remove('show');
       if(!state.draggingAlarm) chartEl.style.cursor = 'default';
-      state.hoveredAlarm = null; return;
+      state.hoveredAlarm = null;
+      delBtn.style.display = 'none';
+      return;
     }
     const d = param.seriesData.get(state.candleSeries);
     if(d){
@@ -452,8 +497,49 @@ function initApp(){
       }
     });
     state.hoveredAlarm = foundHover;
-    if (!state.draggingAlarm) chartEl.style.cursor = foundHover ? 'ns-resize' : 'default';
+    
+    if (state.hoveredAlarm) {
+      chartEl.style.cursor = 'pointer';
+      const yCoord = state.candleSeries.priceToCoordinate(state.hoveredAlarm.price);
+      if (yCoord !== null) {
+        delBtn.style.display = 'flex';
+        delBtn.style.top = (yCoord - 10) + 'px';
+      }
+    } else {
+      chartEl.style.cursor = 'default';
+      delBtn.style.display = 'none';
+    }
   });
+
+  // Delete alarm button click
+  document.getElementById('chartDeleteAlarm').addEventListener('click', () => {
+    if(state.hoveredAlarm) {
+      removeAlarm(state.hoveredAlarm.id);
+      state.hoveredAlarm = null;
+      document.getElementById('chartDeleteAlarm').style.display = 'none';
+    }
+  });
+
+  // Tab navigation
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Countdown Timer
+  setInterval(() => {
+    if (!state.currentCandleCloseTime || !state.currentPriceLine) return;
+    const msLeft = state.currentCandleCloseTime - Date.now();
+    if (msLeft < 0) return;
+    const min = Math.floor(msLeft / 60000);
+    const sec = Math.floor((msLeft % 60000) / 1000);
+    const timeStr = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    state.currentPriceLine.applyOptions({ title: timeStr });
+  }, 1000);
 
   window.addEventListener('keydown', (e) => {
     if(e.altKey && e.key.toLowerCase() === 'a') {
@@ -483,6 +569,7 @@ function initApp(){
     if (state.hoveredAlarm) {
       state.draggingAlarm = state.hoveredAlarm;
       chartEl.style.cursor = 'grabbing';
+      document.getElementById('chartDeleteAlarm').style.display = 'none'; // hide X while dragging
       e.preventDefault(); e.stopPropagation();
     }
   }, true);
@@ -516,7 +603,6 @@ function initApp(){
     }
   });
 
-  // FIX: Auto-scale button now resets both horizontal and vertical zoom
   document.getElementById('autoScaleBtn').addEventListener('click', () => {
     state.chart.timeScale().fitContent();
     state.chart.priceScale('right').applyOptions({ autoScale: true });
@@ -527,6 +613,13 @@ function initApp(){
     document.getElementById('toggleFlow').classList.toggle('on', state.showFlow);
     if(!state.showFlow) document.getElementById('liveFlowBox').style.display = 'none';
     else updateFlowBoxPosition();
+  });
+
+  document.getElementById('clearAllAlarmsBtn').addEventListener('click', () => {
+    state.alarms = state.alarms.filter(a => a.symbol !== state.symbol);
+    saveAlarms();
+    renderAlarms();
+    showToast('Alarmas eliminadas', `Se borraron todas las alarmas de ${state.asset.name}`, 'alarm');
   });
 
   async function loadHistoryYahoo(symbol, interval){
@@ -576,6 +669,7 @@ function initApp(){
         state.lastPrice = data.candles[data.candles.length-1].close;
         state.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null;
         state.lastCandleTime = data.candles[data.candles.length-1].time;
+        state.currentCandleCloseTime = (state.lastCandleTime * 1000) + INTERVAL_MS[interval];
         state.currentCandleHigh = data.candles[data.candles.length-1].high;
         state.currentCandleLow = data.candles[data.candles.length-1].low;
         state.bucketSize = state.lastPrice > 1000 ? 1 : state.lastPrice > 50 ? 0.1 : 0.001;
@@ -671,6 +765,7 @@ function initApp(){
         state.prevPrice = state.lastPrice;
         state.lastPrice = candle.close;
         state.lastCandleTime = candle.time;
+        state.currentCandleCloseTime = k.T + INTERVAL_MS[interval]; // k.T is start time
         state.currentCandleHigh = candle.high;
         state.currentCandleLow = candle.low;
         updatePriceDisplay(candle.close, state.prevPrice);
@@ -738,6 +833,7 @@ function initApp(){
         state.prevPrice = state.lastPrice;
         state.lastPrice = q.close[ts.length-1];
         state.lastCandleTime = ts[ts.length-1];
+        state.currentCandleCloseTime = (state.lastCandleTime * 1000) + INTERVAL_MS[interval];
         state.currentCandleHigh = q.high[ts.length-1];
         state.currentCandleLow = q.low[ts.length-1];
         updatePriceDisplay(state.lastPrice, state.prevPrice);
@@ -774,14 +870,12 @@ function initApp(){
       return;
     }
     
-    // Filter levels to only those within the current candle's high and low
     levels = levels.filter(l => l.price >= state.currentCandleLow && l.price <= state.currentCandleHigh);
     if(levels.length === 0) {
         box.style.display = 'none';
         return;
     }
     
-    // Sort ascending so column-reverse puts highest at top
     levels.sort((a, b) => a.price - b.price);
     
     let html = '';
@@ -817,7 +911,7 @@ function initApp(){
       box.style.left = timeCoord + 'px';
       box.style.top = Math.min(highCoord, lowCoord) + 'px';
       box.style.height = Math.abs(highCoord - lowCoord) + 'px';
-      box.style.width = '60px'; // Fixed width for the text inside the candle
+      box.style.width = '60px'; 
     }
   }
 
@@ -845,7 +939,7 @@ function initApp(){
     if(state.candleSeries){
       if(state.currentPriceLine) state.candleSeries.removePriceLine(state.currentPriceLine);
       state.currentPriceLine = state.candleSeries.createPriceLine({
-        price: price, color: '#00e5ff', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Solid, axisLabelVisible: true, title: 'ACTUAL',
+        price: price, color: '#00e5ff', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Solid, axisLabelVisible: true, title: '00:00'
       });
     }
   }
@@ -872,7 +966,7 @@ function initApp(){
             <div class="alarm-price">${fmt(a.price)}</div>
             <div class="alarm-meta">Cruce · ${diffText} · ${time}</div>
           </div>
-          <button type="button" class="del-btn" onclick="removeAlarm('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2  0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+          <button type="button" class="del-btn" onclick="removeAlarm('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
         </div>`;
       }).join('');
     }
@@ -948,7 +1042,6 @@ function initApp(){
     
     const msg = `🚨 ALARM TRIGGERED\n\nAsset: ${alarm.assetName}\nPrice Crossed: $${fmt(alarm.price)}\nCurrent Price: $${fmt(price)}`;
     const originalUrl = `https://api.telegram.org/bot${state.tgToken}/sendMessage`;
-    // Use CORS proxy to bypass GitHub Pages restrictions
     const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originalUrl)}`;
     
     try {
