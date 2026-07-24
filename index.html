@@ -78,7 +78,7 @@
   .ind-dropdown{position:relative;}
   .ind-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:600;font-size:11px;transition:.12s;}
   .ind-btn:hover{color:var(--cyan);border-color:var(--cyan);}
-  .ind-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:225px;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:6px;z-index:100;box-shadow:0 16px 40px rgba(0,0,0,.6);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s;}
+  .ind-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:225px;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:6px;z-index:100;box-shadow:0 16px 40px rgba(0,0,0,.6);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s;max-height:70vh;overflow-y:auto;}
   .ind-menu.open{opacity:1;transform:translateY(0);pointer-events:auto;}
   .ind-block{border-bottom:1px solid var(--border);padding-bottom:2px;margin-bottom:2px;}
   .ind-block:last-child{border-bottom:none;margin-bottom:0;}
@@ -116,13 +116,22 @@
   .tool-btn.active { color: var(--cyan); border-color: var(--cyan); background: rgba(0,229,255,0.1); box-shadow: 0 0 8px rgba(0,229,255,0.2); }
 
   #chartsGrid{display:grid;gap:1px;background:var(--border);height:100%;width:100%;min-height:0;min-width:0;overflow:hidden;}
-  .chart-cell{position:relative;background:var(--bg);overflow:hidden;cursor:crosshair;min-height:0;min-width:0;}
+  .chart-cell{position:relative;background:var(--bg);overflow:hidden;cursor:crosshair;min-height:0;min-width:0;display:flex;flex-direction:column;}
   .chart-cell.active{outline:2px solid var(--cyan);outline-offset:-2px;z-index:5;}
+  .chart-main-wrap{position:relative;flex:1 1 auto;min-height:0;min-width:0;overflow:hidden;}
   .chart-container{width:100%;height:100%;position:absolute;top:0;left:0;min-height:0;min-width:0;}
   .chart-price-tag{position:absolute;top:8px;left:8px;z-index:10;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;pointer-events:none;display:flex;align-items:center;gap:8px;}
   .chart-price-tag .sym{font-weight:700;color:var(--cyan);}
   .chart-price-tag .val{font-family:'Orbitron',sans-serif;font-weight:700;}
   .chart-price-tag .chg{font-size:10px;}
+
+  .adx-resize-handle{flex:0 0 6px;background:var(--border);cursor:row-resize;position:relative;transition:background .12s;}
+  .adx-resize-handle:hover, .adx-resize-handle.dragging{background:var(--cyan);}
+  .adx-resize-handle::after{content:'';position:absolute;left:50%;top:50%;width:28px;height:2px;background:rgba(255,255,255,.3);transform:translate(-50%,-50%);}
+  .adx-pane-wrap{position:relative;flex:0 0 auto;min-height:40px;overflow:hidden;border-top:1px solid var(--border);}
+  .adx-pane-container{width:100%;height:100%;position:absolute;top:0;left:0;}
+  .adx-pane-label{position:absolute;top:4px;left:8px;z-index:10;font-size:9px;color:var(--purple);font-weight:700;letter-spacing:1px;background:rgba(7,10,16,.7);padding:2px 6px;border-radius:4px;pointer-events:none;}
+  .adx-pane-val{position:absolute;top:4px;left:70px;z-index:10;font-size:9px;color:var(--text);font-family:'Orbitron',sans-serif;background:rgba(7,10,16,.7);padding:2px 6px;border-radius:4px;pointer-events:none;}
   
   .overlay-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4;}
   .draw-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;}
@@ -169,12 +178,33 @@
   .tg-help{font-size:9px;color:var(--muted);line-height:1.4;margin-bottom:8px;}
   .tg-help a{color:var(--purple);text-decoration:none;}
 
+  .bt-section{background:rgba(255,176,32,.03);}
+  .bt-section .side-title{color:var(--amber);}
+  .bt-help{font-size:9px;color:var(--muted);line-height:1.4;margin-bottom:8px;}
+  .bt-grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+  .bt-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block;}
+  .bt-list{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
+  .bt-row{display:flex;align-items:center;justify-content:space-between;padding:7px 9px;background:var(--panel-2);border:1px solid var(--border);border-radius:5px;}
+  .bt-row-info{display:flex;flex-direction:column;gap:1px;}
+  .bt-row-name{font-size:10px;font-weight:700;}
+  .bt-row-desc{font-size:8px;color:var(--muted);}
+  .bt-results{margin-top:8px;display:none;}
+  .bt-results.show{display:block;}
+  .bt-res-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .bt-res-stat{background:var(--panel-2);border:1px solid var(--border);border-radius:5px;padding:7px;}
+  .bt-res-stat .k{font-size:8px;color:var(--muted);text-transform:uppercase;}
+  .bt-res-stat .v{font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;margin-top:2px;}
+  .bt-res-stat .v.pos{color:var(--green);}
+  .bt-res-stat .v.neg{color:var(--magenta);}
+
   .field{background:var(--panel-2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:10px;padding:8px 9px;border-radius:5px;outline:none;width:100%;transition:.12s;}
   .field:focus{border-color:var(--cyan);background:rgba(0,229,255,.03);}
   .field::placeholder{color:var(--muted);}
   .form-grid{display:flex;flex-direction:column;gap:7px;}
   .btn-primary{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#031014;font-weight:800;font-family:inherit;font-size:11px;padding:9px;border:none;border-radius:5px;cursor:pointer;transition:.15s;letter-spacing:1px;text-transform:uppercase;}
   .btn-primary:hover{box-shadow:0 6px 20px rgba(0,229,255,.35);transform:translateY(-1px);}
+  .btn-primary.amber{background:linear-gradient(135deg,var(--amber),#cc7a00);color:#1a0f00;}
+  .btn-primary.amber:hover{box-shadow:0 6px 20px rgba(255,176,32,.35);}
   .btn-danger{background:rgba(255,46,136,.1);border:1px solid var(--magenta);color:var(--magenta);padding:7px;border-radius:5px;cursor:pointer;font-family:inherit;font-size:10px;font-weight:700;letter-spacing:1px;width:100%;margin-top:8px;}
   .btn-danger:hover{background:var(--magenta);color:#1a0008;}
 
@@ -249,7 +279,7 @@
   <header>
     <div class="logo">
       <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg></div>
-      <h1>CYCLE TERMINAL<span>v5.6 // Clean Layout</span></h1>
+      <h1>CYCLE TERMINAL<span>v5.7 // VWAP Bands + ADX + Backtest</span></h1>
     </div>
     <div class="asset-selector" id="assetSelector">
       <button type="button" class="asset-btn" id="assetBtn">
@@ -337,6 +367,26 @@
         </div>
 
         <div class="ind-block">
+          <div class="ind-item" data-ind="vwapBands">
+            <span>VWAP Bandas <b class="ind-tag" id="tagVwapBands">2.0σ</b></span>
+            <div class="ind-actions">
+              <button type="button" class="ind-gear" data-opts="vwapBands" title="Opciones">⚙</button>
+              <div class="ind-toggle on"></div>
+            </div>
+          </div>
+          <div class="ind-options" id="opts-vwapBands">
+            <div class="opt-row">
+              <span class="opt-label">Desv. interna</span>
+              <input type="number" class="opt-input" id="input-vwapBands-mult1" min="0.1" max="10" step="0.1" value="1">
+            </div>
+            <div class="opt-row" style="margin-top:6px;">
+              <span class="opt-label">Desv. externa</span>
+              <input type="number" class="opt-input" id="input-vwapBands-mult2" min="0.1" max="10" step="0.1" value="2">
+            </div>
+          </div>
+        </div>
+
+        <div class="ind-block">
           <div class="ind-item" data-ind="flow">
             <span>OrderFlow <b class="ind-tag" id="tagFlow">Normal</b></span>
             <div class="ind-actions">
@@ -416,6 +466,26 @@
           </div>
         </div>
 
+        <div class="ind-block">
+          <div class="ind-item" data-ind="adx">
+            <span>ADX <b class="ind-tag" id="tagAdx">14 / 23</b></span>
+            <div class="ind-actions">
+              <button type="button" class="ind-gear" data-opts="adx" title="Opciones">⚙</button>
+              <div class="ind-toggle on"></div>
+            </div>
+          </div>
+          <div class="ind-options" id="opts-adx">
+            <div class="opt-row">
+              <span class="opt-label">Periodo</span>
+              <input type="number" class="opt-input" id="input-adx-period" min="2" max="100" value="14">
+            </div>
+            <div class="opt-row" style="margin-top:6px;">
+              <span class="opt-label">Línea umbral</span>
+              <input type="number" class="opt-input" id="input-adx-threshold" min="1" max="100" step="0.1" value="23">
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
     <div class="toolbar-right">
@@ -460,6 +530,89 @@
         </div>
       </div>
 
+      <div class="tab-panel" id="tab-bt">
+        <div class="side-section bt-section">
+          <div class="side-title"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 3 5-8"/></svg>Backtest</div>
+          <div class="bt-help">Corre una simulación simplificada sobre el historial ya cargado del gráfico activo, usando los filtros que actives abajo. Estrategia base: mean-reversion sobre bandas de VWAP, filtrada por régimen ADX.</div>
+          <div class="form-grid">
+            <div>
+              <span class="bt-label">Monto billetera (USD)</span>
+              <input type="number" class="field" id="btWallet" placeholder="10000" value="10000" min="1">
+            </div>
+            <div class="bt-grid2">
+              <div>
+                <span class="bt-label">Riesgo por operación (%)</span>
+                <input type="number" class="field" id="btRiskPct" placeholder="0.5" value="0.5" min="0.01" max="100" step="0.1">
+              </div>
+              <div>
+                <span class="bt-label">Pérdida diaria máx (%)</span>
+                <input type="number" class="field" id="btMaxDailyLoss" placeholder="2" value="2" min="0.1" max="100" step="0.1">
+              </div>
+            </div>
+            <div class="bt-grid2">
+              <div>
+                <span class="bt-label">Stop (x ATR)</span>
+                <input type="number" class="field" id="btStopAtr" placeholder="1.5" value="1.5" min="0.1" max="10" step="0.1">
+              </div>
+              <div>
+                <span class="bt-label">Meta mensual (%)</span>
+                <input type="number" class="field" id="btMonthlyTarget" placeholder="6" value="6" min="0.1" max="1000" step="0.1">
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <span class="bt-label">Indicadores y filtros a usar</span>
+            <div class="bt-list" id="btFilterList">
+              <div class="bt-row" data-filter="vwap">
+                <div class="bt-row-info"><span class="bt-row-name">VWAP</span><span class="bt-row-desc">Precio medio de referencia (ancla del día)</span></div>
+                <div class="ind-toggle on" data-bt-toggle="vwap"></div>
+              </div>
+              <div class="bt-row" data-filter="vwapBands">
+                <div class="bt-row-info"><span class="bt-row-name">Bandas VWAP</span><span class="bt-row-desc">Gatillo de entrada por desviación (mean-reversion)</span></div>
+                <div class="ind-toggle on" data-bt-toggle="vwapBands"></div>
+              </div>
+              <div class="bt-row" data-filter="adx">
+                <div class="bt-row-info"><span class="bt-row-name">Filtro ADX</span><span class="bt-row-desc">Bloquea entradas si hay tendencia fuerte</span></div>
+                <div class="ind-toggle on" data-bt-toggle="adx"></div>
+              </div>
+              <div class="bt-row" data-filter="vp">
+                <div class="bt-row-info"><span class="bt-row-name">Volume Profile</span><span class="bt-row-desc">Confirma zona de bajo volumen (LVN) antes de entrar</span></div>
+                <div class="ind-toggle on" data-bt-toggle="vp"></div>
+              </div>
+              <div class="bt-row" data-filter="sma20">
+                <div class="bt-row-info"><span class="bt-row-name">SMA 20</span><span class="bt-row-desc">Filtro de tendencia rápido (opcional)</span></div>
+                <div class="ind-toggle" data-bt-toggle="sma20"></div>
+              </div>
+              <div class="bt-row" data-filter="sma50">
+                <div class="bt-row-info"><span class="bt-row-name">SMA 50</span><span class="bt-row-desc">Filtro de tendencia lento (opcional)</span></div>
+                <div class="ind-toggle" data-bt-toggle="sma50"></div>
+              </div>
+              <div class="bt-row" data-filter="fractal">
+                <div class="bt-row-info"><span class="bt-row-name">Fractales</span><span class="bt-row-desc">Referencia de soporte/resistencia (opcional)</span></div>
+                <div class="ind-toggle" data-bt-toggle="fractal"></div>
+              </div>
+              <div class="bt-row" data-filter="flow">
+                <div class="bt-row-info"><span class="bt-row-name">OrderFlow</span><span class="bt-row-desc">Confirmación de agresión compradora/vendedora (opcional)</span></div>
+                <div class="ind-toggle" data-bt-toggle="flow"></div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn-primary amber" id="runBacktestBtn" style="margin-top:12px;">Ejecutar Backtest</button>
+
+          <div class="bt-results" id="btResults">
+            <div class="bt-res-grid">
+              <div class="bt-res-stat"><div class="k">Trades</div><div class="v" id="btResTrades">--</div></div>
+              <div class="bt-res-stat"><div class="k">Win Rate</div><div class="v" id="btResWinRate">--</div></div>
+              <div class="bt-res-stat"><div class="k">Retorno Total</div><div class="v" id="btResReturn">--</div></div>
+              <div class="bt-res-stat"><div class="k">Máx Drawdown</div><div class="v" id="btResDD">--</div></div>
+            </div>
+            <div class="bt-help" style="margin-top:8px;" id="btDisclaimer">Simulación educativa sobre velas históricas ya cargadas (no incluye slippage, comisiones ni ejecución real). No es garantía de resultados futuros.</div>
+          </div>
+        </div>
+      </div>
+
       <div class="tab-panel" id="tab-tg">
         <div class="side-section tg-section">
           <div class="side-title"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>Telegram Celular</div>
@@ -475,6 +628,7 @@
     <nav class="tab-nav">
       <button type="button" class="tab-btn active" data-tab="flow">FLOW</button>
       <button type="button" class="tab-btn" data-tab="alarms">ALARM</button>
+      <button type="button" class="tab-btn" data-tab="bt">BACKT</button>
       <button type="button" class="tab-btn" data-tab="tg">TG</button>
     </nav>
   </aside>
@@ -506,20 +660,23 @@ const DEFAULT_LAYOUT_SYMBOLS = ['BTCUSDT', 'GC=F', '^NDX', 'CLP=X'];
 
 const globalState = {
   interval: '5m',
-  indicators: { sma20: true, sma50: true, vwap: true, flow: true, fractal: true, vp: true, vpFractal: true },
+  indicators: { sma20: true, sma50: true, vwap: true, vwapBands: true, flow: true, fractal: true, vp: true, vpFractal: true, adx: true },
   indicatorConfig: {
     sma20: { period: 20 },
     sma50: { period: 50 },
     vwap: { anchor: 'D' },
+    vwapBands: { mult1: 1, mult2: 2 },
     flow: { precisionMult: 1 },
     fractal: { lookback: 40, lookforward: 2 },
     vp: { rows: 24 },
-    vpFractal: { lookback: 40, lookforward: 2, rows: 24 }
+    vpFractal: { lookback: 40, lookforward: 2, rows: 24 },
+    adx: { period: 14, threshold: 23 }
   },
   activeTool: 'cursor',
   alarms: JSON.parse(localStorage.getItem('cycle_terminal_alarms_v4') || '[]'),
   tgToken: localStorage.getItem('tg_token') || '',
   tgChatId: localStorage.getItem('tg_chatid') || '',
+  btFilters: JSON.parse(localStorage.getItem('cycle_terminal_bt_filters_v1') || '{"vwap":true,"vwapBands":true,"adx":true,"vp":true,"sma20":false,"sma50":false,"fractal":false,"flow":false}'),
   audioCtx: null,
   activeChartIndex: 0,
   instances: [],
@@ -527,6 +684,7 @@ const globalState = {
 };
 
 function saveAlarms(){ try { localStorage.setItem('cycle_terminal_alarms_v4', JSON.stringify(globalState.alarms)); } catch(e){} }
+function saveBtFilters(){ try { localStorage.setItem('cycle_terminal_bt_filters_v1', JSON.stringify(globalState.btFilters)); } catch(e){} }
 
 if(typeof LightweightCharts === 'undefined'){
   window.__initApp = initApp;
@@ -549,8 +707,10 @@ function initApp() {
         inst.calcVWAP(true);
         inst.updateFractals();
         inst.updateVpFractal();
+        inst.updateADX();
         inst.requestDraw();
         inst.updateFlowBox();
+        inst.applyAdxPaneVisibility();
       });
     });
   });
@@ -596,6 +756,22 @@ function initApp() {
       globalState.instances.forEach(inst => inst.calcVWAP(true));
     });
   });
+
+  // Multiplicadores de Bandas VWAP
+  const vwapBandsInput = (id, key) => {
+    const input = document.getElementById(id);
+    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('change', (e) => {
+      let v = parseFloat(e.target.value);
+      if (isNaN(v) || v < 0.1) v = 0.1; if (v > 10) v = 10;
+      e.target.value = v;
+      globalState.indicatorConfig.vwapBands[key] = v;
+      document.getElementById('tagVwapBands').textContent = globalState.indicatorConfig.vwapBands.mult2.toFixed(1) + 'σ';
+      globalState.instances.forEach(inst => inst.calcVWAP(true));
+    });
+  };
+  vwapBandsInput('input-vwapBands-mult1', 'mult1');
+  vwapBandsInput('input-vwapBands-mult2', 'mult2');
 
   // Precisión del OrderFlow (Fino / Normal / Grueso)
   document.querySelectorAll('#flowPrecisionGroup .opt-btn').forEach(btn => {
@@ -658,6 +834,28 @@ function initApp() {
   vpFractalInput('input-vpFractal-lookforward', 'lookforward', 50);
   vpFractalInput('input-vpFractal-rows', 'rows', 100);
 
+  // Config del ADX (periodo + línea umbral)
+  const adxPeriodInput = document.getElementById('input-adx-period');
+  adxPeriodInput.addEventListener('click', (e) => e.stopPropagation());
+  adxPeriodInput.addEventListener('change', (e) => {
+    let v = parseInt(e.target.value, 10);
+    if (isNaN(v) || v < 2) v = 2; if (v > 100) v = 100;
+    e.target.value = v;
+    globalState.indicatorConfig.adx.period = v;
+    document.getElementById('tagAdx').textContent = `${v} / ${globalState.indicatorConfig.adx.threshold}`;
+    globalState.instances.forEach(inst => inst.updateADX());
+  });
+  const adxThresholdInput = document.getElementById('input-adx-threshold');
+  adxThresholdInput.addEventListener('click', (e) => e.stopPropagation());
+  adxThresholdInput.addEventListener('change', (e) => {
+    let v = parseFloat(e.target.value);
+    if (isNaN(v) || v < 1) v = 1; if (v > 100) v = 100;
+    e.target.value = v;
+    globalState.indicatorConfig.adx.threshold = v;
+    document.getElementById('tagAdx').textContent = `${globalState.indicatorConfig.adx.period} / ${v}`;
+    globalState.instances.forEach(inst => inst.updateADXThresholdLine());
+  });
+
   document.getElementById('customSymbol').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.value.trim()) { let val = e.target.value.trim().toUpperCase(); if(val.includes('USD') && !val.includes('USDT') && val.length <= 7) val += '=X'; changeActiveAsset(val); } });
   
   document.querySelectorAll('.tf-pill').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.tf-pill').forEach(b => b.classList.remove('active')); btn.classList.add('active'); globalState.interval = btn.dataset.tf; globalState.instances.forEach(inst => inst.switchMarket(globalState.interval)); }));
@@ -682,6 +880,18 @@ function initApp() {
   tgTokenInput.addEventListener('input', (e) => { globalState.tgToken = e.target.value.trim(); localStorage.setItem('tg_token', globalState.tgToken); });
   tgChatIdInput.addEventListener('input', (e) => { globalState.tgChatId = e.target.value.trim(); localStorage.setItem('tg_chatid', globalState.tgChatId); });
   document.getElementById('testTgBtn').addEventListener('click', () => { if(!globalState.tgToken || !globalState.tgChatId){ showToast('Faltan datos', 'Ingresa el Token y el Chat ID', 'error'); return; } const inst = globalState.instances[globalState.activeChartIndex]; sendTelegram({ assetName: inst.asset.name, price: inst.lastPrice }, inst.lastPrice); });
+
+  // Panel de Backtest: toggles de filtros
+  document.querySelectorAll('#btFilterList .ind-toggle').forEach(tg => {
+    const key = tg.dataset.btToggle;
+    tg.classList.toggle('on', !!globalState.btFilters[key]);
+    tg.addEventListener('click', () => {
+      globalState.btFilters[key] = !globalState.btFilters[key];
+      tg.classList.toggle('on', globalState.btFilters[key]);
+      saveBtFilters();
+    });
+  });
+  document.getElementById('runBacktestBtn').addEventListener('click', runBacktest);
 
   window.addEventListener('keydown', (e) => {
     if(e.altKey && e.key.toLowerCase() === 'a') {
@@ -811,19 +1021,68 @@ function computeBucketSize(inst) {
   return base * (globalState.indicatorConfig.flow.precisionMult || 1);
 }
 
+// ---------- ADX helper (Wilder's smoothing), reutilizable por chart y por backtest ----------
+function computeADXSeries(candles, period) {
+  period = period || 14;
+  const n = candles.length;
+  const tr = new Array(n).fill(0), plusDM = new Array(n).fill(0), minusDM = new Array(n).fill(0);
+  for (let i = 1; i < n; i++) {
+    const cur = candles[i], prev = candles[i-1];
+    const upMove = cur.high - prev.high;
+    const downMove = prev.low - cur.low;
+    plusDM[i] = (upMove > downMove && upMove > 0) ? upMove : 0;
+    minusDM[i] = (downMove > upMove && downMove > 0) ? downMove : 0;
+    tr[i] = Math.max(cur.high - cur.low, Math.abs(cur.high - prev.close), Math.abs(cur.low - prev.close));
+  }
+  const smooth = (arr) => {
+    const out = new Array(n).fill(null);
+    if (n <= period) return out;
+    let sum = 0;
+    for (let i = 1; i <= period; i++) sum += arr[i];
+    out[period] = sum;
+    for (let i = period + 1; i < n; i++) out[i] = out[i-1] - (out[i-1] / period) + arr[i];
+    return out;
+  };
+  const trS = smooth(tr), plusS = smooth(plusDM), minusS = smooth(minusDM);
+  const plusDI = new Array(n).fill(null), minusDI = new Array(n).fill(null), dx = new Array(n).fill(null);
+  for (let i = period; i < n; i++) {
+    if (trS[i] > 0) {
+      plusDI[i] = 100 * (plusS[i] / trS[i]);
+      minusDI[i] = 100 * (minusS[i] / trS[i]);
+      const sum = plusDI[i] + minusDI[i];
+      dx[i] = sum > 0 ? 100 * Math.abs(plusDI[i] - minusDI[i]) / sum : 0;
+    }
+  }
+  const adx = new Array(n).fill(null);
+  const firstDxIdx = period * 2;
+  if (n > firstDxIdx) {
+    let sum = 0, cnt = 0;
+    for (let i = period; i < firstDxIdx; i++) { if(dx[i] != null){ sum += dx[i]; cnt++; } }
+    if(cnt > 0) adx[firstDxIdx - 1] = sum / cnt;
+    for (let i = firstDxIdx; i < n; i++) {
+      if (adx[i-1] != null && dx[i] != null) adx[i] = ((adx[i-1] * (period - 1)) + dx[i]) / period;
+    }
+  }
+  return adx.map((v, i) => ({ time: candles[i].time, value: v }));
+}
+
 function createChartInstance(cell, asset, interval, index) {
   const inst = {
     cell, asset, symbol: asset.symbol, interval, index,
     chart: null, candleSeries: null, volSeries: null, sma20Series: null, sma50Series: null, vwapSeries: null,
+    vwapUpper1: null, vwapLower1: null, vwapUpper2: null, vwapLower2: null,
+    adxChart: null, adxSeries: null, adxThresholdLine: null,
+    adxPaneRatio: 0.25, adxResizing: false,
     currentPriceLine: null, alarmPriceLines: new Map(), lastPrice: null, prevPrice: null,
     lastCandles: [], lastCandleTime: null, currentCandleCloseTime: null, currentCandleHigh: null, currentCandleLow: null,
     liveBuyVol: 0, liveSellVol: 0, candleFlows: {}, bucketSize: 1, ws: null, pollTimer: null,
     hoveredAlarm: null, lastMouseY: null, isLoadingHistory: false, noMoreHistory: false,
     overlayCanvas: null, drawCanvas: null, chartEl: null, legendEl: null, priceTagEl: null, flowBoxEl: null, autoScaleBtn: null, status: 'conn',
     drawings: [], isDrawing: false, currentDrawing: null,
-    vwapData: [],
+    vwapData: [], vwapUpper1Data: [], vwapLower1Data: [], vwapUpper2Data: [], vwapLower2Data: [],
     fractalMarkers: [], vpFractalMarkers: [], vpFractalRange: null,
-    drawThrottle: null
+    drawThrottle: null,
+    _syncingTimeScale: false
   };
 
   inst.requestDraw = function() {
@@ -837,13 +1096,21 @@ function createChartInstance(cell, asset, interval, index) {
 
   inst.init = function() {
     inst.cell.innerHTML = `
-      <div class="chart-price-tag"><span class="sym">${inst.asset.name}</span> <span class="val">--</span> <span class="chg" style="font-size:10px;"></span></div>
-      <div class="chart-legend"><div><span class="k">O</span> <span class="lgO">--</span></div><div><span class="k">H</span> <span class="lgH" style="color:var(--green);">--</span></div><div><span class="k">L</span> <span class="lgL" style="color:var(--magenta);">--</span></div><div><span class="k">C</span> <span class="lgC">--</span></div></div>
-      <canvas class="overlay-canvas"></canvas>
-      <div class="live-flow-box"></div>
-      <canvas class="draw-canvas"></canvas>
-      <button class="auto-scale-btn">A</button>
-      <div class="chart-container"></div>
+      <div class="chart-main-wrap">
+        <div class="chart-price-tag"><span class="sym">${inst.asset.name}</span> <span class="val">--</span> <span class="chg" style="font-size:10px;"></span></div>
+        <div class="chart-legend"><div><span class="k">O</span> <span class="lgO">--</span></div><div><span class="k">H</span> <span class="lgH" style="color:var(--green);">--</span></div><div><span class="k">L</span> <span class="lgL" style="color:var(--magenta);">--</span></div><div><span class="k">C</span> <span class="lgC">--</span></div></div>
+        <canvas class="overlay-canvas"></canvas>
+        <div class="live-flow-box"></div>
+        <canvas class="draw-canvas"></canvas>
+        <button class="auto-scale-btn">A</button>
+        <div class="chart-container"></div>
+      </div>
+      <div class="adx-resize-handle" title="Arrastra para redimensionar"></div>
+      <div class="adx-pane-wrap">
+        <div class="adx-pane-label">ADX</div>
+        <div class="adx-pane-val">--</div>
+        <div class="adx-pane-container"></div>
+      </div>
     `;
     inst.chartEl = inst.cell.querySelector('.chart-container');
     inst.overlayCanvas = inst.cell.querySelector('.overlay-canvas');
@@ -852,6 +1119,11 @@ function createChartInstance(cell, asset, interval, index) {
     inst.autoScaleBtn = inst.cell.querySelector('.auto-scale-btn');
     inst.legendEl = inst.cell.querySelector('.chart-legend');
     inst.priceTagEl = inst.cell.querySelector('.chart-price-tag');
+    inst.mainWrapEl = inst.cell.querySelector('.chart-main-wrap');
+    inst.adxWrapEl = inst.cell.querySelector('.adx-pane-wrap');
+    inst.adxHandleEl = inst.cell.querySelector('.adx-resize-handle');
+    inst.adxContainerEl = inst.cell.querySelector('.adx-pane-container');
+    inst.adxValEl = inst.cell.querySelector('.adx-pane-val');
 
     inst.autoScaleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -881,15 +1153,76 @@ function createChartInstance(cell, asset, interval, index) {
       width: inst.chartEl.clientWidth,
       height: inst.chartEl.clientHeight
     });
-    
+
+    // Sub-chart de ADX (pane independiente apilado abajo, sincronizado con el chart principal)
+    inst.adxChart = LightweightCharts.createChart(inst.adxContainerEl, {
+      layout: { background:{type:'solid', color:'transparent'}, textColor:'#5f7387', fontFamily:"'JetBrains Mono', monospace", fontSize:9 },
+      grid: { vertLines:{color:'#101820'}, horzLines:{color:'#101820'} },
+      crosshair: { mode:LightweightCharts.CrosshairMode.Normal, vertLine:{color:'rgba(168,85,247,.4)',width:1,style:LightweightCharts.LineStyle.Dashed}, horzLine:{color:'rgba(168,85,247,.4)',width:1,style:LightweightCharts.LineStyle.Dashed} },
+      rightPriceScale: { borderColor:'#1c2733', scaleMargins:{top:0.15, bottom:0.1} },
+      timeScale: { borderColor:'#1c2733', timeVisible:true, secondsVisible:false },
+      width: inst.adxContainerEl.clientWidth,
+      height: inst.adxContainerEl.clientHeight
+    });
+    inst.adxSeries = inst.adxChart.addLineSeries({ color:'#a855f7', lineWidth:2, priceLineVisible:false, lastValueVisible:true });
+    inst.adxThresholdLine = inst.adxSeries.createPriceLine({ price: globalState.indicatorConfig.adx.threshold, color:'#ffb020', lineWidth:1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible:true, title:'umbral' });
+
+    // Sincroniza el timescale entre el chart principal y el pane de ADX (ambos sentidos, sin loop)
+    inst.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+      if (!range || inst._syncingTimeScale) return;
+      inst._syncingTimeScale = true;
+      try { inst.adxChart.timeScale().setVisibleLogicalRange(range); } catch(e){}
+      inst._syncingTimeScale = false;
+    });
+    inst.adxChart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+      if (!range || inst._syncingTimeScale) return;
+      inst._syncingTimeScale = true;
+      try { inst.chart.timeScale().setVisibleLogicalRange(range); } catch(e){}
+      inst._syncingTimeScale = false;
+    });
+    inst.chart.subscribeCrosshairMove(param => { if(param.point) try{ inst.adxChart.setCrosshairPosition(param.point.x, 0, inst.adxSeries); }catch(e){} else try{ inst.adxChart.clearCrosshairPosition(); }catch(e){} });
+    inst.adxChart.subscribeCrosshairMove(param => {
+      if(param.seriesData && param.seriesData.get(inst.adxSeries)) {
+        const d = param.seriesData.get(inst.adxSeries);
+        inst.adxValEl.textContent = d && d.value != null ? d.value.toFixed(2) : '--';
+      }
+    });
+
     const resizeObserver = new ResizeObserver(() => {
       if (inst.chartEl.clientWidth > 0 && inst.chartEl.clientHeight > 0) {
         inst.chart.applyOptions({ width: inst.chartEl.clientWidth, height: inst.chartEl.clientHeight });
+      }
+      if (inst.adxContainerEl.clientWidth > 0 && inst.adxContainerEl.clientHeight > 0) {
+        inst.adxChart.applyOptions({ width: inst.adxContainerEl.clientWidth, height: inst.adxContainerEl.clientHeight });
       }
       inst.requestDraw();
       inst.drawDrawCanvas();
     });
     resizeObserver.observe(inst.chartEl);
+    resizeObserver.observe(inst.adxContainerEl);
+
+    // Drag para redimensionar el pane de ADX desde su borde superior (min ~40px, max ~70% del cell)
+    inst.adxHandleEl.addEventListener('mousedown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      inst.adxResizing = true;
+      inst.adxHandleEl.classList.add('dragging');
+      const cellRect = inst.cell.getBoundingClientRect();
+      const onMove = (ev) => {
+        if(!inst.adxResizing) return;
+        const cellH = cellRect.height;
+        let newAdxH = cellRect.bottom - ev.clientY;
+        const minH = 40, maxH = cellH * 0.7;
+        if (newAdxH < minH) newAdxH = minH;
+        if (newAdxH > maxH) newAdxH = maxH;
+        inst.adxPaneRatio = newAdxH / cellH;
+        inst.adxWrapEl.style.height = newAdxH + 'px';
+      };
+      const onUp = () => { inst.adxResizing = false; inst.adxHandleEl.classList.remove('dragging'); window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    });
+
+    inst.applyAdxPaneVisibility();
 
     inst.candleSeries = inst.chart.addCandlestickSeries({ upColor:'#39ff88', downColor:'#ff2e88', borderUpColor:'#39ff88', borderDownColor:'#ff2e88', wickUpColor:'rgba(57,255,136,.7)', wickDownColor:'rgba(255,46,136,.7)' });
     inst.volSeries = inst.chart.addHistogramSeries({ priceFormat:{type:'volume'}, priceScaleId:'', color:'#2a3a4a' });
@@ -901,6 +1234,10 @@ function createChartInstance(cell, asset, interval, index) {
         color:'#ffb020', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false, lineStyle: LightweightCharts.LineStyle.Dotted, 
         autoscaleInfoProvider: () => null
     });
+    inst.vwapUpper1 = inst.chart.addLineSeries({ color:'rgba(255,176,32,0.55)', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false, lineStyle: LightweightCharts.LineStyle.Dotted, autoscaleInfoProvider: () => null });
+    inst.vwapLower1 = inst.chart.addLineSeries({ color:'rgba(255,176,32,0.55)', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false, lineStyle: LightweightCharts.LineStyle.Dotted, autoscaleInfoProvider: () => null });
+    inst.vwapUpper2 = inst.chart.addLineSeries({ color:'rgba(255,46,136,0.5)', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false, lineStyle: LightweightCharts.LineStyle.Dashed, autoscaleInfoProvider: () => null });
+    inst.vwapLower2 = inst.chart.addLineSeries({ color:'rgba(57,255,136,0.5)', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false, lineStyle: LightweightCharts.LineStyle.Dashed, autoscaleInfoProvider: () => null });
 
     inst.chart.timeScale().subscribeVisibleTimeRangeChange(() => { inst.requestDraw(); inst.drawDrawCanvas(); });
     inst.chart.timeScale().subscribeVisibleLogicalRangeChange(range => { if (range && range.from < 5 && !inst.isLoadingHistory && !inst.noMoreHistory && inst.lastCandles.length > 0) inst.loadMoreHistory(); });
@@ -983,6 +1320,36 @@ function createChartInstance(cell, asset, interval, index) {
     inst.switchMarket(interval);
   };
 
+  inst.applyAdxPaneVisibility = function() {
+    if (!inst.adxWrapEl) return;
+    if (globalState.indicators.adx) {
+      inst.adxWrapEl.style.display = 'block';
+      inst.adxHandleEl.style.display = 'block';
+      const cellH = inst.cell.getBoundingClientRect().height || 400;
+      inst.adxWrapEl.style.height = Math.max(40, cellH * inst.adxPaneRatio) + 'px';
+    } else {
+      inst.adxWrapEl.style.display = 'none';
+      inst.adxHandleEl.style.display = 'none';
+    }
+  };
+
+  inst.updateADXThresholdLine = function() {
+    if (!inst.adxThresholdLine) return;
+    inst.adxThresholdLine.applyOptions({ price: globalState.indicatorConfig.adx.threshold });
+  };
+
+  inst.updateADX = function() {
+    if (!inst.adxSeries) return;
+    if (!globalState.indicators.adx || inst.lastCandles.length < globalState.indicatorConfig.adx.period * 2 + 2) {
+      inst.adxSeries.setData([]);
+      return;
+    }
+    const series = computeADXSeries(inst.lastCandles, globalState.indicatorConfig.adx.period).filter(d => d.value != null);
+    inst.adxSeries.setData(series);
+    inst.updateADXThresholdLine();
+    if (series.length) inst.adxValEl.textContent = series[series.length - 1].value.toFixed(2);
+  };
+
   inst.switchMarket = async function(newInterval = inst.interval) {
     if(inst.pollTimer) clearInterval(inst.pollTimer);
     if(inst.ws) try{ inst.ws.onclose = null; inst.ws.close(); }catch(e){}
@@ -1012,7 +1379,7 @@ function createChartInstance(cell, asset, interval, index) {
       for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; data.candles.push({ time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }); data.vols.push({ time, value: q.volume[i] || 0, color: q.close[i] >= q.open[i] ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); }
     }
     inst.lastCandles = data.candles; inst.candleSeries.setData(data.candles); inst.volSeries.setData(data.vols);
-    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
+    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateADX(); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
     if(data.candles.length){ inst.lastPrice = data.candles[data.candles.length-1].close; inst.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null; inst.lastCandleTime = data.candles[data.candles.length-1].time; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = data.candles[data.candles.length-1].high; inst.currentCandleLow = data.candles[data.candles.length-1].low; inst.bucketSize = computeBucketSize(inst); inst.updatePriceDisplay(inst.lastPrice, null); }
     inst.status = 'live'; updateStatusPill(); inst.requestDraw();
   };
@@ -1033,7 +1400,7 @@ function createChartInstance(cell, asset, interval, index) {
         data = { candles: [], vols: [] };
         for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; data.candles.push({ time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }); data.vols.push({ time, value: q.volume[i] || 0, color: q.close[i] >= q.open[i] ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); }
       }
-      if (data.candles.length > 0) { const range = inst.chart.timeScale().getVisibleLogicalRange(); inst.lastCandles = [...data.candles, ...inst.lastCandles]; inst.candleSeries.setData(inst.lastCandles); inst.volSeries.setData([...data.vols, ...inst.volSeries.data()]); if (range) inst.chart.timeScale().setVisibleLogicalRange({ from: range.from + data.candles.length, to: range.to + data.candles.length }); inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); }
+      if (data.candles.length > 0) { const range = inst.chart.timeScale().getVisibleLogicalRange(); inst.lastCandles = [...data.candles, ...inst.lastCandles]; inst.candleSeries.setData(inst.lastCandles); inst.volSeries.setData([...data.vols, ...inst.volSeries.data()]); if (range) inst.chart.timeScale().setVisibleLogicalRange({ from: range.from + data.candles.length, to: range.to + data.candles.length }); inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateADX(); }
       else { inst.noMoreHistory = true; }
     } catch(e) { console.error(e); inst.noMoreHistory = true; } finally { inst.isLoadingHistory = false; }
   };
@@ -1053,7 +1420,7 @@ function createChartInstance(cell, asset, interval, index) {
         inst.prevPrice = inst.lastPrice; inst.lastPrice = candle.close; inst.lastCandleTime = candle.time;
         // k.T is the actual close time of this kline (ms epoch) — do NOT add another interval on top of it.
         inst.currentCandleCloseTime = k.T; inst.currentCandleHigh = candle.high; inst.currentCandleLow = candle.low;
-        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; inst.updateFractals(); inst.updateVpFractal(); }
+        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; inst.updateFractals(); inst.updateVpFractal(); inst.updateADX(); }
         inst.updatePriceDisplay(candle.close, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst);
         inst.calcVWAP(k.x); 
         if(globalState.activeChartIndex === inst.index) updateSidebarFlow(); inst.requestDraw();
@@ -1076,7 +1443,7 @@ function createChartInstance(cell, asset, interval, index) {
         const res = await fetch(url); if(!res.ok) return; const d = await res.json(); const result = d.chart.result[0]; const ts = result.timestamp; const q = result.indicators.quote[0];
         for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; const candle = { time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }; inst.candleSeries.update(candle); inst.volSeries.update({ time, value: q.volume[i] || 0, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); if(inst.lastCandles.length){ const last = inst.lastCandles[inst.lastCandles.length-1]; if(last.time === time){ last.close = candle.close; last.high = Math.max(last.high, candle.high); last.low = Math.min(last.low, candle.low); last.vol = candle.vol; } else { inst.lastCandles.push(candle); if(inst.lastCandles.length > 600) inst.lastCandles.shift(); } } }
         inst.prevPrice = inst.lastPrice; inst.lastPrice = q.close[ts.length-1]; inst.lastCandleTime = ts[ts.length-1]; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = q.high[ts.length-1]; inst.currentCandleLow = q.low[ts.length-1];
-        inst.updatePriceDisplay(inst.lastPrice, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal();
+        inst.updatePriceDisplay(inst.lastPrice, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateADX();
       } catch(e){ console.error(e); }
     }, 10000);
   };
@@ -1102,19 +1469,22 @@ function createChartInstance(cell, asset, interval, index) {
   };
 
   inst.calcVWAP = function(fullReset = false) {
-    if(!globalState.indicators.vwap) { if(inst.vwapSeries) inst.vwapSeries.setData([]); return; }
+    if(!globalState.indicators.vwap) { if(inst.vwapSeries) inst.vwapSeries.setData([]); if(inst.vwapUpper1) { inst.vwapUpper1.setData([]); inst.vwapLower1.setData([]); inst.vwapUpper2.setData([]); inst.vwapLower2.setData([]); } return; }
     const now = Date.now() / 1000;
     const lookbackSec = VWAP_ANCHOR_SECONDS[globalState.indicatorConfig.vwap.anchor] || 86400;
     const dayAgo = now - lookbackSec;
     
-    let cumPV = 0, cumV = 0;
     let startIdx = 0;
     for(let i=0; i<inst.lastCandles.length; i++) {
         if(inst.lastCandles[i].time >= dayAgo) { startIdx = i; break; }
     }
-    
+    const showBands = globalState.indicators.vwapBands;
+    const m1 = globalState.indicatorConfig.vwapBands.mult1;
+    const m2 = globalState.indicatorConfig.vwapBands.mult2;
+
     if (fullReset) {
-        inst.vwapData = [];
+        inst.vwapData = []; inst.vwapUpper1Data = []; inst.vwapLower1Data = []; inst.vwapUpper2Data = []; inst.vwapLower2Data = [];
+        let cumPV = 0, cumV = 0, cumPV2 = 0; // cumPV2 = sum(vol * typicalPrice^2), para varianza ponderada por volumen
         for(let i=startIdx; i<inst.lastCandles.length; i++) {
             const c = inst.lastCandles[i];
             const typicalPrice = (c.high + c.low + c.close) / 3;
@@ -1122,28 +1492,49 @@ function createChartInstance(cell, asset, interval, index) {
             if (!isNaN(typicalPrice) && vol > 0) {
                 cumPV += typicalPrice * vol;
                 cumV += vol;
-                if(cumV > 0) inst.vwapData.push({ time: c.time, value: cumPV / cumV });
+                cumPV2 += vol * typicalPrice * typicalPrice;
+            }
+            if(cumV > 0) {
+                const vwapVal = cumPV / cumV;
+                inst.vwapData.push({ time: c.time, value: vwapVal });
+                if (showBands) {
+                    const variance = Math.max(0, (cumPV2 / cumV) - (vwapVal * vwapVal));
+                    const stdDev = Math.sqrt(variance);
+                    inst.vwapUpper1Data.push({ time: c.time, value: vwapVal + m1 * stdDev });
+                    inst.vwapLower1Data.push({ time: c.time, value: vwapVal - m1 * stdDev });
+                    inst.vwapUpper2Data.push({ time: c.time, value: vwapVal + m2 * stdDev });
+                    inst.vwapLower2Data.push({ time: c.time, value: vwapVal - m2 * stdDev });
+                }
             }
         }
         inst.vwapSeries.setData(inst.vwapData);
+        if (showBands) {
+            inst.vwapUpper1.setData(inst.vwapUpper1Data); inst.vwapLower1.setData(inst.vwapLower1Data);
+            inst.vwapUpper2.setData(inst.vwapUpper2Data); inst.vwapLower2.setData(inst.vwapLower2Data);
+        } else {
+            inst.vwapUpper1.setData([]); inst.vwapLower1.setData([]); inst.vwapUpper2.setData([]); inst.vwapLower2.setData([]);
+        }
     } else {
+        let cumPV = 0, cumV = 0, cumPV2 = 0;
         const lastCandle = inst.lastCandles[inst.lastCandles.length - 1];
-        for(let i=startIdx; i<inst.lastCandles.length - 1; i++) {
+        for(let i=startIdx; i<inst.lastCandles.length; i++) {
             const c = inst.lastCandles[i];
             const typicalPrice = (c.high + c.low + c.close) / 3;
             const vol = c.vol || 0;
-            if (!isNaN(typicalPrice) && vol > 0) {
-                cumPV += typicalPrice * vol;
-                cumV += vol;
+            if (!isNaN(typicalPrice) && vol > 0) { cumPV += typicalPrice * vol; cumV += vol; cumPV2 += vol * typicalPrice * typicalPrice; }
+        }
+        if(cumV > 0) {
+            const vwapVal = cumPV / cumV;
+            inst.vwapSeries.update({ time: lastCandle.time, value: vwapVal });
+            if (showBands) {
+                const variance = Math.max(0, (cumPV2 / cumV) - (vwapVal * vwapVal));
+                const stdDev = Math.sqrt(variance);
+                inst.vwapUpper1.update({ time: lastCandle.time, value: vwapVal + m1 * stdDev });
+                inst.vwapLower1.update({ time: lastCandle.time, value: vwapVal - m1 * stdDev });
+                inst.vwapUpper2.update({ time: lastCandle.time, value: vwapVal + m2 * stdDev });
+                inst.vwapLower2.update({ time: lastCandle.time, value: vwapVal - m2 * stdDev });
             }
         }
-        const typicalPrice = (lastCandle.high + lastCandle.low + lastCandle.close) / 3;
-        const vol = lastCandle.vol || 0;
-        if (!isNaN(typicalPrice) && vol > 0) {
-            cumPV += typicalPrice * vol;
-            cumV += vol;
-        }
-        if(cumV > 0) inst.vwapSeries.update({ time: lastCandle.time, value: cumPV / cumV });
     }
   };
 
@@ -1541,6 +1932,137 @@ function renderSidebarAlarms() {
 
 function removeAlarm(id) { globalState.alarms = globalState.alarms.filter(a => a.id !== id); saveAlarms(); renderSidebarAlarms(); globalState.instances.forEach(inst => inst.syncAlarmPriceLines()); }
 window.removeAlarm = removeAlarm;
+
+// ---------- Backtest simplificado ----------
+// Estrategia: mean-reversion sobre bandas de VWAP (2do multiplicador), filtrada por régimen (ADX < umbral)
+// y opcionalmente confirmada por Volume Profile (zona de bajo volumen) + filtros de tendencia SMA / fractales / flow.
+function computeATR(candles, period) {
+  period = period || 14;
+  const trs = [];
+  for(let i=1;i<candles.length;i++){
+    const c = candles[i], p = candles[i-1];
+    trs.push(Math.max(c.high-c.low, Math.abs(c.high-p.close), Math.abs(c.low-p.close)));
+  }
+  const out = new Array(candles.length).fill(null);
+  let sum = 0;
+  for(let i=0;i<trs.length;i++){
+    sum += trs[i];
+    if(i >= period) sum -= trs[i-period];
+    if(i >= period-1) out[i+1] = sum/period;
+  }
+  return out;
+}
+
+function runBacktest() {
+  const inst = globalState.instances[globalState.activeChartIndex];
+  if(!inst || !inst.lastCandles || inst.lastCandles.length < 60) { showToast('Backtest', 'No hay suficiente historial cargado en el gráfico activo.', 'error'); return; }
+
+  const wallet = parseFloat(document.getElementById('btWallet').value) || 10000;
+  const riskPct = parseFloat(document.getElementById('btRiskPct').value) || 0.5;
+  const maxDailyLossPct = parseFloat(document.getElementById('btMaxDailyLoss').value) || 2;
+  const stopAtrMult = parseFloat(document.getElementById('btStopAtr').value) || 1.5;
+
+  const candles = inst.lastCandles;
+  const useVwapBands = globalState.btFilters.vwapBands;
+  const useAdx = globalState.btFilters.adx;
+  const useVp = globalState.btFilters.vp;
+  const useSma20 = globalState.btFilters.sma20;
+  const useSma50 = globalState.btFilters.sma50;
+
+  const adxPeriod = globalState.indicatorConfig.adx.period;
+  const adxThreshold = globalState.indicatorConfig.adx.threshold;
+  const m2 = globalState.indicatorConfig.vwapBands.mult2;
+  const atr = computeATR(candles, 14);
+  const adxArr = useAdx ? computeADXSeries(candles, adxPeriod).map(d => d.value) : null;
+
+  // VWAP + bandas recalculadas sobre todo el set cargado (ancla = anclaje configurado, reiniciando por sesión del día)
+  const dayKey = (t) => new Date(t*1000).toISOString().slice(0,10);
+  let cumPV=0, cumV=0, cumPV2=0, curDay=null;
+  const vwapArr = [], stdArr = [];
+  candles.forEach((c) => {
+    const d = dayKey(c.time);
+    if (d !== curDay) { curDay = d; cumPV=0; cumV=0; cumPV2=0; }
+    const tp = (c.high+c.low+c.close)/3, vol = c.vol||0;
+    if(vol>0){ cumPV += tp*vol; cumV += vol; cumPV2 += vol*tp*tp; }
+    if(cumV>0){ const vw = cumPV/cumV; vwapArr.push(vw); stdArr.push(Math.sqrt(Math.max(0,(cumPV2/cumV)-vw*vw))); }
+    else { vwapArr.push(null); stdArr.push(0); }
+  });
+
+  const smaCalc = (period) => { const out = new Array(candles.length).fill(null); for(let i=period-1;i<candles.length;i++){ let s=0; for(let j=0;j<period;j++) s+=candles[i-j].close; out[i]=s/period; } return out; };
+  const sma20Arr = useSma20 ? smaCalc(globalState.indicatorConfig.sma20.period) : null;
+  const sma50Arr = useSma50 ? smaCalc(globalState.indicatorConfig.sma50.period) : null;
+
+  let equity = wallet, peakEquity = wallet, maxDD = 0;
+  let trades = 0, wins = 0;
+  let position = null; // {dir, entry, stop, target, riskAmt}
+  let dailyPnl = 0, curDayKey = null, dailyLossHit = false;
+
+  for (let i = Math.max(adxPeriod*2+2, 30); i < candles.length; i++) {
+    const c = candles[i];
+    const d = dayKey(c.time);
+    if (d !== curDayKey) { curDayKey = d; dailyPnl = 0; dailyLossHit = false; }
+
+    // Gestión de posición abierta
+    if (position) {
+      let exitPrice = null;
+      if (position.dir === 'long') {
+        if (c.low <= position.stop) exitPrice = position.stop;
+        else if (c.high >= position.target) exitPrice = position.target;
+      } else {
+        if (c.high >= position.stop) exitPrice = position.stop;
+        else if (c.low <= position.target) exitPrice = position.target;
+      }
+      if (exitPrice != null) {
+        const pnl = position.dir === 'long' ? (exitPrice - position.entry) * position.qty : (position.entry - exitPrice) * position.qty;
+        equity += pnl; dailyPnl += pnl;
+        trades++; if (pnl > 0) wins++;
+        peakEquity = Math.max(peakEquity, equity);
+        maxDD = Math.max(maxDD, (peakEquity - equity) / peakEquity * 100);
+        position = null;
+      }
+    }
+
+    if (dailyPnl <= -(wallet * maxDailyLossPct / 100)) dailyLossHit = true;
+
+    if (!position && !dailyLossHit && vwapArr[i] != null && atr[i] != null) {
+      const adxOk = !useAdx || (adxArr[i] != null && adxArr[i] < adxThreshold);
+      const trendOk = (!useSma20 || sma20Arr[i] != null) && (!useSma50 || sma50Arr[i] != null);
+      let dir = null;
+      if (useVwapBands && adxOk && trendOk) {
+        const upperBand = vwapArr[i] + m2 * stdArr[i];
+        const lowerBand = vwapArr[i] - m2 * stdArr[i];
+        if (c.close > upperBand) dir = 'short';
+        else if (c.close < lowerBand) dir = 'long';
+      }
+      // Confirmación opcional de Volume Profile: exige que el precio esté fuera del área de valor (aprox: lejos del promedio de volumen reciente)
+      if (dir && useVp) {
+        const win = candles.slice(Math.max(0,i-24), i+1);
+        const avgVol = win.reduce((s,x)=>s+(x.vol||0),0) / win.length;
+        if ((c.vol||0) > avgVol * 1.8) dir = null; // volumen alto = probable breakout real, no reversión
+      }
+      if (dir) {
+        const stopDist = atr[i] * stopAtrMult;
+        const entry = c.close;
+        const stop = dir === 'long' ? entry - stopDist : entry + stopDist;
+        const target = vwapArr[i];
+        const riskAmt = equity * (riskPct / 100);
+        const qty = riskAmt / stopDist;
+        position = { dir, entry, stop, target, qty, riskAmt };
+      }
+    }
+  }
+
+  const totalReturnPct = ((equity - wallet) / wallet) * 100;
+  const winRate = trades > 0 ? (wins / trades) * 100 : 0;
+
+  document.getElementById('btResTrades').textContent = trades;
+  document.getElementById('btResWinRate').textContent = winRate.toFixed(1) + '%';
+  const retEl = document.getElementById('btResReturn'); retEl.textContent = (totalReturnPct >= 0 ? '+' : '') + totalReturnPct.toFixed(2) + '%'; retEl.className = 'v ' + (totalReturnPct >= 0 ? 'pos' : 'neg');
+  document.getElementById('btResDD').textContent = '-' + maxDD.toFixed(2) + '%';
+  document.getElementById('btResults').classList.add('show');
+  showToast('Backtest completo', `${trades} operaciones sobre ${candles.length} velas cargadas de ${inst.asset.name}`, 'success');
+}
+window.runBacktest = runBacktest;
 
 let toastTimer;
 function showToast(title, msg, type) {
