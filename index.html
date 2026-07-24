@@ -20,7 +20,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* FIX: Strict height and min-height 0 to prevent ResizeObserver infinite loops */
   html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
   
   :root{
@@ -100,7 +99,6 @@
   .tool-btn:hover { color: var(--text); border-color: var(--border-strong); }
   .tool-btn.active { color: var(--cyan); border-color: var(--cyan); background: rgba(0,229,255,0.1); box-shadow: 0 0 8px rgba(0,229,255,0.2); }
 
-  /* FIX: Strict min-height and min-width 0 on grid items + overflow hidden */
   #chartsGrid{display:grid;gap:1px;background:var(--border);height:100%;width:100%;min-height:0;min-width:0;overflow:hidden;}
   .chart-cell{position:relative;background:var(--bg);overflow:hidden;cursor:crosshair;min-height:0;min-width:0;}
   .chart-cell.active{outline:2px solid var(--cyan);outline-offset:-2px;z-index:5;}
@@ -114,11 +112,19 @@
   .draw-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;}
   .draw-canvas.active{pointer-events:auto;cursor:crosshair;}
   
+  /* Order Flow Floating Box */
+  .live-flow-box { position: absolute; z-index: 4; pointer-events: none; display: none; border-radius: 2px; padding: 1px; background: rgba(7,10,16,0.7); border-left: 2px solid var(--amber); font-size: 8px; font-family: 'JetBrains Mono', monospace; overflow: hidden; flex-direction: column-reverse; justify-content: space-around; min-width: 60px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+  .flow-row { display: flex; justify-content: space-between; gap: 2px; align-items: center; width: 100%; padding: 0 2px; }
+  .flow-buy { color: var(--green); font-weight: 700; opacity: 0.9; text-align: right; flex: 1; }
+  .flow-sell { color: var(--magenta); font-weight: 700; opacity: 0.9; text-align: left; flex: 1; }
+
+  .auto-scale-btn{position:absolute;right:8px;bottom:30px;z-index:10;width:24px;height:24px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:4px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;transition:.15s;}
+  .auto-scale-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.2);}
+  
   .chart-legend{position:absolute;top:45px;left:8px;z-index:10;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:9px;pointer-events:none;display:none;gap:8px;}
   .chart-legend.show{display:flex;}
   .chart-legend span.k{color:var(--muted);}
 
-  /* FIX: aside and side-content min-height 0 */
   aside{background:var(--panel);display:flex;overflow:hidden;min-width:340px;min-height:0;}
   .side-content{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;}
   .tab-nav{width:50px;border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding-top:15px;gap:10px;background:var(--bg-2);}
@@ -218,7 +224,7 @@
   <header>
     <div class="logo">
       <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg></div>
-      <h1>CYCLE TERMINAL<span>v5.3 // Layout Fix</span></h1>
+      <h1>CYCLE TERMINAL<span>v5.4 // Floating Flow Fix</span></h1>
     </div>
     <div class="asset-selector" id="assetSelector">
       <button type="button" class="asset-btn" id="assetBtn">
@@ -379,6 +385,7 @@ function initApp() {
         inst.updateSMA();
         inst.calcVWAP(true);
         inst.requestDraw();
+        inst.updateFlowBox();
       });
     });
   });
@@ -523,7 +530,7 @@ function createChartInstance(cell, asset, interval, index) {
     lastCandles: [], lastCandleTime: null, currentCandleCloseTime: null, currentCandleHigh: null, currentCandleLow: null,
     liveBuyVol: 0, liveSellVol: 0, candleFlows: {}, bucketSize: 1, ws: null, pollTimer: null,
     hoveredAlarm: null, lastMouseY: null, isLoadingHistory: false, noMoreHistory: false,
-    flowCanvas: null, overlayCanvas: null, drawCanvas: null, chartEl: null, legendEl: null, priceTagEl: null, status: 'conn',
+    overlayCanvas: null, drawCanvas: null, chartEl: null, legendEl: null, priceTagEl: null, flowBoxEl: null, autoScaleBtn: null, status: 'conn',
     drawings: [], isDrawing: false, currentDrawing: null,
     cvdData: [], orderBlocks: [], imbalances: [], vwapData: [],
     drawThrottle: null
@@ -533,7 +540,7 @@ function createChartInstance(cell, asset, interval, index) {
     if (inst.drawThrottle) return;
     inst.drawThrottle = requestAnimationFrame(() => {
       inst.drawOverlayCanvas();
-      inst.drawFlowCanvas();
+      inst.updateFlowBox();
       inst.drawThrottle = null;
     });
   };
@@ -543,16 +550,25 @@ function createChartInstance(cell, asset, interval, index) {
       <div class="chart-price-tag"><span class="sym">${inst.asset.name}</span> <span class="val">--</span> <span class="chg" style="font-size:10px;"></span></div>
       <div class="chart-legend"><div><span class="k">O</span> <span class="lgO">--</span></div><div><span class="k">H</span> <span class="lgH" style="color:var(--green);">--</span></div><div><span class="k">L</span> <span class="lgL" style="color:var(--magenta);">--</span></div><div><span class="k">C</span> <span class="lgC">--</span></div></div>
       <canvas class="overlay-canvas"></canvas>
-      <canvas class="flow-canvas"></canvas>
+      <div class="live-flow-box"></div>
       <canvas class="draw-canvas"></canvas>
+      <button class="auto-scale-btn">A</button>
       <div class="chart-container"></div>
     `;
     inst.chartEl = inst.cell.querySelector('.chart-container');
     inst.overlayCanvas = inst.cell.querySelector('.overlay-canvas');
-    inst.flowCanvas = inst.cell.querySelector('.flow-canvas');
     inst.drawCanvas = inst.cell.querySelector('.draw-canvas');
+    inst.flowBoxEl = inst.cell.querySelector('.live-flow-box');
+    inst.autoScaleBtn = inst.cell.querySelector('.auto-scale-btn');
     inst.legendEl = inst.cell.querySelector('.chart-legend');
     inst.priceTagEl = inst.cell.querySelector('.chart-price-tag');
+
+    // Auto-scale button click listener
+    inst.autoScaleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      inst.chart.timeScale().fitContent();
+      inst.chart.priceScale('right').applyOptions({ autoScale: true });
+    });
 
     inst.chart = LightweightCharts.createChart(inst.chartEl, {
       layout: { background:{type:'solid', color:'transparent'}, textColor:'#5f7387', fontFamily:"'JetBrains Mono', monospace", fontSize:9 },
@@ -564,7 +580,6 @@ function createChartInstance(cell, asset, interval, index) {
       height: inst.chartEl.clientHeight
     });
     
-    // FIX: Throttle ResizeObserver to prevent infinite grid stretching
     const resizeObserver = new ResizeObserver(() => {
       if (inst.chartEl.clientWidth > 0 && inst.chartEl.clientHeight > 0) {
         inst.chart.applyOptions({ width: inst.chartEl.clientWidth, height: inst.chartEl.clientHeight });
@@ -927,35 +942,63 @@ function createChartInstance(cell, asset, interval, index) {
     }
   };
 
-  inst.drawFlowCanvas = function() {
-    const canvas = inst.flowCanvas; const ctx = canvas.getContext('2d');
-    if (canvas.width !== inst.chartEl.clientWidth || canvas.height !== inst.chartEl.clientHeight) { canvas.width = inst.chartEl.clientWidth; canvas.height = inst.chartEl.clientHeight; }
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (!globalState.indicators.flow || inst.asset.src !== 'binance' || !inst.lastCandles.length) return;
-
-    const barWidth = 50; const timeScale = inst.chart.timeScale(); const visibleRange = timeScale.getVisibleRange(); if(!visibleRange) return;
-    inst.lastCandles.filter(c => c.time >= visibleRange.from && c.time <= visibleRange.to).forEach(candle => {
-      const flow = inst.candleFlows[candle.time]; if (!flow) return;
-      const x = timeScale.timeToCoordinate(candle.time); if (x === null) return;
-      const maxVol = flow.maxVol || 1;
-      Object.entries(flow.levels).map(([k, v]) => ({ price: parseFloat(k), ...v })).sort((a, b) => a.price - b.price).forEach(l => {
-        if (l.price < candle.low || l.price > candle.high) return;
-        const y = inst.candleSeries.priceToCoordinate(l.price); if (y === null) return;
-        const buyRatio = l.buy / maxVol; const sellRatio = l.sell / maxVol;
-        if (l.buy > 0) {
-          const bW = Math.max(20, buyRatio * barWidth / 2);
-          ctx.fillStyle = `rgba(57, 255, 136, ${0.2 + buyRatio * 0.6})`;
-          ctx.fillRect(x - bW, y - 5, bW, 10);
-          if (bW > 15) { ctx.fillStyle = `#031014`; ctx.font = "bold 8px 'JetBrains Mono', monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(fmtNum(l.buy), x - bW / 2, y); }
-        }
-        if (l.sell > 0) {
-          const sW = Math.max(20, sellRatio * barWidth / 2);
-          ctx.fillStyle = `rgba(255, 46, 136, ${0.2 + sellRatio * 0.6})`;
-          ctx.fillRect(x, y - 5, sW, 10);
-          if (sW > 15) { ctx.fillStyle = `#1a0008`; ctx.font = "bold 8px 'JetBrains Mono', monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(fmtNum(l.sell), x + sW / 2, y); }
-        }
-      });
+  // Reverted to Floating Box logic
+  inst.updateFlowBox = function() {
+    const box = inst.flowBoxEl;
+    if(!globalState.indicators.flow || inst.asset.src !== 'binance' || !inst.lastCandles.length) {
+      box.style.display = 'none';
+      return;
+    }
+    
+    const time = inst.lastCandleTime;
+    const flow = inst.candleFlows[time];
+    if (!flow) {
+      box.style.display = 'none';
+      return;
+    }
+    
+    let levels = Object.entries(flow.levels).map(([k, v]) => ({price: parseFloat(k), ...v}));
+    if(levels.length === 0) {
+      box.style.display = 'none';
+      return;
+    }
+    
+    levels = levels.filter(l => l.price >= inst.currentCandleLow && l.price <= inst.currentCandleHigh);
+    if(levels.length === 0) {
+        box.style.display = 'none';
+        return;
+    }
+    
+    levels.sort((a, b) => a.price - b.price);
+    
+    let html = '';
+    levels.forEach(l => {
+      html += `<div class="flow-row">
+                 <span class="flow-buy">${fmtNum(l.buy)}</span>
+                 <span class="flow-sell">${fmtNum(l.sell)}</span>
+               </div>`;
     });
+    box.innerHTML = html;
+    
+    const timeCoord = inst.chart.timeScale().timeToCoordinate(time);
+    if(timeCoord === null) {
+      box.style.display = 'none';
+      return;
+    }
+    
+    const highCoord = inst.candleSeries.priceToCoordinate(inst.currentCandleHigh);
+    const lowCoord = inst.candleSeries.priceToCoordinate(inst.currentCandleLow);
+    
+    if(highCoord !== null && lowCoord !== null) {
+      box.style.display = 'flex';
+      box.style.flexDirection = 'column-reverse';
+      box.style.left = (timeCoord + 8) + 'px'; 
+      box.style.top = Math.min(highCoord, lowCoord) + 'px';
+      box.style.height = Math.abs(highCoord - lowCoord) + 'px';
+      box.style.width = '60px';
+    } else {
+      box.style.display = 'none';
+    }
   };
 
   inst.drawDrawCanvas = function() {
