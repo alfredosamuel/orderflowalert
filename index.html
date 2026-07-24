@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BTC/USDT 5m – Orderflow Monitor</title>
+    <title>BTC/USDT 5m – Monitor y Alertas</title>
     <!-- Lightweight Charts -->
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <style>
+        /* Reset y base */
         * {
             margin: 0;
             padding: 0;
@@ -21,6 +22,8 @@
             flex-direction: column;
             overflow: hidden;
         }
+
+        /* Cabecera */
         #header {
             background: #1e293b;
             padding: 12px 24px;
@@ -29,10 +32,17 @@
             align-items: center;
             border-bottom: 1px solid #334155;
             flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         #header h2 {
             font-size: 20px;
             font-weight: 400;
+        }
+        #header h2 span {
+            font-weight: 300;
+            font-size: 14px;
+            color: #94a3b8;
         }
         #current-price {
             font-size: 28px;
@@ -41,6 +51,8 @@
             min-width: 140px;
             text-align: right;
         }
+
+        /* Contenedor de alerta */
         .alert-container {
             display: flex;
             align-items: center;
@@ -96,11 +108,15 @@
             50% { opacity: 0.5; transform: scale(1.05); }
             100% { opacity: 1; transform: scale(1); }
         }
+
+        /* Gráfico */
         #chart-container {
             flex: 1;
             position: relative;
             background: #0f172a;
         }
+
+        /* Efecto de alerta visual */
         .alert-flash {
             animation: flashBg 0.8s ease 3;
         }
@@ -109,18 +125,24 @@
             50% { background-color: rgba(244, 63, 94, 0.6); }
             100% { background-color: transparent; }
         }
-        /* Para móviles */
+
+        /* Responsive */
         @media (max-width: 700px) {
             #header {
-                flex-wrap: wrap;
+                flex-direction: column;
+                align-items: stretch;
                 gap: 8px;
             }
             #current-price {
-                font-size: 20px;
-                min-width: auto;
+                font-size: 22px;
+                text-align: center;
+            }
+            .alert-container {
+                justify-content: center;
+                flex-wrap: wrap;
             }
             .alert-container input {
-                width: 90px;
+                width: 100px;
             }
         }
     </style>
@@ -128,7 +150,7 @@
 <body>
 
     <div id="header">
-        <h2>₿ BTC/USDT <span style="font-weight:300;font-size:14px;color:#94a3b8;">5m</span></h2>
+        <h2>₿ BTC/USDT <span>5m</span></h2>
         <div id="current-price">—</div>
         <div class="alert-container">
             <label for="targetPrice">Alerta en</label>
@@ -142,17 +164,17 @@
 
     <script>
         (function() {
-            // --- DOM elements ---
+            // --- Elementos DOM ---
             const priceEl = document.getElementById('current-price');
             const statusEl = document.getElementById('status');
             const targetInput = document.getElementById('targetPrice');
             const setBtn = document.getElementById('setAlertBtn');
 
             // --- Estado ---
-            let targetPrice = null;         // Precio objetivo para alerta
-            let alertTriggered = false;     // Para no repetir la alerta
-            let currentBar = null;          // Vela en formación (5m)
-            const TIMEFRAME = 5;            // minutos
+            let targetPrice = null;      // Precio objetivo
+            let alertTriggered = false;  // Para no repetir
+            let currentBar = null;       // Vela en formación (5m)
+            const TIMEFRAME = 5;         // minutos
 
             // --- Crear gráfico Lightweight Charts ---
             const container = document.getElementById('chart-container');
@@ -193,10 +215,9 @@
                 chart.applyOptions({ width: w, height: h });
             };
             window.addEventListener('resize', resize);
-            // Ajuste inicial después de un pequeño delay para que el layout se estabilice
             setTimeout(resize, 100);
 
-            // --- Utilidades de tiempo (5m) ---
+            // --- Utilidad: redondear tiempo a 5 minutos ---
             function floorTo5min(seconds) {
                 const d = new Date(seconds * 1000);
                 const mins = d.getMinutes();
@@ -219,7 +240,10 @@
                 const tradeTimeMs = data.T; // milisegundos
 
                 // Actualizar precio en header
-                priceEl.textContent = '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                priceEl.textContent = '$' + price.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
 
                 // --- Lógica de vela 5m ---
                 const eventSeconds = Math.floor(tradeTimeMs / 1000);
@@ -246,23 +270,15 @@
 
                 // --- Verificar alerta ---
                 if (targetPrice !== null && !alertTriggered) {
-                    const diff = price - targetPrice;
-                    // Se dispara si el precio cruza la meta (tanto arriba como abajo)
-                    // Usamos un margen de 0.01 para evitar falsos por precisión
-                    if (Math.abs(diff) < 0.01) {
+                    // Si el precio alcanza o supera la meta (con un pequeño margen)
+                    if (price >= targetPrice - 0.01) {
                         alertTriggered = true;
                         statusEl.textContent = '🚨 ¡ALCANZADA! $' + price;
                         statusEl.className = 'triggered';
                         document.body.classList.add('alert-flash');
-                        // Alerta nativa
                         alert('¡ALERTA! BTC alcanzó tu meta: $' + price);
-                        // Sonido opcional (descomentar si quieres)
+                        // Sonido opcional (descomentar si se desea)
                         // new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
-                    } else if (diff > 0) {
-                        // Si el precio ya superó la meta pero no se había activado (por ejemplo, si se actualizó la meta después)
-                        // Activamos también si está por encima (para casos de cruce)
-                        // Pero para evitar falsos si se fija la meta por debajo del precio actual, solo activamos si venía de abajo.
-                        // Para simplificar, usamos el cruce exacto. Pero si el precio ya está por encima al fijar, no salta.
                     }
                 }
             };
@@ -273,10 +289,8 @@
             };
 
             ws.onclose = () => {
-                console.warn('WebSocket cerrado, intentando reconectar en 5s...');
-                setTimeout(() => {
-                    location.reload(); // Recargar para reconectar (simple)
-                }, 5000);
+                console.warn('WebSocket cerrado, reconectando en 5s...');
+                setTimeout(() => location.reload(), 5000);
             };
 
             // --- Lógica de Alerta (botón Fijar) ---
@@ -301,26 +315,25 @@
                 document.body.classList.remove('alert-flash');
                 console.log('Alerta fijada en:', val);
 
-                // Opcional: si el precio actual ya está por encima de la meta, avisar
+                // Aviso si el precio actual ya supera la meta
                 const currentPrice = parseFloat(priceEl.textContent.replace(/[$,]/g, ''));
                 if (!isNaN(currentPrice) && currentPrice >= targetPrice) {
                     statusEl.textContent = '⚠️ El precio ya supera la meta';
                 }
             });
 
-            // También permitir fijar con Enter en el input
+            // Enter en el input también fija la alerta
             targetInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') setBtn.click();
             });
 
-            // --- Limpieza al cerrar (opcional) ---
+            // Limpieza al cerrar
             window.addEventListener('beforeunload', () => {
                 if (ws.readyState === WebSocket.OPEN) ws.close();
             });
 
-            // Inicializar con un mensaje amigable
+            // Inicialización
             priceEl.textContent = 'Conectando...';
-
             console.log('Monitor BTC 5m iniciado.');
         })();
     </script>
