@@ -356,6 +356,42 @@
           </div>
         </div>
 
+        <div class="ind-block">
+          <div class="ind-item" data-ind="fractal">
+            <span>Fractales <b class="ind-tag" id="tagFractal">40/2</b></span>
+            <div class="ind-actions">
+              <button type="button" class="ind-gear" data-opts="fractal" title="Opciones">⚙</button>
+              <div class="ind-toggle on"></div>
+            </div>
+          </div>
+          <div class="ind-options" id="opts-fractal">
+            <div class="opt-row">
+              <span class="opt-label">Velas atrás</span>
+              <input type="number" class="opt-input" id="input-fractal-lookback" min="1" max="200" value="40">
+            </div>
+            <div class="opt-row" style="margin-top:6px;">
+              <span class="opt-label">Velas adelante</span>
+              <input type="number" class="opt-input" id="input-fractal-lookforward" min="1" max="50" value="2">
+            </div>
+          </div>
+        </div>
+
+        <div class="ind-block">
+          <div class="ind-item" data-ind="vp">
+            <span>Vol. Profile <b class="ind-tag" id="tagVp">VR</b></span>
+            <div class="ind-actions">
+              <button type="button" class="ind-gear" data-opts="vp" title="Opciones">⚙</button>
+              <div class="ind-toggle on"></div>
+            </div>
+          </div>
+          <div class="ind-options" id="opts-vp">
+            <div class="opt-row">
+              <span class="opt-label">Filas</span>
+              <input type="number" class="opt-input" id="input-vp-rows" min="5" max="100" value="24">
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
     <div class="toolbar-right">
@@ -446,12 +482,14 @@ const DEFAULT_LAYOUT_SYMBOLS = ['BTCUSDT', 'GC=F', '^NDX', 'CLP=X'];
 
 const globalState = {
   interval: '5m',
-  indicators: { sma20: true, sma50: true, vwap: true, flow: true },
+  indicators: { sma20: true, sma50: true, vwap: true, flow: true, fractal: true, vp: true },
   indicatorConfig: {
     sma20: { period: 20 },
     sma50: { period: 50 },
     vwap: { anchor: 'D' },
-    flow: { precisionMult: 1 }
+    flow: { precisionMult: 1 },
+    fractal: { lookback: 40, lookforward: 2 },
+    vp: { rows: 24 }
   },
   activeTool: 'cursor',
   alarms: JSON.parse(localStorage.getItem('cycle_terminal_alarms_v4') || '[]'),
@@ -484,6 +522,7 @@ function initApp() {
       globalState.instances.forEach(inst => {
         inst.updateSMA();
         inst.calcVWAP(true);
+        inst.updateFractals();
         inst.requestDraw();
         inst.updateFlowBox();
       });
@@ -546,6 +585,34 @@ function initApp() {
         inst.requestDraw();
       });
     });
+  });
+
+  // Periodo/config de Fractales (velas atrás / adelante)
+  const fractalInput = (id, key) => {
+    const input = document.getElementById(id);
+    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('change', (e) => {
+      let v = parseInt(e.target.value, 10);
+      const max = key === 'lookback' ? 200 : 50;
+      if (isNaN(v) || v < 1) v = 1; if (v > max) v = max;
+      e.target.value = v;
+      globalState.indicatorConfig.fractal[key] = v;
+      document.getElementById('tagFractal').textContent = `${globalState.indicatorConfig.fractal.lookback}/${globalState.indicatorConfig.fractal.lookforward}`;
+      globalState.instances.forEach(inst => inst.updateFractals());
+    });
+  };
+  fractalInput('input-fractal-lookback', 'lookback');
+  fractalInput('input-fractal-lookforward', 'lookforward');
+
+  // Filas del Volume Profile
+  const vpInput = document.getElementById('input-vp-rows');
+  vpInput.addEventListener('click', (e) => e.stopPropagation());
+  vpInput.addEventListener('change', (e) => {
+    let v = parseInt(e.target.value, 10);
+    if (isNaN(v) || v < 5) v = 5; if (v > 100) v = 100;
+    e.target.value = v;
+    globalState.indicatorConfig.vp.rows = v;
+    globalState.instances.forEach(inst => inst.requestDraw());
   });
 
   document.getElementById('customSymbol').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.value.trim()) { let val = e.target.value.trim().toUpperCase(); if(val.includes('USD') && !val.includes('USDT') && val.length <= 7) val += '=X'; changeActiveAsset(val); } });
@@ -788,7 +855,7 @@ function createChartInstance(cell, asset, interval, index) {
     
     inst.vwapSeries = inst.chart.addLineSeries({ 
         color:'#ffb020', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false, lineStyle: LightweightCharts.LineStyle.Dotted, 
-        autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 0 }, margins: { above: 0, below: 0 } }) 
+        autoscaleInfoProvider: () => null
     });
 
     inst.chart.timeScale().subscribeVisibleTimeRangeChange(() => { inst.requestDraw(); inst.drawDrawCanvas(); });
@@ -901,7 +968,7 @@ function createChartInstance(cell, asset, interval, index) {
       for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; data.candles.push({ time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }); data.vols.push({ time, value: q.volume[i] || 0, color: q.close[i] >= q.open[i] ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); }
     }
     inst.lastCandles = data.candles; inst.candleSeries.setData(data.candles); inst.volSeries.setData(data.vols);
-    inst.updateSMA(); inst.calcVWAP(true); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
+    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
     if(data.candles.length){ inst.lastPrice = data.candles[data.candles.length-1].close; inst.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null; inst.lastCandleTime = data.candles[data.candles.length-1].time; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = data.candles[data.candles.length-1].high; inst.currentCandleLow = data.candles[data.candles.length-1].low; inst.bucketSize = computeBucketSize(inst); inst.updatePriceDisplay(inst.lastPrice, null); }
     inst.status = 'live'; updateStatusPill(); inst.requestDraw();
   };
@@ -922,7 +989,7 @@ function createChartInstance(cell, asset, interval, index) {
         data = { candles: [], vols: [] };
         for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; data.candles.push({ time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }); data.vols.push({ time, value: q.volume[i] || 0, color: q.close[i] >= q.open[i] ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); }
       }
-      if (data.candles.length > 0) { const range = inst.chart.timeScale().getVisibleLogicalRange(); inst.lastCandles = [...data.candles, ...inst.lastCandles]; inst.candleSeries.setData(inst.lastCandles); inst.volSeries.setData([...data.vols, ...inst.volSeries.data()]); if (range) inst.chart.timeScale().setVisibleLogicalRange({ from: range.from + data.candles.length, to: range.to + data.candles.length }); inst.updateSMA(); inst.calcVWAP(true); }
+      if (data.candles.length > 0) { const range = inst.chart.timeScale().getVisibleLogicalRange(); inst.lastCandles = [...data.candles, ...inst.lastCandles]; inst.candleSeries.setData(inst.lastCandles); inst.volSeries.setData([...data.vols, ...inst.volSeries.data()]); if (range) inst.chart.timeScale().setVisibleLogicalRange({ from: range.from + data.candles.length, to: range.to + data.candles.length }); inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); }
       else { inst.noMoreHistory = true; }
     } catch(e) { console.error(e); inst.noMoreHistory = true; } finally { inst.isLoadingHistory = false; }
   };
@@ -942,7 +1009,7 @@ function createChartInstance(cell, asset, interval, index) {
         inst.prevPrice = inst.lastPrice; inst.lastPrice = candle.close; inst.lastCandleTime = candle.time;
         // k.T is the actual close time of this kline (ms epoch) — do NOT add another interval on top of it.
         inst.currentCandleCloseTime = k.T; inst.currentCandleHigh = candle.high; inst.currentCandleLow = candle.low;
-        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; }
+        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; inst.updateFractals(); }
         inst.updatePriceDisplay(candle.close, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst);
         inst.calcVWAP(k.x); 
         if(globalState.activeChartIndex === inst.index) updateSidebarFlow(); inst.requestDraw();
@@ -965,7 +1032,7 @@ function createChartInstance(cell, asset, interval, index) {
         const res = await fetch(url); if(!res.ok) return; const d = await res.json(); const result = d.chart.result[0]; const ts = result.timestamp; const q = result.indicators.quote[0];
         for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; const candle = { time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }; inst.candleSeries.update(candle); inst.volSeries.update({ time, value: q.volume[i] || 0, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); if(inst.lastCandles.length){ const last = inst.lastCandles[inst.lastCandles.length-1]; if(last.time === time){ last.close = candle.close; last.high = Math.max(last.high, candle.high); last.low = Math.min(last.low, candle.low); last.vol = candle.vol; } else { inst.lastCandles.push(candle); if(inst.lastCandles.length > 600) inst.lastCandles.shift(); } } }
         inst.prevPrice = inst.lastPrice; inst.lastPrice = q.close[ts.length-1]; inst.lastCandleTime = ts[ts.length-1]; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = q.high[ts.length-1]; inst.currentCandleLow = q.low[ts.length-1];
-        inst.updatePriceDisplay(inst.lastPrice, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst); inst.calcVWAP(true);
+        inst.updatePriceDisplay(inst.lastPrice, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst); inst.calcVWAP(true); inst.updateFractals();
       } catch(e){ console.error(e); }
     }, 10000);
   };
@@ -1036,10 +1103,91 @@ function createChartInstance(cell, asset, interval, index) {
     }
   };
 
+  inst.updateFractals = function() {
+    if(!inst.candleSeries) return;
+    if(!globalState.indicators.fractal || inst.lastCandles.length === 0) { inst.candleSeries.setMarkers([]); return; }
+    const back = globalState.indicatorConfig.fractal.lookback;
+    const fwd = globalState.indicatorConfig.fractal.lookforward;
+    const candles = inst.lastCandles;
+    const markers = [];
+    for(let i = back; i < candles.length - fwd; i++) {
+      const c = candles[i];
+      let isHigh = true, isLow = true;
+      for(let j = i - back; j <= i + fwd; j++) {
+        if(j === i) continue;
+        if(candles[j].high >= c.high) isHigh = false;
+        if(candles[j].low <= c.low) isLow = false;
+        if(!isHigh && !isLow) break;
+      }
+      if(isHigh) markers.push({ time: c.time, position: 'aboveBar', color: '#ff2e88', shape: 'arrowDown', text: '' });
+      if(isLow) markers.push({ time: c.time, position: 'belowBar', color: '#39ff88', shape: 'arrowUp', text: '' });
+    }
+    inst.candleSeries.setMarkers(markers);
+  };
+
+  inst.computeVisibleVolumeProfile = function() {
+    if(!globalState.indicators.vp || !inst.lastCandles.length) return null;
+    const range = inst.chart.timeScale().getVisibleRange();
+    if(!range) return null;
+    const candles = inst.lastCandles.filter(c => c.time >= range.from && c.time <= range.to);
+    if(!candles.length) return null;
+    let maxH = -Infinity, minL = Infinity;
+    candles.forEach(c => { if(c.high > maxH) maxH = c.high; if(c.low < minL) minL = c.low; });
+    if(!(maxH > minL)) return null;
+    const rows = globalState.indicatorConfig.vp.rows || 24;
+    const step = (maxH - minL) / rows;
+    const buckets = new Array(rows).fill(0);
+    candles.forEach(c => {
+      const typical = (c.high + c.low + c.close) / 3;
+      let idx = Math.floor((typical - minL) / step);
+      if(idx < 0) idx = 0; if(idx >= rows) idx = rows - 1;
+      buckets[idx] += (c.vol || 0);
+    });
+    let maxVol = 0, pocIdx = 0;
+    buckets.forEach((v, i) => { if(v > maxVol) { maxVol = v; pocIdx = i; } });
+    if(maxVol <= 0) return null;
+    return { minL, maxH, step, buckets, maxVol, pocIdx, rows };
+  };
+
+  inst.drawVolumeProfile = function(ctx, canvas) {
+    const vp = inst.computeVisibleVolumeProfile();
+    if(!vp) return;
+    const maxBarWidth = Math.min(150, canvas.width * 0.3);
+    for(let i = 0; i < vp.rows; i++) {
+      const vol = vp.buckets[i];
+      if(vol <= 0) continue;
+      const priceTop = vp.minL + (i + 1) * vp.step;
+      const priceBottom = vp.minL + i * vp.step;
+      const yTop = inst.candleSeries.priceToCoordinate(priceTop);
+      const yBottom = inst.candleSeries.priceToCoordinate(priceBottom);
+      if(yTop === null || yBottom === null) continue;
+      const h = Math.max(1, Math.abs(yBottom - yTop) - 1);
+      const y = Math.min(yTop, yBottom);
+      const w = Math.max(2, (vol / vp.maxVol) * maxBarWidth);
+      const isPoc = i === vp.pocIdx;
+      ctx.fillStyle = isPoc ? 'rgba(255,176,32,0.55)' : 'rgba(0,229,255,0.18)';
+      ctx.fillRect(0, y, w, h);
+      if(isPoc) {
+        ctx.strokeStyle = 'rgba(255,176,32,0.9)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(0, y + h/2);
+        ctx.lineTo(canvas.width, y + h/2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#ffb020';
+        ctx.font = "9px 'JetBrains Mono', monospace";
+        ctx.fillText('POC ' + fmt(vp.minL + (i + 0.5) * vp.step), w + 5, y + h/2 + 3);
+      }
+    }
+  };
+
   inst.drawOverlayCanvas = function() {
     const canvas = inst.overlayCanvas; const ctx = canvas.getContext('2d');
     if (canvas.width !== inst.chartEl.clientWidth || canvas.height !== inst.chartEl.clientHeight) { canvas.width = inst.chartEl.clientWidth; canvas.height = inst.chartEl.clientHeight; }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if(globalState.indicators.vp) inst.drawVolumeProfile(ctx, canvas);
   };
 
   inst.updateFlowBox = function() {
