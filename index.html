@@ -392,6 +392,30 @@
           </div>
         </div>
 
+        <div class="ind-block">
+          <div class="ind-item" data-ind="vpFractal">
+            <span>VP Fractal <b class="ind-tag" id="tagVpFractal">40/2</b></span>
+            <div class="ind-actions">
+              <button type="button" class="ind-gear" data-opts="vpFractal" title="Opciones">⚙</button>
+              <div class="ind-toggle on"></div>
+            </div>
+          </div>
+          <div class="ind-options" id="opts-vpFractal">
+            <div class="opt-row">
+              <span class="opt-label">Velas atrás</span>
+              <input type="number" class="opt-input" id="input-vpFractal-lookback" min="1" max="200" value="40">
+            </div>
+            <div class="opt-row" style="margin-top:6px;">
+              <span class="opt-label">Velas adelante</span>
+              <input type="number" class="opt-input" id="input-vpFractal-lookforward" min="1" max="50" value="2">
+            </div>
+            <div class="opt-row" style="margin-top:6px;">
+              <span class="opt-label">Filas</span>
+              <input type="number" class="opt-input" id="input-vpFractal-rows" min="5" max="100" value="24">
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
     <div class="toolbar-right">
@@ -482,14 +506,15 @@ const DEFAULT_LAYOUT_SYMBOLS = ['BTCUSDT', 'GC=F', '^NDX', 'CLP=X'];
 
 const globalState = {
   interval: '5m',
-  indicators: { sma20: true, sma50: true, vwap: true, flow: true, fractal: true, vp: true },
+  indicators: { sma20: true, sma50: true, vwap: true, flow: true, fractal: true, vp: true, vpFractal: true },
   indicatorConfig: {
     sma20: { period: 20 },
     sma50: { period: 50 },
     vwap: { anchor: 'D' },
     flow: { precisionMult: 1 },
     fractal: { lookback: 40, lookforward: 2 },
-    vp: { rows: 24 }
+    vp: { rows: 24 },
+    vpFractal: { lookback: 40, lookforward: 2, rows: 24 }
   },
   activeTool: 'cursor',
   alarms: JSON.parse(localStorage.getItem('cycle_terminal_alarms_v4') || '[]'),
@@ -523,6 +548,7 @@ function initApp() {
         inst.updateSMA();
         inst.calcVWAP(true);
         inst.updateFractals();
+        inst.updateVpFractal();
         inst.requestDraw();
         inst.updateFlowBox();
       });
@@ -614,6 +640,23 @@ function initApp() {
     globalState.indicatorConfig.vp.rows = v;
     globalState.instances.forEach(inst => inst.requestDraw());
   });
+
+  // Config del indicador combinado VP Fractal (velas atrás / adelante / filas)
+  const vpFractalInput = (id, key, max) => {
+    const input = document.getElementById(id);
+    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('change', (e) => {
+      let v = parseInt(e.target.value, 10);
+      if (isNaN(v) || v < 1) v = 1; if (v > max) v = max;
+      e.target.value = v;
+      globalState.indicatorConfig.vpFractal[key] = v;
+      document.getElementById('tagVpFractal').textContent = `${globalState.indicatorConfig.vpFractal.lookback}/${globalState.indicatorConfig.vpFractal.lookforward}`;
+      globalState.instances.forEach(inst => inst.updateVpFractal());
+    });
+  };
+  vpFractalInput('input-vpFractal-lookback', 'lookback', 200);
+  vpFractalInput('input-vpFractal-lookforward', 'lookforward', 50);
+  vpFractalInput('input-vpFractal-rows', 'rows', 100);
 
   document.getElementById('customSymbol').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.value.trim()) { let val = e.target.value.trim().toUpperCase(); if(val.includes('USD') && !val.includes('USDT') && val.length <= 7) val += '=X'; changeActiveAsset(val); } });
   
@@ -779,6 +822,7 @@ function createChartInstance(cell, asset, interval, index) {
     overlayCanvas: null, drawCanvas: null, chartEl: null, legendEl: null, priceTagEl: null, flowBoxEl: null, autoScaleBtn: null, status: 'conn',
     drawings: [], isDrawing: false, currentDrawing: null,
     vwapData: [],
+    fractalMarkers: [], vpFractalMarkers: [], vpFractalRange: null,
     drawThrottle: null
   };
 
@@ -968,7 +1012,7 @@ function createChartInstance(cell, asset, interval, index) {
       for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; data.candles.push({ time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }); data.vols.push({ time, value: q.volume[i] || 0, color: q.close[i] >= q.open[i] ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); }
     }
     inst.lastCandles = data.candles; inst.candleSeries.setData(data.candles); inst.volSeries.setData(data.vols);
-    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
+    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
     if(data.candles.length){ inst.lastPrice = data.candles[data.candles.length-1].close; inst.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null; inst.lastCandleTime = data.candles[data.candles.length-1].time; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = data.candles[data.candles.length-1].high; inst.currentCandleLow = data.candles[data.candles.length-1].low; inst.bucketSize = computeBucketSize(inst); inst.updatePriceDisplay(inst.lastPrice, null); }
     inst.status = 'live'; updateStatusPill(); inst.requestDraw();
   };
@@ -989,7 +1033,7 @@ function createChartInstance(cell, asset, interval, index) {
         data = { candles: [], vols: [] };
         for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; data.candles.push({ time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }); data.vols.push({ time, value: q.volume[i] || 0, color: q.close[i] >= q.open[i] ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); }
       }
-      if (data.candles.length > 0) { const range = inst.chart.timeScale().getVisibleLogicalRange(); inst.lastCandles = [...data.candles, ...inst.lastCandles]; inst.candleSeries.setData(inst.lastCandles); inst.volSeries.setData([...data.vols, ...inst.volSeries.data()]); if (range) inst.chart.timeScale().setVisibleLogicalRange({ from: range.from + data.candles.length, to: range.to + data.candles.length }); inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); }
+      if (data.candles.length > 0) { const range = inst.chart.timeScale().getVisibleLogicalRange(); inst.lastCandles = [...data.candles, ...inst.lastCandles]; inst.candleSeries.setData(inst.lastCandles); inst.volSeries.setData([...data.vols, ...inst.volSeries.data()]); if (range) inst.chart.timeScale().setVisibleLogicalRange({ from: range.from + data.candles.length, to: range.to + data.candles.length }); inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); }
       else { inst.noMoreHistory = true; }
     } catch(e) { console.error(e); inst.noMoreHistory = true; } finally { inst.isLoadingHistory = false; }
   };
@@ -1009,7 +1053,7 @@ function createChartInstance(cell, asset, interval, index) {
         inst.prevPrice = inst.lastPrice; inst.lastPrice = candle.close; inst.lastCandleTime = candle.time;
         // k.T is the actual close time of this kline (ms epoch) — do NOT add another interval on top of it.
         inst.currentCandleCloseTime = k.T; inst.currentCandleHigh = candle.high; inst.currentCandleLow = candle.low;
-        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; inst.updateFractals(); }
+        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; inst.updateFractals(); inst.updateVpFractal(); }
         inst.updatePriceDisplay(candle.close, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst);
         inst.calcVWAP(k.x); 
         if(globalState.activeChartIndex === inst.index) updateSidebarFlow(); inst.requestDraw();
@@ -1032,7 +1076,7 @@ function createChartInstance(cell, asset, interval, index) {
         const res = await fetch(url); if(!res.ok) return; const d = await res.json(); const result = d.chart.result[0]; const ts = result.timestamp; const q = result.indicators.quote[0];
         for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; const candle = { time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }; inst.candleSeries.update(candle); inst.volSeries.update({ time, value: q.volume[i] || 0, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); if(inst.lastCandles.length){ const last = inst.lastCandles[inst.lastCandles.length-1]; if(last.time === time){ last.close = candle.close; last.high = Math.max(last.high, candle.high); last.low = Math.min(last.low, candle.low); last.vol = candle.vol; } else { inst.lastCandles.push(candle); if(inst.lastCandles.length > 600) inst.lastCandles.shift(); } } }
         inst.prevPrice = inst.lastPrice; inst.lastPrice = q.close[ts.length-1]; inst.lastCandleTime = ts[ts.length-1]; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = q.high[ts.length-1]; inst.currentCandleLow = q.low[ts.length-1];
-        inst.updatePriceDisplay(inst.lastPrice, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst); inst.calcVWAP(true); inst.updateFractals();
+        inst.updatePriceDisplay(inst.lastPrice, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal();
       } catch(e){ console.error(e); }
     }, 10000);
   };
@@ -1103,13 +1147,12 @@ function createChartInstance(cell, asset, interval, index) {
     }
   };
 
-  inst.updateFractals = function() {
-    if(!inst.candleSeries) return;
-    if(!globalState.indicators.fractal || inst.lastCandles.length === 0) { inst.candleSeries.setMarkers([]); return; }
-    const back = globalState.indicatorConfig.fractal.lookback;
-    const fwd = globalState.indicatorConfig.fractal.lookforward;
-    const candles = inst.lastCandles;
-    const markers = [];
+  // Detecta puntos fractales (techos y pisos) sobre un set de velas dado.
+  // Un techo es una vela cuyo máximo supera al de TODAS las velas en [i-back, i+fwd] (menos ella misma).
+  // Un piso es análogo pero con mínimos. Devuelve listas ordenadas por tiempo ascendente.
+  inst.computeFractalPoints = function(back, fwd, candles) {
+    candles = candles || inst.lastCandles;
+    const highs = [], lows = [];
     for(let i = back; i < candles.length - fwd; i++) {
       const c = candles[i];
       let isHigh = true, isLow = true;
@@ -1119,22 +1162,66 @@ function createChartInstance(cell, asset, interval, index) {
         if(candles[j].low <= c.low) isLow = false;
         if(!isHigh && !isLow) break;
       }
-      if(isHigh) markers.push({ time: c.time, position: 'aboveBar', color: '#ff2e88', shape: 'arrowDown', text: '' });
-      if(isLow) markers.push({ time: c.time, position: 'belowBar', color: '#39ff88', shape: 'arrowUp', text: '' });
+      if(isHigh) highs.push({ time: c.time, price: c.high, index: i });
+      if(isLow) lows.push({ time: c.time, price: c.low, index: i });
     }
+    return { highs, lows };
+  };
+
+  // Combina los markers de los distintos indicadores (Fractales + VP Fractal) en una sola
+  // llamada a setMarkers, ya que la serie solo admite un set de markers a la vez.
+  inst.syncMarkers = function() {
+    if(!inst.candleSeries) return;
+    let markers = [];
+    if(globalState.indicators.fractal) markers = markers.concat(inst.fractalMarkers || []);
+    if(globalState.indicators.vpFractal) markers = markers.concat(inst.vpFractalMarkers || []);
+    markers.sort((a, b) => a.time - b.time);
     inst.candleSeries.setMarkers(markers);
   };
 
-  inst.computeVisibleVolumeProfile = function() {
-    if(!globalState.indicators.vp || !inst.lastCandles.length) return null;
-    const range = inst.chart.timeScale().getVisibleRange();
-    if(!range) return null;
-    const candles = inst.lastCandles.filter(c => c.time >= range.from && c.time <= range.to);
+  inst.updateFractals = function() {
+    if(!inst.candleSeries) return;
+    if(!globalState.indicators.fractal || inst.lastCandles.length === 0) { inst.fractalMarkers = []; inst.syncMarkers(); return; }
+    const back = globalState.indicatorConfig.fractal.lookback;
+    const fwd = globalState.indicatorConfig.fractal.lookforward;
+    const { highs, lows } = inst.computeFractalPoints(back, fwd);
+    const markers = [];
+    highs.forEach(p => markers.push({ time: p.time, position: 'aboveBar', color: '#ff2e88', shape: 'arrowDown', text: '' }));
+    lows.forEach(p => markers.push({ time: p.time, position: 'belowBar', color: '#39ff88', shape: 'arrowUp', text: '' }));
+    inst.fractalMarkers = markers;
+    inst.syncMarkers();
+  };
+
+  // Indicador combinado: detecta fractales (por defecto 40 atrás / 2 adelante) pero solo conserva
+  // el más reciente de cada lado (techo y piso). Cuando aparece uno nuevo del mismo lado, reemplaza
+  // al anterior. Entre esos dos puntos vigentes se dibuja un volume profile del tramo.
+  inst.updateVpFractal = function() {
+    if(!inst.candleSeries) return;
+    if(!globalState.indicators.vpFractal || inst.lastCandles.length === 0) { inst.vpFractalMarkers = []; inst.vpFractalRange = null; inst.syncMarkers(); inst.requestDraw(); return; }
+    const back = globalState.indicatorConfig.vpFractal.lookback;
+    const fwd = globalState.indicatorConfig.vpFractal.lookforward;
+    const { highs, lows } = inst.computeFractalPoints(back, fwd);
+    const lastHigh = highs.length ? highs[highs.length - 1] : null;
+    const lastLow = lows.length ? lows[lows.length - 1] : null;
+    const markers = [];
+    if(lastHigh) markers.push({ time: lastHigh.time, position: 'aboveBar', color: '#ffb020', shape: 'circle', text: 'T' });
+    if(lastLow) markers.push({ time: lastLow.time, position: 'belowBar', color: '#ffb020', shape: 'circle', text: 'P' });
+    inst.vpFractalMarkers = markers;
+    inst.vpFractalRange = (lastHigh && lastLow) ? { top: lastHigh, bottom: lastLow } : null;
+    inst.syncMarkers();
+    inst.requestDraw();
+  };
+
+  // Calcula un volume profile (histograma de volumen por nivel de precio) para las velas
+  // comprendidas en un rango de tiempo [fromTime, toTime]. rows = cantidad de filas/niveles.
+  inst.computeVolumeProfileForRange = function(fromTime, toTime, rows) {
+    if(!inst.lastCandles.length) return null;
+    const candles = inst.lastCandles.filter(c => c.time >= fromTime && c.time <= toTime);
     if(!candles.length) return null;
     let maxH = -Infinity, minL = Infinity;
     candles.forEach(c => { if(c.high > maxH) maxH = c.high; if(c.low < minL) minL = c.low; });
     if(!(maxH > minL)) return null;
-    const rows = globalState.indicatorConfig.vp.rows || 24;
+    rows = rows || 24;
     const step = (maxH - minL) / rows;
     const buckets = new Array(rows).fill(0);
     candles.forEach(c => {
@@ -1149,6 +1236,14 @@ function createChartInstance(cell, asset, interval, index) {
     return { minL, maxH, step, buckets, maxVol, pocIdx, rows };
   };
 
+  inst.computeVisibleVolumeProfile = function() {
+    if(!globalState.indicators.vp || !inst.lastCandles.length) return null;
+    const range = inst.chart.timeScale().getVisibleRange();
+    if(!range) return null;
+    return inst.computeVolumeProfileForRange(range.from, range.to, globalState.indicatorConfig.vp.rows || 24);
+  };
+
+  // Volume Profile de rango visible — barras ancladas al borde DERECHO del gráfico.
   inst.drawVolumeProfile = function(ctx, canvas) {
     const vp = inst.computeVisibleVolumeProfile();
     if(!vp) return;
@@ -1164,9 +1259,10 @@ function createChartInstance(cell, asset, interval, index) {
       const h = Math.max(1, Math.abs(yBottom - yTop) - 1);
       const y = Math.min(yTop, yBottom);
       const w = Math.max(2, (vol / vp.maxVol) * maxBarWidth);
+      const x = canvas.width - w;
       const isPoc = i === vp.pocIdx;
       ctx.fillStyle = isPoc ? 'rgba(255,176,32,0.55)' : 'rgba(0,229,255,0.18)';
-      ctx.fillRect(0, y, w, h);
+      ctx.fillRect(x, y, w, h);
       if(isPoc) {
         ctx.strokeStyle = 'rgba(255,176,32,0.9)';
         ctx.lineWidth = 1;
@@ -1178,7 +1274,65 @@ function createChartInstance(cell, asset, interval, index) {
         ctx.setLineDash([]);
         ctx.fillStyle = '#ffb020';
         ctx.font = "9px 'JetBrains Mono', monospace";
-        ctx.fillText('POC ' + fmt(vp.minL + (i + 0.5) * vp.step), w + 5, y + h/2 + 3);
+        ctx.textAlign = 'right';
+        ctx.fillText('POC ' + fmt(vp.minL + (i + 0.5) * vp.step), x - 5, y + h/2 + 3);
+        ctx.textAlign = 'left';
+      }
+    }
+  };
+
+  // VP Fractal — volume profile confinado al tramo horizontal entre el último fractal de techo
+  // y el último de piso, mostrando cómo se distribuyó el volumen "entre tramos".
+  inst.drawVpFractalProfile = function(ctx, canvas) {
+    if(!globalState.indicators.vpFractal || !inst.vpFractalRange) return;
+    const { top, bottom } = inst.vpFractalRange;
+    const fromTime = Math.min(top.time, bottom.time);
+    const toTime = Math.max(top.time, bottom.time);
+    const vp = inst.computeVolumeProfileForRange(fromTime, toTime, globalState.indicatorConfig.vpFractal.rows || 24);
+    if(!vp) return;
+
+    const xLeft = inst.chart.timeScale().timeToCoordinate(fromTime);
+    const xRight = inst.chart.timeScale().timeToCoordinate(toTime);
+    if(xLeft === null || xRight === null) return;
+    const boxLeft = Math.min(xLeft, xRight);
+    const boxWidth = Math.max(4, Math.abs(xRight - xLeft));
+
+    const yTopBox = inst.candleSeries.priceToCoordinate(vp.maxH);
+    const yBottomBox = inst.candleSeries.priceToCoordinate(vp.minL);
+    if(yTopBox !== null && yBottomBox !== null) {
+      ctx.strokeStyle = 'rgba(0,229,255,0.35)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.strokeRect(boxLeft, Math.min(yTopBox, yBottomBox), boxWidth, Math.abs(yBottomBox - yTopBox));
+      ctx.setLineDash([]);
+    }
+
+    for(let i = 0; i < vp.rows; i++) {
+      const vol = vp.buckets[i];
+      if(vol <= 0) continue;
+      const priceTop = vp.minL + (i + 1) * vp.step;
+      const priceBottom = vp.minL + i * vp.step;
+      const yTop = inst.candleSeries.priceToCoordinate(priceTop);
+      const yBottom = inst.candleSeries.priceToCoordinate(priceBottom);
+      if(yTop === null || yBottom === null) continue;
+      const h = Math.max(1, Math.abs(yBottom - yTop) - 1);
+      const y = Math.min(yTop, yBottom);
+      const w = Math.max(2, (vol / vp.maxVol) * boxWidth);
+      const isPoc = i === vp.pocIdx;
+      ctx.fillStyle = isPoc ? 'rgba(255,176,32,0.55)' : 'rgba(168,85,247,0.22)';
+      ctx.fillRect(boxLeft, y, w, h);
+      if(isPoc) {
+        ctx.strokeStyle = 'rgba(255,176,32,0.9)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(boxLeft, y + h/2);
+        ctx.lineTo(boxLeft + boxWidth, y + h/2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#ffb020';
+        ctx.font = "9px 'JetBrains Mono', monospace";
+        ctx.fillText('POC ' + fmt(vp.minL + (i + 0.5) * vp.step), boxLeft + boxWidth + 4, y + h/2 + 3);
       }
     }
   };
@@ -1188,6 +1342,7 @@ function createChartInstance(cell, asset, interval, index) {
     if (canvas.width !== inst.chartEl.clientWidth || canvas.height !== inst.chartEl.clientHeight) { canvas.width = inst.chartEl.clientWidth; canvas.height = inst.chartEl.clientHeight; }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if(globalState.indicators.vp) inst.drawVolumeProfile(ctx, canvas);
+    if(globalState.indicators.vpFractal) inst.drawVpFractalProfile(ctx, canvas);
   };
 
   inst.updateFlowBox = function() {
