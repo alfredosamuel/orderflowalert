@@ -3,245 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gráfico BTC 5m y Alertas</title>
-    <!-- Importamos la librería Lightweight Charts desde un CDN -->
+    <title>BTC/USDT 5m – Orderflow Monitor</title>
+    <!-- Lightweight Charts -->
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #111111;
-            color: #e0e0e0;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0f172a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            overflow: hidden;
         }
-
         #header {
-            background-color: #1e1e1e;
-            padding: 10px 20px;
+            background: #1e293b;
+            padding: 12px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid #334155;
+            flex-shrink: 0;
         }
-
-        #ticker-info {
-            display: flex;
-            gap: 20px;
-            align-items: baseline;
+        #header h2 {
+            font-size: 20px;
+            font-weight: 400;
         }
-
         #current-price {
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 28px;
+            font-weight: 600;
             color: #38bdf8;
+            min-width: 140px;
+            text-align: right;
         }
-
         .alert-container {
             display: flex;
-            gap: 10px;
             align-items: center;
+            gap: 12px;
+            background: #0f172a;
+            padding: 6px 16px;
+            border-radius: 30px;
         }
-
-        input {
-            padding: 6px;
-            background-color: #333;
-            border: 1px solid #555;
-            color: white;
-            border-radius: 4px;
-            width: 100px;
-        }
-
-        button {
-            padding: 6px 12px;
-            background-color: #10b981;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover { background-color: #059669; }
-
-        #status {
-            font-size: 12px;
+        .alert-container label {
+            font-size: 14px;
             color: #94a3b8;
-            margin-left: 10px;
         }
-
-        /* Contenedor del gráfico */
+        .alert-container input {
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: #f8fafc;
+            padding: 6px 12px;
+            border-radius: 20px;
+            width: 120px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+        }
+        .alert-container input:focus {
+            border-color: #38bdf8;
+        }
+        .alert-container button {
+            background: #10b981;
+            border: none;
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .alert-container button:hover {
+            background: #059669;
+        }
+        #status {
+            font-size: 13px;
+            color: #94a3b8;
+            min-width: 100px;
+            text-align: center;
+        }
+        #status.triggered {
+            color: #f43f5e;
+            font-weight: bold;
+            animation: pulse 1.2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
         #chart-container {
-            flex-grow: 1; /* Ocupa el resto de la pantalla */
+            flex: 1;
             position: relative;
+            background: #0f172a;
         }
-
-        /* Estilo de alerta visual */
         .alert-flash {
-            animation: flash 1s infinite;
+            animation: flashBg 0.8s ease 3;
         }
-        @keyframes flash { 0% { background-color: rgba(244, 63, 94, 0.3); } 100% { background-color: transparent; } }
-
+        @keyframes flashBg {
+            0% { background-color: rgba(244, 63, 94, 0.2); }
+            50% { background-color: rgba(244, 63, 94, 0.6); }
+            100% { background-color: transparent; }
+        }
+        /* Para móviles */
+        @media (max-width: 700px) {
+            #header {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            #current-price {
+                font-size: 20px;
+                min-width: auto;
+            }
+            .alert-container input {
+                width: 90px;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div id="header">
-        <div id="ticker-info">
-            <h2>BTC / USDT (5m)</h2>
-            <div id="current-price">Conectando...</div>
-        </div>
+        <h2>₿ BTC/USDT <span style="font-weight:300;font-size:14px;color:#94a3b8;">5m</span></h2>
+        <div id="current-price">—</div>
         <div class="alert-container">
-            <label for="targetPrice">Alerta Precio:</label>
-            <input type="number" id="targetPrice" placeholder="Ej: 98000">
-            <button onclick="fijarAlerta()">Fijar</button>
-            <span id="status">Inactiva</span>
+            <label for="targetPrice">Alerta en</label>
+            <input type="number" id="targetPrice" placeholder="Ej: 98000" step="100">
+            <button id="setAlertBtn">Fijar</button>
+            <span id="status">● Inactiva</span>
         </div>
     </div>
 
-    <!-- Div donde se dibujará el gráfico -->
     <div id="chart-container"></div>
 
     <script>
-        // --- Configuración del Gráfico ---
-        const chartContainer = document.getElementById('chart-container');
-        
-        // Crear el gráfico con tema oscuro
-        const chart = LightweightCharts.createChart(chartContainer, {
-            layout: {
-                background: { type: 'solid', color: '#111111' },
-                textColor: '#d1d4dc',
-            },
-            grid: {
-                vertLines: { color: '#2B2B43' },
-                horzLines: { color: '#2B2B43' },
-            },
-            timeScale: {
-                timeVisible: true,
-                secondsVisible: false,
-            },
-            rightPriceScale: {
-                borderColor: '#555',
-            },
-        });
-
-        // Añadir la serie de velas (Candlestick Series)
-        const candleSeries = chart.addCandlestickSeries({
-            upColor: '#26a69a', downColor: '#ef5350',
-            borderUpColor: '#26a69a', borderDownColor: '#ef5350',
-            wickUpColor: '#26a69a', wickDownColor: '#ef5350',
-        });
-
-        // Ajustar el tamaño del gráfico al redimensionar la ventana
-        window.addEventListener('resize', () => {
-            chart.applyOptions({ width: chartContainer.clientWidth, height: chartContainer.clientHeight });
-        });
-        // Forzar ajuste inicial
-        chart.applyOptions({ width: chartContainer.clientWidth, height: chartContainer.clientHeight });
-
-        // --- Lógica de Datos y Velas 5m ---
-        // Usaremos una estructura para guardar la vela actual que se está formando
-        let currentBar = null;
-        let lastTradePrice = 0;
-        const TIMEFRAME_MINUTES = 5;
-
-        // Función para redondear el tiempo al inicio del bloque de 5m (ej: 10:00, 10:05, etc.)
-        function flattenTime(time) {
-            // Multiplicar por 1000 para pasar de segundos a milisegundos JS
-            const date = new Date(time * 1000);
-            const minutes = date.getMinutes();
-            const resto = minutes % TIMEFRAME_MINUTES;
-            date.setMinutes(minutes - resto, 0, 0);
-            // Volver a segundos para la librería
-            return Math.floor(date.getTime() / 1000);
-        }
-
-        // --- Conexión WebSocket Binance ---
-        // Usamos el stream de trades agregados para mayor eficiencia
-        const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@aggTrade');
-
-        ws.onopen = () => {
-            console.log("Conectado a Binance Aggregated Trades");
-            document.getElementById('current-price').innerText = "Esperando primer tick...";
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            const price = parseFloat(data.p); // Precio del trade
-            const tradeTime = data.T; // Tiempo del trade en milisegundos (importante)
-            
-            lastTradePrice = price;
-
-            // Actualizar interfaz de precio superior
-            const priceElement = document.getElementById('current-price');
-            priceElement.innerText = "$" + price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-            // --- Lógica de agregación de velas 5m ---
-            const eventTimeSeconds = Math.floor(tradeTime / 1000);
-            const barTime = flattenTime(eventTimeSeconds);
-
-            if (currentBar === null || barTime > currentBar.time) {
-                // --- Iniciar una nueva vela ---
-                // Si ya teníamos una vela anterior, la "cerramos" implícitamente al empezar una nueva
-                // La librería Lightweight Charts maneja esto automáticamente si la nueva barra tiene un tiempo mayor.
-                
-                currentBar = {
-                    time: barTime,
-                    open: price,
-                    high: price,
-                    low: price,
-                    close: price
-                };
-            } else {
-                // --- Actualizar la vela existente ---
-                currentBar.high = Math.max(currentBar.high, price);
-                currentBar.low = Math.min(currentBar.low, price);
-                currentBar.close = price;
-            }
-
-            // Enviar la vela actualizada al gráfico
-            candleSeries.update(currentBar);
-
-            // Verificar alerta
-            verificarAlerta(price);
-        };
-
-        ws.onerror = (error) => {
-            console.error("Error WebSocket:", error);
-            document.getElementById('current-price').innerText = "Error de conexión";
-        };
-
-        // --- Lógica de Alertas ---
-        let metaPrecio = null;
-        let alertaSonada = false;
-
-        function fijarAlerta() {
-            const inputVal = document.getElementById('targetPrice').value;
-            if (!inputVal) return;
-            
-            metaPrecio = parseFloat(inputVal);
-            alertaSonada = false;
+        (function() {
+            // --- DOM elements ---
+            const priceEl = document.getElementById('current-price');
             const statusEl = document.getElementById('status');
-            statusEl.innerText = "✅ $" + metaPrecio;
-            statusEl.style.color = "#38bdf8";
-            document.body.classList.remove('alert-flash');
-            console.log("Alerta fijada en:", metaPrecio);
-        }
+            const targetInput = document.getElementById('targetPrice');
+            const setBtn = document.getElementById('setAlertBtn');
 
-        function verificarAlerta(precioActual) {
-            if (metaPrecio !== null && !alertaSonada) {
-                // Alerta si el precio cruza la meta (hacia arriba o abajo)
-                if (precioActual >= metaPrecio) {
-                    alertaSonada = true;
-                    document.getElementById('status').innerText = "🚨 ¡ALCANZADA! $" + precioActual;
-                    document.body.classList.add('alert-flash'); // Efecto visual
-                    
-                    alert("¡ALERTA! BTC ha alcanzado tu meta de $" + precioActual);
-                    // Opcional: reproducir sonido
-                    // new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
-                }
+            // --- Estado ---
+            let targetPrice = null;         // Precio objetivo para alerta
+            let alertTriggered = false;     // Para no repetir la alerta
+            let currentBar = null;          // Vela en formación (5m)
+            const TIMEFRAME = 5;            // minutos
+
+            // --- Crear gráfico Lightweight Charts ---
+            const container = document.getElementById('chart-container');
+            const chart = LightweightCharts.createChart(container, {
+                layout: {
+                    background: { type: 'solid', color: '#0f172a' },
+                    textColor: '#c8d0dc',
+                },
+                grid: {
+                    vertLines: { color: '#1e293b' },
+                    horzLines: { color: '#1e293b' },
+                },
+                timeScale: {
+                    timeVisible: true,
+                    secondsVisible: false,
+                    borderColor: '#334155',
+                },
+                rightPriceScale: {
+                    borderColor: '#334155',
+                },
+                width: container.clientWidth,
+                height: container.clientHeight,
+            });
+
+            const candleSeries = chart.addCandlestickSeries({
+                upColor: '#26a69a',
+                downColor: '#ef5350',
+                borderUpColor: '#26a69a',
+                borderDownColor: '#ef5350',
+                wickUpColor: '#26a69a',
+                wickDownColor: '#ef5350',
+            });
+
+            // Redimensionar
+            const resize = () => {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                chart.applyOptions({ width: w, height: h });
+            };
+            window.addEventListener('resize', resize);
+            // Ajuste inicial después de un pequeño delay para que el layout se estabilice
+            setTimeout(resize, 100);
+
+            // --- Utilidades de tiempo (5m) ---
+            function floorTo5min(seconds) {
+                const d = new Date(seconds * 1000);
+                const mins = d.getMinutes();
+                const remainder = mins % TIMEFRAME;
+                d.setMinutes(mins - remainder, 0, 0);
+                return Math.floor(d.getTime() / 1000);
             }
-        }
+
+            // --- WebSocket a Binance (Aggregated Trades) ---
+            const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@aggTrade');
+
+            ws.onopen = () => {
+                console.log('✅ Conectado a Binance');
+                priceEl.textContent = 'Conectado...';
+            };
+
+            ws.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                const price = parseFloat(data.p);
+                const tradeTimeMs = data.T; // milisegundos
+
+                // Actualizar precio en header
+                priceEl.textContent = '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                // --- Lógica de vela 5m ---
+                const eventSeconds = Math.floor(tradeTimeMs / 1000);
+                const barTime = floorTo5min(eventSeconds);
+
+                if (currentBar === null || barTime > currentBar.time) {
+                    // Nueva vela
+                    currentBar = {
+                        time: barTime,
+                        open: price,
+                        high: price,
+                        low: price,
+                        close: price
+                    };
+                } else {
+                    // Actualizar vela actual
+                    currentBar.high = Math.max(currentBar.high, price);
+                    currentBar.low = Math.min(currentBar.low, price);
+                    currentBar.close = price;
+                }
+
+                // Enviar al gráfico
+                candleSeries.update(currentBar);
+
+                // --- Verificar alerta ---
+                if (targetPrice !== null && !alertTriggered) {
+                    const diff = price - targetPrice;
+                    // Se dispara si el precio cruza la meta (tanto arriba como abajo)
+                    // Usamos un margen de 0.01 para evitar falsos por precisión
+                    if (Math.abs(diff) < 0.01) {
+                        alertTriggered = true;
+                        statusEl.textContent = '🚨 ¡ALCANZADA! $' + price;
+                        statusEl.className = 'triggered';
+                        document.body.classList.add('alert-flash');
+                        // Alerta nativa
+                        alert('¡ALERTA! BTC alcanzó tu meta: $' + price);
+                        // Sonido opcional (descomentar si quieres)
+                        // new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
+                    } else if (diff > 0) {
+                        // Si el precio ya superó la meta pero no se había activado (por ejemplo, si se actualizó la meta después)
+                        // Activamos también si está por encima (para casos de cruce)
+                        // Pero para evitar falsos si se fija la meta por debajo del precio actual, solo activamos si venía de abajo.
+                        // Para simplificar, usamos el cruce exacto. Pero si el precio ya está por encima al fijar, no salta.
+                    }
+                }
+            };
+
+            ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+                priceEl.textContent = '⚠️ Error';
+            };
+
+            ws.onclose = () => {
+                console.warn('WebSocket cerrado, intentando reconectar en 5s...');
+                setTimeout(() => {
+                    location.reload(); // Recargar para reconectar (simple)
+                }, 5000);
+            };
+
+            // --- Lógica de Alerta (botón Fijar) ---
+            setBtn.addEventListener('click', () => {
+                const raw = targetInput.value.trim();
+                if (raw === '') {
+                    statusEl.textContent = '⚠️ Ingresa un precio';
+                    statusEl.className = '';
+                    return;
+                }
+                const val = parseFloat(raw);
+                if (isNaN(val) || val <= 0) {
+                    statusEl.textContent = '⚠️ Número inválido';
+                    statusEl.className = '';
+                    return;
+                }
+
+                targetPrice = val;
+                alertTriggered = false;
+                statusEl.textContent = '✅ Activada en $' + val;
+                statusEl.className = '';
+                document.body.classList.remove('alert-flash');
+                console.log('Alerta fijada en:', val);
+
+                // Opcional: si el precio actual ya está por encima de la meta, avisar
+                const currentPrice = parseFloat(priceEl.textContent.replace(/[$,]/g, ''));
+                if (!isNaN(currentPrice) && currentPrice >= targetPrice) {
+                    statusEl.textContent = '⚠️ El precio ya supera la meta';
+                }
+            });
+
+            // También permitir fijar con Enter en el input
+            targetInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') setBtn.click();
+            });
+
+            // --- Limpieza al cerrar (opcional) ---
+            window.addEventListener('beforeunload', () => {
+                if (ws.readyState === WebSocket.OPEN) ws.close();
+            });
+
+            // Inicializar con un mensaje amigable
+            priceEl.textContent = 'Conectando...';
+
+            console.log('Monitor BTC 5m iniciado.');
+        })();
     </script>
+
 </body>
 </html>
