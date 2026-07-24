@@ -239,6 +239,7 @@
   .field:focus{border-color:var(--cyan);background:rgba(0,229,255,.03);}
   .field::placeholder{color:var(--muted);}
   select.field{cursor:pointer;}
+  .field.flash{border-color:var(--cyan);box-shadow:0 0 8px rgba(0,229,255,.3);}
 
   .dir-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
   .dir-btn{
@@ -280,6 +281,12 @@
 
   .toggle-row{display:flex;align-items:center;gap:12px;font-size:9px;color:var(--muted);}
   .toggle-row label{display:flex;align-items:center;gap:5px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;}
+
+  /* Telegram settings */
+  .tg-section{background:rgba(168,85,247,.03);}
+  .tg-section .side-title{color:var(--purple);}
+  .tg-help{font-size:9px;color:var(--muted);line-height:1.4;margin-bottom:8px;}
+  .tg-help a{color:var(--purple);text-decoration:none;}
 
   /* Alarm list */
   .alarm-scroll{flex:1;overflow-y:auto;padding-right:4px;}
@@ -404,11 +411,11 @@
           <path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/>
         </svg>
       </div>
-      <h1>CYCLE TERMINAL<span>v1.0 // binance spot feed</span></h1>
+      <h1>CYCLE TERMINAL<span>v1.1 // binance spot feed</span></h1>
     </div>
 
     <div class="asset-selector" id="assetSelector">
-      <button class="asset-btn" id="assetBtn">
+      <button type="button" class="asset-btn" id="assetBtn">
         <div class="asset-icon" id="assetIcon" style="background:rgba(247,147,26,.15);color:#f7931a;">₿</div>
         <div class="asset-info">
           <div class="sym" id="assetSym">BTC/USDT</div>
@@ -437,13 +444,13 @@
   <!-- TOOLBAR -->
   <div class="toolbar">
     <div class="tf-group" id="tfGroup">
-      <button class="tf-pill" data-tf="1m">1m</button>
-      <button class="tf-pill active" data-tf="5m">5m</button>
-      <button class="tf-pill" data-tf="15m">15m</button>
-      <button class="tf-pill" data-tf="1h">1h</button>
-      <button class="tf-pill" data-tf="4h">4h</button>
-      <button class="tf-pill" data-tf="1d">1D</button>
-      <button class="tf-pill" data-tf="1w">1W</button>
+      <button type="button" class="tf-pill" data-tf="1m">1m</button>
+      <button type="button" class="tf-pill active" data-tf="5m">5m</button>
+      <button type="button" class="tf-pill" data-tf="15m">15m</button>
+      <button type="button" class="tf-pill" data-tf="1h">1h</button>
+      <button type="button" class="tf-pill" data-tf="4h">4h</button>
+      <button type="button" class="tf-pill" data-tf="1d">1D</button>
+      <button type="button" class="tf-pill" data-tf="1w">1W</button>
     </div>
     <div class="toolbar-sep"></div>
     <div class="toggle-group">
@@ -457,7 +464,7 @@
       <div class="toggle on" id="toggleSMA50"></div>
     </div>
     <div class="toolbar-right">
-      <button class="icon-btn" id="refreshBtn" title="Recargar">
+      <button type="button" class="icon-btn" id="refreshBtn" title="Recargar">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M23 4v6h-6M1 20v-6h6"/>
           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
@@ -487,29 +494,45 @@
       </div>
       <div class="form-grid">
         <div class="dir-row">
-          <button class="dir-btn active-above" id="dirAbove">
+          <button type="button" class="dir-btn active-above" id="dirAbove">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
             CRUZA ↑
           </button>
-          <button class="dir-btn" id="dirBelow">
+          <button type="button" class="dir-btn" id="dirBelow">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
             CRUZA ↓
           </button>
         </div>
         <input type="number" class="field" id="alarmPrice" placeholder="precio objetivo" step="any" min="0">
         <div class="presets">
-          <button class="preset neg" data-preset="-5">-5%</button>
-          <button class="preset neg" data-preset="-2">-2%</button>
-          <button class="preset" data-preset="0">actual</button>
-          <button class="preset pos" data-preset="2">+2%</button>
-          <button class="preset pos" data-preset="5">+5%</button>
+          <button type="button" class="preset neg" data-preset="-5">-5%</button>
+          <button type="button" class="preset neg" data-preset="-2">-2%</button>
+          <button type="button" class="preset" data-preset="0">actual</button>
+          <button type="button" class="preset pos" data-preset="2">+2%</button>
+          <button type="button" class="preset pos" data-preset="5">+5%</button>
         </div>
         <input type="text" class="field" id="alarmNote" placeholder="nota (opcional)" maxlength="50">
-        <button class="btn-primary" id="addAlarmBtn">+ Crear Alarma</button>
+        <button type="button" class="btn-primary" id="addAlarmBtn">+ Crear Alarma</button>
         <div class="toggle-row">
           <label><input type="checkbox" id="soundToggle" checked> sonido</label>
           <label><input type="checkbox" id="notifToggle"> notif. navegador</label>
         </div>
+      </div>
+    </div>
+
+    <!-- TELEGRAM SETTINGS -->
+    <div class="side-section tg-section">
+      <div class="side-title">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Notificaciones Telegram
+      </div>
+      <div class="tg-help">
+        Crea un bot en <a href="https://t.me/BotFather" target="_blank">@BotFather</a> y obtén tu ID en <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a>.
+      </div>
+      <div class="form-grid">
+        <input type="password" class="field" id="tgToken" placeholder="Bot Token" style="font-size:10px;">
+        <input type="text" class="field" id="tgChatId" placeholder="Chat ID" style="font-size:10px;">
+        <button type="button" class="btn-primary" id="testTgBtn" style="background:linear-gradient(135deg,var(--purple),#7c3aed);">Probar Telegram</button>
       </div>
     </div>
 
@@ -519,7 +542,7 @@
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Alarmas — <span style="color:var(--cyan);" id="alarmSymLabel">BTCUSDT</span>
         <span class="count" id="alarmCount">0</span>
-        <span style="margin-left:auto;font-size:9px;color:var(--muted);cursor:pointer;text-transform:none;letter-spacing:0;display:none;" id="clearTriggered">limpiar disparadas</span>
+        <span style="margin-left:auto;font-size:9px;color:var(--muted);cursor:pointer;text-transform:none;letter-spacing:0;display:none;" id="clearTriggered">limpiar</span>
       </div>
       <div class="alarm-scroll" id="alarmList">
         <div class="empty">sin alarmas para este par</div>
@@ -551,7 +574,7 @@
     <div class="info">
       <span>Datos: Binance Public API</span>
       <span class="sep">•</span>
-      <span>WebSocket en tiempo real</span>
+      <span>Arrastra las alarmas en el gráfico para editarlas</span>
       <span class="sep">•</span>
       <span>Alarmas locales (localStorage)</span>
     </div>
@@ -561,11 +584,10 @@
 
 <script>
 /* =========================================================
-   CYCLE TERMINAL — Fusión de lo mejor de ambos mundos
-   - WebSocket para tiempo real (no polling)
-   - Dropdown elegante + input de símbolo personalizado
-   - Presets de precio, notas, SMA toggles, leyenda OHLC
-   - Historial de eventos, stats 24h, flash + toast + sonido
+   CYCLE TERMINAL — v1.1
+   - Arrastrar alarmas en el gráfico
+   - Telegram para alertas al celular
+   - Bugfix en los botones de preset
    ========================================================= */
 
 const ASSETS = [
@@ -600,6 +622,10 @@ const state = {
   showSMA50: true,
   alarms: [],
   audioCtx: null,
+  tgToken: localStorage.getItem('tg_token') || '',
+  tgChatId: localStorage.getItem('tg_chatid') || '',
+  hoveredAlarm: null,
+  draggingAlarm: null,
 };
 
 // ============ PERSISTENCE ============
@@ -674,19 +700,84 @@ state.sma50Series = state.chart.addLineSeries({
   priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false,
 });
 
-// Crosshair legend
+// Crosshair legend & Drag detection
 state.chart.subscribeCrosshairMove(param => {
   const legend = document.getElementById('chartLegend');
+  
+  // Dragging logic has priority
+  if (state.draggingAlarm) return;
+
   if(!param.time || !param.seriesData || !param.seriesData.size){
-    legend.classList.remove('show'); return;
+    legend.classList.remove('show');
+    if(!state.draggingAlarm) chartEl.style.cursor = 'default';
+    state.hoveredAlarm = null;
+    return;
   }
+  
   const d = param.seriesData.get(state.candleSeries);
-  if(!d){ legend.classList.remove('show'); return; }
-  legend.classList.add('show');
-  document.getElementById('lgO').textContent = fmt(d.open);
-  document.getElementById('lgH').textContent = fmt(d.high);
-  document.getElementById('lgL').textContent = fmt(d.low);
-  document.getElementById('lgC').textContent = fmt(d.close);
+  if(d){
+    legend.classList.add('show');
+    document.getElementById('lgO').textContent = fmt(d.open);
+    document.getElementById('lgH').textContent = fmt(d.high);
+    document.getElementById('lgL').textContent = fmt(d.low);
+    document.getElementById('lgC').textContent = fmt(d.close);
+  }
+
+  // Check if hovering over an alarm line
+  if (!param.point) return;
+  const y = param.point.y;
+  let foundHover = null;
+  state.alarms.forEach(a => {
+    if (a.symbol === state.symbol && !a.triggered) {
+      const yCoord = state.candleSeries.priceToCoordinate(a.price);
+      if (yCoord !== null && Math.abs(yCoord - y) < 8) {
+        foundHover = a;
+      }
+    }
+  });
+  
+  state.hoveredAlarm = foundHover;
+  if (!state.draggingAlarm) {
+    chartEl.style.cursor = foundHover ? 'ns-resize' : 'default';
+  }
+});
+
+// Manual Drag Implementation for Alarm Lines
+chartEl.addEventListener('mousedown', (e) => {
+  if (state.hoveredAlarm) {
+    state.draggingAlarm = state.hoveredAlarm;
+    chartEl.style.cursor = 'grabbing';
+    e.preventDefault();
+    e.stopPropagation(); // Stop chart panning
+  }
+}, true); // Use capture phase to intercept before chart processes it
+
+window.addEventListener('mousemove', (e) => {
+  if (state.draggingAlarm) {
+    const rect = chartEl.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const newPrice = state.candleSeries.coordinateToPrice(y);
+    
+    if (newPrice && newPrice > 0) {
+      state.draggingAlarm.price = newPrice;
+      syncAlarmPriceLines(); // Redraw lines
+      
+      // Update text in sidebar live
+      const card = document.querySelector(`.alarm-card[data-id="${state.draggingAlarm.id}"]`);
+      if (card) {
+        card.querySelector('.alarm-price').textContent = fmt(newPrice);
+      }
+    }
+  }
+});
+
+window.addEventListener('mouseup', () => {
+  if (state.draggingAlarm) {
+    saveAlarms();
+    renderAlarms(); // Full re-render to update % diff
+    state.draggingAlarm = null;
+    chartEl.style.cursor = 'default';
+  }
 });
 
 // ============ DATA ============
@@ -823,14 +914,12 @@ function updatePriceDisplay(price, prev){
   el.classList.remove('up','down');
   if(prev != null){
     el.classList.add(price >= prev ? 'up' : 'down');
-    // Flash effect on price tag
     if(price !== prev){
       el.classList.remove('flash-up','flash-down');
       void el.offsetWidth;
       el.classList.add(price > prev ? 'flash-up' : 'flash-down');
     }
   }
-  // Update current price line on chart
   if(state.candleSeries){
     if(state.currentPriceLine) state.candleSeries.removePriceLine(state.currentPriceLine);
     state.currentPriceLine = state.candleSeries.createPriceLine({
@@ -871,14 +960,14 @@ function renderAlarms(){
           : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
 
       return `
-        <div class="alarm-card ${a.direction} ${a.triggered ? 'triggered' : ''}">
+        <div class="alarm-card ${a.direction} ${a.triggered ? 'triggered' : ''}" data-id="${a.id}">
           <div class="alarm-icon ${iconClass}">${icon}</div>
           <div class="alarm-body">
             <div class="alarm-price">${fmt(a.price)}</div>
             <div class="alarm-meta">${isAbove ? '↑ arriba' : '↓ abajo'}${a.note ? ' · ' + escapeHtml(a.note) : ''} · ${time}</div>
           </div>
           <span class="alarm-pct ${diffClass}">${diffText}</span>
-          <button class="del-btn" onclick="removeAlarm('${a.id}')" title="Eliminar">
+          <button type="button" class="del-btn" onclick="removeAlarm('${a.id}')" title="Eliminar">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
             </svg>
@@ -980,6 +1069,12 @@ function fireAlarm(alarm, price){
       });
     }catch(e){}
   }
+  
+  // Send Telegram Notification
+  if(state.tgToken && state.tgChatId){
+    sendTelegram(alarm, price);
+  }
+
   const dirText = alarm.direction === 'above' ? 'cruzó por encima de' : 'cruzó por debajo de';
   showToast(`¡Alarma! ${alarm.assetName}`, `Precio ${dirText} $${fmt(alarm.price)}${alarm.note ? ' — ' + alarm.note : ''}`, 'alarm');
 }
@@ -994,7 +1089,27 @@ function logEvent(alarm, price){
   list.prepend(entry);
 }
 
-// ============ AUDIO ============
+// ============ TELEGRAM ============
+async function sendTelegram(alarm, price){
+  const msg = `🚨 *ALARM TRIGGERED*\n\n*Asset:* ${alarm.assetName}\n*Condition:* ${alarm.direction === 'above' ? 'Crossed ABOVE' : 'Crossed BELOW'} $${fmt(alarm.price)}\n*Current Price:* $${fmt(price)}${alarm.note ? `\n*Note:* ${alarm.note}` : ''}`;
+  const url = `https://api.telegram.org/bot${state.tgToken}/sendMessage`;
+  
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: state.tgChatId,
+        text: msg,
+        parse_mode: 'Markdown'
+      })
+    });
+  } catch(e) {
+    console.error('Telegram error:', e);
+  }
+}
+
+// ============ AUDIO & VISUALS ============
 function flashScreen(){
   const f = document.getElementById('flash');
   f.classList.add('on');
@@ -1005,7 +1120,6 @@ function playBeep(){
   try{
     if(!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const ctx = state.audioCtx;
-    // Triple beep ascendente
     [[880, 0], [1100, 0.18], [1320, 0.36]].forEach(([freq, start]) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -1021,7 +1135,6 @@ function playBeep(){
   }catch(e){}
 }
 
-// ============ TOAST ============
 let toastTimer;
 function showToast(title, msg, type){
   const t = document.getElementById('toast');
@@ -1092,7 +1205,6 @@ async function switchMarket(){
   }
 }
 
-// ============ DIRECTION ============
 function setDirection(dir){
   state.alarmDir = dir;
   document.getElementById('dirAbove').classList.toggle('active-above', dir === 'above');
@@ -1163,13 +1275,22 @@ document.getElementById('alarmPrice').addEventListener('keydown', (e) => {
   if(e.key === 'Enter') addAlarm();
 });
 
+// Presets fixed
 document.querySelectorAll('[data-preset]').forEach(btn => {
   btn.addEventListener('click', () => {
     const p = btn.dataset.preset;
     let price;
     if(p === '0') price = state.lastPrice;
     else price = state.lastPrice * (1 + parseFloat(p)/100);
-    if(price && price > 0) document.getElementById('alarmPrice').value = price.toFixed(2);
+    if(price && price > 0) {
+      const input = document.getElementById('alarmPrice');
+      input.value = price.toFixed(2);
+      // Visual feedback
+      input.classList.remove('flash');
+      void input.offsetWidth;
+      input.classList.add('flash');
+      setTimeout(() => input.classList.remove('flash'), 600);
+    }
   });
 });
 
@@ -1182,6 +1303,31 @@ document.getElementById('notifToggle').addEventListener('change', (e) => {
 });
 
 document.getElementById('clearTriggered').addEventListener('click', clearTriggered);
+
+// Telegram inputs persistence
+const tgTokenInput = document.getElementById('tgToken');
+const tgChatIdInput = document.getElementById('tgChatId');
+tgTokenInput.value = state.tgToken;
+tgChatIdInput.value = state.tgChatId;
+
+tgTokenInput.addEventListener('input', (e) => {
+  state.tgToken = e.target.value.trim();
+  localStorage.setItem('tg_token', state.tgToken);
+});
+tgChatIdInput.addEventListener('input', (e) => {
+  state.tgChatId = e.target.value.trim();
+  localStorage.setItem('tg_chatid', state.tgChatId);
+});
+
+document.getElementById('testTgBtn').addEventListener('click', () => {
+  if(!state.tgToken || !state.tgChatId){
+    showToast('Faltan datos', 'Ingresa el Token y el Chat ID', 'error');
+    return;
+  }
+  const fakeAlarm = { assetName: state.asset.name, direction: 'above', price: state.lastPrice, note: 'TEST DE TELEGRAM' };
+  sendTelegram(fakeAlarm, state.lastPrice);
+  showToast('Enviando...', 'Revisa tu Telegram. Si no llega, revisa el Token/ID.', 'alarm');
+});
 
 // Footer clock
 setInterval(() => {
