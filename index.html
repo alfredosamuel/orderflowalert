@@ -1,342 +1,1236 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BTC/USDT 5m – Monitor y Alertas</title>
-    <!-- Lightweight Charts -->
-    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    <style>
-        /* Reset y base */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #0f172a;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoWatch — Dashboard de Trading</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --bg-2: #0d1117;
+    --card: rgba(22, 27, 34, 0.7);
+    --border: rgba(255, 255, 255, 0.06);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --fg: #e6edf3;
+    --muted: #8b949e;
+    --accent: #ffb800;
+    --green: #00d68f;
+    --red: #ff4757;
+    --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 80% 50% at top left, rgba(255, 184, 0, 0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at bottom right, rgba(0, 214, 143, 0.05) 0%, transparent 60%),
+      linear-gradient(180deg, #0a0e14 0%, #0d1117 100%);
+    background-attachment: fixed;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .glass {
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+  }
+  .price-up { color: var(--green); }
+  .price-down { color: var(--red); }
+  .pulse-up { animation: pulseUp 0.7s ease-out; }
+  .pulse-down { animation: pulseDown 0.7s ease-out; }
+  @keyframes pulseUp {
+    0% { background: rgba(0, 214, 143, 0.25); transform: scale(1.02); }
+    100% { background: transparent; transform: scale(1); }
+  }
+  @keyframes pulseDown {
+    0% { background: rgba(255, 71, 87, 0.25); transform: scale(1.02); }
+    100% { background: transparent; transform: scale(1); }
+  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
 
-        /* Cabecera */
-        #header {
-            background: #1e293b;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #334155;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        #header h2 {
-            font-size: 20px;
-            font-weight: 400;
-        }
-        #header h2 span {
-            font-weight: 300;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-        #current-price {
-            font-size: 28px;
-            font-weight: 600;
-            color: #38bdf8;
-            min-width: 140px;
-            text-align: right;
-        }
+  .asset-selector { position: relative; }
+  .asset-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 260px;
+    background: #161b22;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 6px;
+    z-index: 50;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+    transition: all 0.2s ease;
+  }
+  .asset-dropdown.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .asset-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .asset-option:hover { background: rgba(255,255,255,0.05); }
+  .asset-option.active { background: rgba(255, 184, 0, 0.08); }
 
-        /* Contenedor de alerta */
-        .alert-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #0f172a;
-            padding: 6px 16px;
-            border-radius: 30px;
-        }
-        .alert-container label {
-            font-size: 14px;
-            color: #94a3b8;
-        }
-        .alert-container input {
-            background: #1e293b;
-            border: 1px solid #475569;
-            color: #f8fafc;
-            padding: 6px 12px;
-            border-radius: 20px;
-            width: 120px;
-            font-size: 14px;
-            outline: none;
-            transition: 0.2s;
-        }
-        .alert-container input:focus {
-            border-color: #38bdf8;
-        }
-        .alert-container button {
-            background: #10b981;
-            border: none;
-            color: #fff;
-            padding: 6px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-        .alert-container button:hover {
-            background: #059669;
-        }
-        #status {
-            font-size: 13px;
-            color: #94a3b8;
-            min-width: 100px;
-            text-align: center;
-        }
-        #status.triggered {
-            color: #f43f5e;
-            font-weight: bold;
-            animation: pulse 1.2s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.05); }
-            100% { opacity: 1; transform: scale(1); }
-        }
+  .tf-pill {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    background: transparent;
+    font-family: inherit;
+  }
+  .tf-pill:hover { color: var(--fg); background: rgba(255,255,255,0.04); }
+  .tf-pill.active {
+    color: var(--accent);
+    background: rgba(255, 184, 0, 0.1);
+    border-color: rgba(255, 184, 0, 0.25);
+  }
 
-        /* Gráfico */
-        #chart-container {
-            flex: 1;
-            position: relative;
-            background: #0f172a;
-        }
+  .input-field {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--fg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    width: 100%;
+    transition: all 0.15s;
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(0,0,0,0.5);
+    box-shadow: 0 0 0 3px rgba(255, 184, 0, 0.1);
+  }
 
-        /* Efecto de alerta visual */
-        .alert-flash {
-            animation: flashBg 0.8s ease 3;
-        }
-        @keyframes flashBg {
-            0% { background-color: rgba(244, 63, 94, 0.2); }
-            50% { background-color: rgba(244, 63, 94, 0.6); }
-            100% { background-color: transparent; }
-        }
+  .btn-primary {
+    background: linear-gradient(135deg, #ffb800 0%, #ff9500 100%);
+    color: #0a0e14;
+    font-weight: 700;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(255, 184, 0, 0.35);
+  }
+  .btn-primary:active { transform: translateY(0); }
 
-        /* Responsive */
-        @media (max-width: 700px) {
-            #header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-            }
-            #current-price {
-                font-size: 22px;
-                text-align: center;
-            }
-            .alert-container {
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            .alert-container input {
-                width: 100px;
-            }
-        }
-    </style>
+  .btn-secondary {
+    background: rgba(255,255,255,0.04);
+    color: var(--fg);
+    border: 1px solid var(--border-strong);
+    padding: 9px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+
+  .btn-icon {
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-icon:hover { color: var(--fg); background: rgba(255,255,255,0.08); }
+
+  .dir-btn {
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border: 1px solid var(--border-strong);
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .dir-btn:hover { background: rgba(255,255,255,0.08); }
+  .dir-btn.active-above {
+    background: rgba(0, 214, 143, 0.1);
+    color: var(--green);
+    border-color: rgba(0, 214, 143, 0.35);
+  }
+  .dir-btn.active-below {
+    background: rgba(255, 71, 87, 0.1);
+    color: var(--red);
+    border-color: rgba(255, 71, 87, 0.35);
+  }
+
+  .toggle {
+    position: relative;
+    width: 34px;
+    height: 18px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(16px); }
+
+  .alarm-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 11px 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+  .alarm-card:hover {
+    border-color: var(--border-strong);
+    background: rgba(255,255,255,0.05);
+  }
+  .alarm-card.triggered {
+    border-color: rgba(0, 214, 143, 0.3);
+    background: rgba(0, 214, 143, 0.05);
+  }
+  .alarm-card.triggered .alarm-bell { animation: bellShake 0.5s ease-in-out 3; }
+  @keyframes bellShake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-12deg); }
+    75% { transform: rotate(12deg); }
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--green);
+    animation: livePulse 2s infinite;
+  }
+  @keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+  }
+
+  #chart { width: 100%; height: 100%; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #161b22;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.6);
+    transform: translateX(120%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000;
+    max-width: 380px;
+  }
+  .toast.show { transform: translateX(0); }
+  .toast.alarm {
+    border-color: var(--accent);
+    box-shadow: 0 24px 48px rgba(255, 184, 0, 0.25);
+  }
+  .toast.error { border-color: var(--red); }
+
+  @media (max-width: 1024px) {
+    .main-grid { grid-template-columns: 1fr !important; }
+    .chart-wrapper { min-height: 400px !important; }
+  }
+
+  .logo-glow { text-shadow: 0 0 24px rgba(255, 184, 0, 0.4); }
+
+  .chart-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+  .chart-legend {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    background: rgba(10, 14, 20, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    pointer-events: none;
+    display: flex;
+    gap: 12px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 24px 12px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .preset-btn {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 4px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .preset-btn:hover { color: var(--fg); background: rgba(255,255,255,0.08); border-color: var(--border-strong); }
+  .preset-btn.positive { color: var(--green); }
+  .preset-btn.negative { color: var(--red); }
+
+  .alarm-list-scroll {
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+</style>
 </head>
 <body>
 
-    <div id="header">
-        <h2>₿ BTC/USDT <span>5m</span></h2>
-        <div id="current-price">—</div>
-        <div class="alert-container">
-            <label for="targetPrice">Alerta en</label>
-            <input type="number" id="targetPrice" placeholder="Ej: 98000" step="100">
-            <button id="setAlertBtn">Fijar</button>
-            <span id="status">● Inactiva</span>
+<div class="min-h-screen flex flex-col">
+  <!-- HEADER -->
+  <header class="border-b border-white/5 backdrop-blur-md sticky top-0 z-40" style="background: rgba(10, 14, 20, 0.85);">
+    <div class="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #ffb800, #ff9500); box-shadow: 0 8px 24px rgba(255, 184, 0, 0.3);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0e14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"/>
+              <path d="M7 14l4-4 4 4 6-6"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold tracking-tight logo-glow" style="color: var(--accent);">CryptoWatch</h1>
+            <p class="text-[10px] text-gray-500 -mt-0.5 tracking-wider uppercase">Trading Dashboard</p>
+          </div>
         </div>
+
+        <div class="asset-selector" id="assetSelector">
+          <button class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-white/10 hover:border-white/20 transition-colors" id="assetButton">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm" id="assetIcon" style="background: rgba(247,147,26,0.15); color: #f7931a;">₿</div>
+            <div class="text-left">
+              <div class="text-sm font-semibold" id="assetName">BTC/USDT</div>
+              <div class="text-[10px] text-gray-500" id="assetFullName">Bitcoin</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-500 ml-1">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          <div class="asset-dropdown" id="assetDropdown"></div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-5">
+        <div class="text-right">
+          <div class="text-[10px] text-gray-500 uppercase tracking-wider">Precio Actual</div>
+          <div class="text-2xl font-bold mono" id="priceDisplay">--</div>
+        </div>
+        <div class="text-right">
+          <div class="text-[10px] text-gray-500 uppercase tracking-wider">Cambio 24h</div>
+          <div class="text-lg font-semibold mono" id="changeDisplay">--</div>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background: rgba(0, 214, 143, 0.08);">
+          <div class="live-dot"></div>
+          <span class="text-xs font-semibold tracking-wider" style="color: var(--green);">LIVE</span>
+        </div>
+      </div>
     </div>
+  </header>
 
-    <div id="chart-container"></div>
+  <!-- TOOLBAR -->
+  <div class="border-b border-white/5" style="background: rgba(13, 17, 23, 0.5);">
+    <div class="max-w-[1600px] mx-auto px-6 py-2 flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center gap-1" id="timeframeContainer">
+        <span class="text-[10px] text-gray-500 uppercase tracking-wider mr-2">Intervalo</span>
+        <button class="tf-pill" data-tf="1m">1m</button>
+        <button class="tf-pill" data-tf="5m">5m</button>
+        <button class="tf-pill" data-tf="15m">15m</button>
+        <button class="tf-pill active" data-tf="1h">1h</button>
+        <button class="tf-pill" data-tf="4h">4h</button>
+        <button class="tf-pill" data-tf="1d">1d</button>
+        <button class="tf-pill" data-tf="1w">1w</button>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500">SMA 20</span>
+          <div class="w-3 h-3 rounded-sm" style="background: #3b82f6;"></div>
+          <div class="toggle on" id="toggleSMA20"></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500">SMA 50</span>
+          <div class="w-3 h-3 rounded-sm" style="background: #a855f7;"></div>
+          <div class="toggle on" id="toggleSMA50"></div>
+        </div>
+        <button class="btn-icon" id="refreshBtn" title="Recargar datos">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6"/>
+            <path d="M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        (function() {
-            // --- Elementos DOM ---
-            const priceEl = document.getElementById('current-price');
-            const statusEl = document.getElementById('status');
-            const targetInput = document.getElementById('targetPrice');
-            const setBtn = document.getElementById('setAlertBtn');
+  <!-- MAIN -->
+  <main class="flex-1 max-w-[1600px] mx-auto w-full px-6 py-4">
+    <div class="main-grid grid gap-4" style="grid-template-columns: 1fr 360px;">
 
-            // --- Estado ---
-            let targetPrice = null;      // Precio objetivo
-            let alertTriggered = false;  // Para no repetir
-            let currentBar = null;       // Vela en formación (5m)
-            const TIMEFRAME = 5;         // minutos
+      <!-- CHART -->
+      <section class="glass rounded-2xl p-1.5 flex flex-col">
+        <div class="chart-wrapper flex-1" style="background: rgba(0,0,0,0.25); min-height: 560px;">
+          <div class="chart-legend" id="chartLegend" style="display: none;">
+            <div><span class="text-gray-500">O</span> <span id="legendOpen">--</span></div>
+            <div><span class="text-gray-500">H</span> <span id="legendHigh" style="color: var(--green);">--</span></div>
+            <div><span class="text-gray-500">L</span> <span id="legendLow" style="color: var(--red);">--</span></div>
+            <div><span class="text-gray-500">C</span> <span id="legendClose">--</span></div>
+            <div><span class="text-gray-500">Vol</span> <span id="legendVol">--</span></div>
+          </div>
+          <div id="chart"></div>
+        </div>
+      </section>
 
-            // --- Crear gráfico Lightweight Charts ---
-            const container = document.getElementById('chart-container');
-            const chart = LightweightCharts.createChart(container, {
-                layout: {
-                    background: { type: 'solid', color: '#0f172a' },
-                    textColor: '#c8d0dc',
-                },
-                grid: {
-                    vertLines: { color: '#1e293b' },
-                    horzLines: { color: '#1e293b' },
-                },
-                timeScale: {
-                    timeVisible: true,
-                    secondsVisible: false,
-                    borderColor: '#334155',
-                },
-                rightPriceScale: {
-                    borderColor: '#334155',
-                },
-                width: container.clientWidth,
-                height: container.clientHeight,
-            });
+      <!-- SIDEBAR -->
+      <aside class="flex flex-col gap-4">
 
-            const candleSeries = chart.addCandlestickSeries({
-                upColor: '#26a69a',
-                downColor: '#ef5350',
-                borderUpColor: '#26a69a',
-                borderDownColor: '#ef5350',
-                wickUpColor: '#26a69a',
-                wickDownColor: '#ef5350',
-            });
+        <!-- NEW ALARM -->
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+            <h2 class="text-sm font-semibold uppercase tracking-wider">Crear Alarma</h2>
+          </div>
 
-            // Redimensionar
-            const resize = () => {
-                const w = container.clientWidth;
-                const h = container.clientHeight;
-                chart.applyOptions({ width: w, height: h });
-            };
-            window.addEventListener('resize', resize);
-            setTimeout(resize, 100);
+          <div class="space-y-3">
+            <div>
+              <label class="text-[10px] text-gray-500 uppercase tracking-wider block mb-1.5">Precio Objetivo (USDT)</label>
+              <input type="number" class="input-field" id="alarmPrice" placeholder="0.00" step="any" min="0">
+              <div class="grid grid-cols-5 gap-1 mt-2">
+                <button class="preset-btn negative" data-preset="-5">-5%</button>
+                <button class="preset-btn negative" data-preset="-2">-2%</button>
+                <button class="preset-btn" data-preset="current">Actual</button>
+                <button class="preset-btn positive" data-preset="+2">+2%</button>
+                <button class="preset-btn positive" data-preset="+5">+5%</button>
+              </div>
+            </div>
 
-            // --- Utilidad: redondear tiempo a 5 minutos ---
-            function floorTo5min(seconds) {
-                const d = new Date(seconds * 1000);
-                const mins = d.getMinutes();
-                const remainder = mins % TIMEFRAME;
-                d.setMinutes(mins - remainder, 0, 0);
-                return Math.floor(d.getTime() / 1000);
-            }
+            <div>
+              <label class="text-[10px] text-gray-500 uppercase tracking-wider block mb-1.5">Condición</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button class="dir-btn" id="dirAbove">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 19V5M5 12l7-7 7 7"/>
+                  </svg>
+                  Cruza arriba
+                </button>
+                <button class="dir-btn" id="dirBelow">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 5v14M19 12l-7 7-7-7"/>
+                  </svg>
+                  Cruza abajo
+                </button>
+              </div>
+            </div>
 
-            // --- WebSocket a Binance (Aggregated Trades) ---
-            const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@aggTrade');
+            <div>
+              <label class="text-[10px] text-gray-500 uppercase tracking-wider block mb-1.5">Nota (opcional)</label>
+              <input type="text" class="input-field" id="alarmNote" placeholder="Ej: Take profit, Stop loss..." maxlength="60">
+            </div>
 
-            ws.onopen = () => {
-                console.log('✅ Conectado a Binance');
-                priceEl.textContent = 'Conectado...';
-            };
+            <button class="btn-primary w-full" id="createAlarmBtn">Crear Alarma</button>
+          </div>
+        </div>
 
-            ws.onmessage = (e) => {
-                const data = JSON.parse(e.data);
-                const price = parseFloat(data.p);
-                const tradeTimeMs = data.T; // milisegundos
+        <!-- ALARMS LIST -->
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <h2 class="text-sm font-semibold uppercase tracking-wider">Alarmas</h2>
+              <span class="text-xs px-2 py-0.5 rounded-full mono" id="alarmCount" style="background: rgba(255,184,0,0.1); color: var(--accent);">0</span>
+            </div>
+            <button class="text-[11px] text-gray-500 hover:text-white transition-colors" id="clearTriggeredBtn" style="display: none;">Limpiar disparadas</button>
+          </div>
 
-                // Actualizar precio en header
-                priceEl.textContent = '$' + price.toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+          <div class="alarm-list-scroll space-y-2" id="alarmsList">
+            <div class="empty-state">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2 opacity-40">
+                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+              </svg>
+              No hay alarmas para este activo
+            </div>
+          </div>
+        </div>
 
-                // --- Lógica de vela 5m ---
-                const eventSeconds = Math.floor(tradeTimeMs / 1000);
-                const barTime = floorTo5min(eventSeconds);
+        <!-- STATS -->
+        <div class="glass rounded-2xl p-5">
+          <h2 class="text-sm font-semibold uppercase tracking-wider mb-3 text-gray-400">Estadísticas 24h</h2>
+          <div class="space-y-2.5 text-sm">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500 text-xs">Máximo</span>
+              <span class="mono font-medium" id="statHigh" style="color: var(--green);">--</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500 text-xs">Mínimo</span>
+              <span class="mono font-medium" id="statLow" style="color: var(--red);">--</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500 text-xs">Volumen</span>
+              <span class="mono font-medium" id="statVolume">--</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500 text-xs">Volumen (USD)</span>
+              <span class="mono font-medium" id="statQuoteVolume">--</span>
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-white/5">
+              <span class="text-gray-500 text-xs">Última actualización</span>
+              <span class="mono text-xs" id="lastUpdate">--</span>
+            </div>
+          </div>
+        </div>
 
-                if (currentBar === null || barTime > currentBar.time) {
-                    // Nueva vela
-                    currentBar = {
-                        time: barTime,
-                        open: price,
-                        high: price,
-                        low: price,
-                        close: price
-                    };
-                } else {
-                    // Actualizar vela actual
-                    currentBar.high = Math.max(currentBar.high, price);
-                    currentBar.low = Math.min(currentBar.low, price);
-                    currentBar.close = price;
-                }
+      </aside>
+    </div>
+  </main>
 
-                // Enviar al gráfico
-                candleSeries.update(currentBar);
+  <footer class="border-t border-white/5 py-3 mt-4">
+    <div class="max-w-[1600px] mx-auto px-6 flex items-center justify-between text-xs text-gray-500 flex-wrap gap-2">
+      <div class="flex items-center gap-3">
+        <span>Datos: Binance Public API</span>
+        <span class="text-gray-700">•</span>
+        <span>Gráficos: TradingView Lightweight Charts</span>
+        <span class="text-gray-700">•</span>
+        <span>Alarmas locales (localStorage)</span>
+      </div>
+      <div id="footerStatus" class="flex items-center gap-2">
+        <span class="spinner" id="statusSpinner" style="display: none;"></span>
+        <span id="statusText">Listo</span>
+      </div>
+    </div>
+  </footer>
+</div>
 
-                // --- Verificar alerta ---
-                if (targetPrice !== null && !alertTriggered) {
-                    // Si el precio alcanza o supera la meta (con un pequeño margen)
-                    if (price >= targetPrice - 0.01) {
-                        alertTriggered = true;
-                        statusEl.textContent = '🚨 ¡ALCANZADA! $' + price;
-                        statusEl.className = 'triggered';
-                        document.body.classList.add('alert-flash');
-                        alert('¡ALERTA! BTC alcanzó tu meta: $' + price);
-                        // Sonido opcional (descomentar si se desea)
-                        // new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
-                    }
-                }
-            };
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="flex items-start gap-3">
+    <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" id="toastIcon" style="background: rgba(255,184,0,0.15);">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5">
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+      </svg>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="font-semibold text-sm" id="toastTitle">Alarma</div>
+      <div class="text-xs text-gray-400 mt-0.5" id="toastMsg">Mensaje</div>
+    </div>
+    <button class="text-gray-500 hover:text-white flex-shrink-0" onclick="document.getElementById('toast').classList.remove('show')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</div>
 
-            ws.onerror = (err) => {
-                console.error('WebSocket error:', err);
-                priceEl.textContent = '⚠️ Error';
-            };
+<script>
+  // ============ CONFIG ============
+  const ASSETS = [
+    { symbol: 'BTCUSDT', name: 'BTC/USDT', full: 'Bitcoin', icon: '₿', color: '#f7931a' },
+    { symbol: 'ETHUSDT', name: 'ETH/USDT', full: 'Ethereum', icon: 'Ξ', color: '#627eea' },
+    { symbol: 'SOLUSDT', name: 'SOL/USDT', full: 'Solana', icon: '◎', color: '#14f195' },
+    { symbol: 'BNBUSDT', name: 'BNB/USDT', full: 'BNB', icon: 'B', color: '#f3ba2f' },
+    { symbol: 'XRPUSDT', name: 'XRP/USDT', full: 'Ripple', icon: 'X', color: '#23292f' },
+    { symbol: 'ADAUSDT', name: 'ADA/USDT', full: 'Cardano', icon: '₳', color: '#0033ad' },
+    { symbol: 'DOGEUSDT', name: 'DOGE/USDT', full: 'Dogecoin', icon: 'Ð', color: '#c2a633' },
+    { symbol: 'AVAXUSDT', name: 'AVAX/USDT', full: 'Avalanche', icon: 'A', color: '#e84142' },
+    { symbol: 'LINKUSDT', name: 'LINK/USDT', full: 'Chainlink', icon: 'L', color: '#2a5ada' },
+    { symbol: 'MATICUSDT', name: 'MATIC/USDT', full: 'Polygon', icon: 'M', color: '#8247e5' }
+  ];
 
-            ws.onclose = () => {
-                console.warn('WebSocket cerrado, reconectando en 5s...');
-                setTimeout(() => location.reload(), 5000);
-            };
+  // ============ STATE ============
+  const state = {
+    symbol: 'BTCUSDT',
+    asset: ASSETS[0],
+    interval: '1h',
+    showSMA20: true,
+    showSMA50: true,
+    alarms: JSON.parse(localStorage.getItem('cryptowatch_alarms') || '[]'),
+    lastPrice: 0,
+    lastCandles: [],
+    alarmDirection: 'above'
+  };
 
-            // --- Lógica de Alerta (botón Fijar) ---
-            setBtn.addEventListener('click', () => {
-                const raw = targetInput.value.trim();
-                if (raw === '') {
-                    statusEl.textContent = '⚠️ Ingresa un precio';
-                    statusEl.className = '';
-                    return;
-                }
-                const val = parseFloat(raw);
-                if (isNaN(val) || val <= 0) {
-                    statusEl.textContent = '⚠️ Número inválido';
-                    statusEl.className = '';
-                    return;
-                }
+  // ============ CHART ============
+  let chart, candleSeries, sma20Series, sma50Series, currentPriceLine;
+  const alarmPriceLines = new Map();
 
-                targetPrice = val;
-                alertTriggered = false;
-                statusEl.textContent = '✅ Activada en $' + val;
-                statusEl.className = '';
-                document.body.classList.remove('alert-flash');
-                console.log('Alerta fijada en:', val);
+  function initChart() {
+    const chartEl = document.getElementById('chart');
+    chart = LightweightCharts.createChart(chartEl, {
+      layout: {
+        background: { type: 'solid', color: 'transparent' },
+        textColor: '#8b949e',
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 11
+      },
+      grid: {
+        vertLines: { color: 'rgba(255,255,255,0.03)' },
+        horzLines: { color: 'rgba(255,255,255,0.03)' }
+      },
+      crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal,
+        vertLine: { color: 'rgba(255,184,0,0.4)', width: 1, style: LightweightCharts.LineStyle.Dashed, labelBackgroundColor: '#ffb800' },
+        horzLine: { color: 'rgba(255,184,0,0.4)', width: 1, style: LightweightCharts.LineStyle.Dashed, labelBackgroundColor: '#ffb800' }
+      },
+      rightPriceScale: {
+        borderColor: 'rgba(255,255,255,0.05)',
+        scaleMargins: { top: 0.08, bottom: 0.08 }
+      },
+      timeScale: {
+        borderColor: 'rgba(255,255,255,0.05)',
+        timeVisible: true,
+        secondsVisible: false
+      }
+    });
 
-                // Aviso si el precio actual ya supera la meta
-                const currentPrice = parseFloat(priceEl.textContent.replace(/[$,]/g, ''));
-                if (!isNaN(currentPrice) && currentPrice >= targetPrice) {
-                    statusEl.textContent = '⚠️ El precio ya supera la meta';
-                }
-            });
+    candleSeries = chart.addCandlestickSeries({
+      upColor: '#00d68f',
+      downColor: '#ff4757',
+      borderUpColor: '#00d68f',
+      borderDownColor: '#ff4757',
+      wickUpColor: 'rgba(0, 214, 143, 0.6)',
+      wickDownColor: 'rgba(255, 71, 87, 0.6)'
+    });
 
-            // Enter en el input también fija la alerta
-            targetInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') setBtn.click();
-            });
+    sma20Series = chart.addLineSeries({
+      color: '#3b82f6',
+      lineWidth: 1.5,
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false
+    });
 
-            // Limpieza al cerrar
-            window.addEventListener('beforeunload', () => {
-                if (ws.readyState === WebSocket.OPEN) ws.close();
-            });
+    sma50Series = chart.addLineSeries({
+      color: '#a855f7',
+      lineWidth: 1.5,
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false
+    });
 
-            // Inicialización
-            priceEl.textContent = 'Conectando...';
-            console.log('Monitor BTC 5m iniciado.');
-        })();
-    </script>
+    chart.subscribeCrosshairMove(param => {
+      const legend = document.getElementById('chartLegend');
+      if (!param.time || !param.seriesData || !param.seriesData.size) {
+        legend.style.display = 'none';
+        return;
+      }
+      const data = param.seriesData.get(candleSeries);
+      if (!data) { legend.style.display = 'none'; return; }
+      legend.style.display = 'flex';
+      document.getElementById('legendOpen').textContent = formatPrice(data.open);
+      document.getElementById('legendHigh').textContent = formatPrice(data.high);
+      document.getElementById('legendLow').textContent = formatPrice(data.low);
+      document.getElementById('legendClose').textContent = formatPrice(data.close);
+    });
+
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        chart.applyOptions({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height
+        });
+      }
+    });
+    resizeObserver.observe(chartEl);
+    chart.applyOptions({ width: chartEl.clientWidth, height: chartEl.clientHeight });
+  }
+
+  // ============ DATA ============
+  async function loadKlines() {
+    setStatus('Cargando datos...', true);
+    try {
+      const url = `https://api.binance.com/api/v3/klines?symbol=${state.symbol}&interval=${state.interval}&limit=500`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const raw = await res.json();
+
+      const candles = raw.map(k => ({
+        time: Math.floor(k[0] / 1000),
+        open: parseFloat(k[1]),
+        high: parseFloat(k[2]),
+        low: parseFloat(k[3]),
+        close: parseFloat(k[4]),
+        volume: parseFloat(k[5])
+      }));
+
+      state.lastCandles = candles;
+      candleSeries.setData(candles);
+      updateSMA(candles);
+      chart.timeScale().fitContent();
+
+      if (candles.length > 0) {
+        const last = candles[candles.length - 1];
+        updatePriceDisplay(last.close, undefined, undefined, true);
+      }
+      setStatus('Conectado', false);
+    } catch (e) {
+      console.error(e);
+      setStatus('Error de conexión', false);
+      showToast('Error', 'No se pudieron cargar los datos del gráfico. Intenta recargar.', 'error');
+    }
+  }
+
+  function calculateSMA(data, period) {
+    const result = [];
+    for (let i = period - 1; i < data.length; i++) {
+      let sum = 0;
+      for (let j = 0; j < period; j++) sum += data[i - j].close;
+      result.push({ time: data[i].time, value: sum / period });
+    }
+    return result;
+  }
+
+  function updateSMA(candles) {
+    sma20Series.setData(state.showSMA20 ? calculateSMA(candles, 20) : []);
+    sma50Series.setData(state.showSMA50 && candles.length >= 50 ? calculateSMA(candles, 50) : []);
+  }
+
+  async function loadTicker() {
+    try {
+      const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${state.symbol}`);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      const price = parseFloat(data.lastPrice);
+      const change = parseFloat(data.priceChange);
+      const changePercent = parseFloat(data.priceChangePercent);
+
+      updatePriceDisplay(price, change, changePercent);
+
+      document.getElementById('statHigh').textContent = '$' + formatPrice(parseFloat(data.highPrice));
+      document.getElementById('statLow').textContent = '$' + formatPrice(parseFloat(data.lowPrice));
+      document.getElementById('statVolume').textContent = formatNumber(parseFloat(data.volume)) + ' ' + state.asset.name.split('/')[0];
+      document.getElementById('statQuoteVolume').textContent = '$' + formatNumber(parseFloat(data.quoteVolume));
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('es-ES');
+
+      // Update last candle close in chart
+      if (state.lastCandles.length > 0) {
+        const lastCandle = state.lastCandles[state.lastCandles.length - 1];
+        lastCandle.close = price;
+        lastCandle.high = Math.max(lastCandle.high, price);
+        lastCandle.low = Math.min(lastCandle.low, price);
+        candleSeries.update(lastCandle);
+      }
+
+      checkAlarms(price);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function updatePriceDisplay(price, change, changePercent, skipPulse) {
+    const priceEl = document.getElementById('priceDisplay');
+    const changeEl = document.getElementById('changeDisplay');
+
+    if (!skipPulse && state.lastPrice && price !== state.lastPrice) {
+      priceEl.classList.remove('pulse-up', 'pulse-down');
+      void priceEl.offsetWidth;
+      priceEl.classList.add(price > state.lastPrice ? 'pulse-up' : 'pulse-down');
+    }
+
+    state.lastPrice = price;
+    priceEl.textContent = '$' + formatPrice(price);
+
+    if (change !== undefined) {
+      const isUp = change >= 0;
+      changeEl.textContent = `${isUp ? '+' : ''}$${formatPrice(change)} (${isUp ? '+' : ''}${changePercent.toFixed(2)}%)`;
+      changeEl.className = 'text-lg font-semibold mono ' + (isUp ? 'price-up' : 'price-down');
+    }
+
+    if (candleSeries) {
+      if (currentPriceLine) candleSeries.removePriceLine(currentPriceLine);
+      currentPriceLine = candleSeries.createPriceLine({
+        price: price,
+        color: '#3b82f6',
+        lineWidth: 1,
+        lineStyle: LightweightCharts.LineStyle.Solid,
+        axisLabelVisible: true,
+        title: 'ACTUAL'
+      });
+    }
+  }
+
+  // ============ ALARMS ============
+  function saveAlarms() {
+    localStorage.setItem('cryptowatch_alarms', JSON.stringify(state.alarms));
+  }
+
+  function addAlarm() {
+    const priceInput = document.getElementById('alarmPrice');
+    const noteInput = document.getElementById('alarmNote');
+    const price = parseFloat(priceInput.value);
+
+    if (!price || price <= 0 || isNaN(price)) {
+      showToast('Datos inválidos', 'Ingresa un precio válido mayor a 0', 'error');
+      priceInput.focus();
+      return;
+    }
+
+    const alarm = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      symbol: state.symbol,
+      assetName: state.asset.name,
+      price: price,
+      direction: state.alarmDirection,
+      note: noteInput.value.trim(),
+      created: Date.now(),
+      triggered: false,
+      triggeredAt: null
+    };
+
+    state.alarms.unshift(alarm);
+    saveAlarms();
+    renderAlarms();
+    updateAlarmPriceLines();
+
+    priceInput.value = '';
+    noteInput.value = '';
+
+    showToast('Alarma creada', `${state.asset.name} ${state.alarmDirection === 'above' ? '↑' : '↓'} $${formatPrice(price)}`, 'success');
+    
+    // Request notification permission on first alarm
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+
+  function removeAlarm(id) {
+    state.alarms = state.alarms.filter(a => a.id !== id);
+    saveAlarms();
+    renderAlarms();
+    updateAlarmPriceLines();
+  }
+
+  function clearTriggeredAlarms() {
+    state.alarms = state.alarms.filter(a => !a.triggered);
+    saveAlarms();
+    renderAlarms();
+    updateAlarmPriceLines();
+  }
+
+  function checkAlarms(price) {
+    let anyTriggered = false;
+    state.alarms.forEach(alarm => {
+      if (alarm.triggered || alarm.symbol !== state.symbol) return;
+      let fire = false;
+      if (alarm.direction === 'above' && price >= alarm.price) fire = true;
+      else if (alarm.direction === 'below' && price <= alarm.price) fire = true;
+
+      if (fire) {
+        alarm.triggered = true;
+        alarm.triggeredAt = Date.now();
+        anyTriggered = true;
+        triggerAlarm(alarm);
+      }
+    });
+
+    if (anyTriggered) {
+      saveAlarms();
+      renderAlarms();
+      updateAlarmPriceLines();
+    }
+  }
+
+  function triggerAlarm(alarm) {
+    playAlarmSound();
+    const dirText = alarm.direction === 'above' ? 'cruzó por encima de' : 'cruzó por debajo de';
+    const title = `¡Alarma! ${alarm.assetName}`;
+    const msg = `Precio ${dirText} $${formatPrice(alarm.price)}${alarm.note ? ' — ' + alarm.note : ''}`;
+    showToast(title, msg, 'alarm');
+    sendBrowserNotification(title, msg);
+  }
+
+  function renderAlarms() {
+    const list = document.getElementById('alarmsList');
+    const count = document.getElementById('alarmCount');
+    const clearBtn = document.getElementById('clearTriggeredBtn');
+
+    const assetAlarms = state.alarms.filter(a => a.symbol === state.symbol);
+    count.textContent = assetAlarms.length;
+
+    const hasTriggered = assetAlarms.some(a => a.triggered);
+    clearBtn.style.display = hasTriggered ? 'block' : 'none';
+
+    if (assetAlarms.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2 opacity-40">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+          </svg>
+          No hay alarmas para ${state.asset.name}
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = assetAlarms.map(a => {
+      const isAbove = a.direction === 'above';
+      const diff = state.lastPrice ? ((a.price - state.lastPrice) / state.lastPrice * 100) : 0;
+      const diffText = a.triggered
+        ? 'Disparada'
+        : `${diff > 0 ? '+' : ''}${diff.toFixed(2)}%`;
+      const time = a.triggered ? new Date(a.triggeredAt).toLocaleTimeString('es-ES') : new Date(a.created).toLocaleTimeString('es-ES');
+
+      return `
+        <div class="alarm-card ${a.triggered ? 'triggered' : ''}">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 alarm-bell"
+                 style="background: ${a.triggered ? 'rgba(0,214,143,0.15)' : isAbove ? 'rgba(0,214,143,0.1)' : 'rgba(255,71,87,0.1)'};
+                        color: ${a.triggered ? 'var(--green)' : isAbove ? 'var(--green)' : 'var(--red)'};">
+              ${a.triggered
+                ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+                : isAbove
+                  ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'
+                  : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>'}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="mono font-semibold text-sm">$${formatPrice(a.price)}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded mono"
+                      style="background: ${a.triggered ? 'rgba(0,214,143,0.15)' : 'rgba(255,255,255,0.05)'};
+                             color: ${a.triggered ? 'var(--green)' : 'var(--muted)'};">
+                  ${diffText}
+                </span>
+              </div>
+              <div class="text-[11px] text-gray-500 truncate mt-0.5">
+                ${isAbove ? 'Cruza arriba' : 'Cruza abajo'}${a.note ? ' · ' + escapeHtml(a.note) : ''}
+                <span class="text-gray-700">· ${time}</span>
+              </div>
+            </div>
+          </div>
+          <button class="text-gray-500 hover:text-red-400 p-1.5 rounded transition-colors flex-shrink-0" onclick="removeAlarm('${a.id}')" title="Eliminar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>`;
+    }).join('');
+  }
+
+  function updateAlarmPriceLines() {
+    if (!candleSeries) return;
+    alarmPriceLines.forEach(line => candleSeries.removePriceLine(line));
+    alarmPriceLines.clear();
+
+    state.alarms
+      .filter(a => a.symbol === state.symbol && !a.triggered)
+      .forEach(alarm => {
+        const line = candleSeries.createPriceLine({
+          price: alarm.price,
+          color: alarm.direction === 'above' ? 'rgba(0, 214, 143, 0.6)' : 'rgba(255, 71, 87, 0.6)',
+          lineWidth: 1,
+          lineStyle: LightweightCharts.LineStyle.Dashed,
+          axisLabelVisible: true,
+          title: alarm.direction === 'above' ? '↑ ' + formatPrice(alarm.price) : '↓ ' + formatPrice(alarm.price)
+        });
+        alarmPriceLines.set(alarm.id, line);
+      });
+  }
+
+  // ============ AUDIO ============
+  let audioCtx;
+  function playAlarmSound() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      const playBeep = (freq, start, duration) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, audioCtx.currentTime + start);
+        gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + start + duration);
+        osc.start(audioCtx.currentTime + start);
+        osc.stop(audioCtx.currentTime + start + duration);
+      };
+
+      // Patrón distintivo de 3 tonos ascendentes
+      playBeep(880, 0, 0.18);
+      playBeep(1100, 0.22, 0.18);
+      playBeep(1320, 0.44, 0.3);
+    } catch (e) {
+      console.error('Audio error:', e);
+    }
+  }
+
+  // ============ NOTIFICATIONS ============
+  async function sendBrowserNotification(title, body) {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body,
+          icon: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ffb800"/></svg>')
+        });
+      } catch (e) {}
+    }
+  }
+
+  // ============ TOAST ============
+  let toastTimer;
+  function showToast(title, msg, type = 'success') {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastMsg').textContent = msg;
+
+    toast.classList.remove('alarm', 'error');
+    if (type === 'alarm') toast.classList.add('alarm');
+    if (type === 'error') toast.classList.add('error');
+
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 6000);
+  }
+
+  // ============ UTILS ============
+  function formatPrice(p) {
+    if (p == null || isNaN(p)) return '--';
+    if (p >= 1000) return p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (p >= 1) return p.toFixed(2);
+    if (p >= 0.01) return p.toFixed(4);
+    return p.toFixed(6);
+  }
+
+  function formatNumber(n) {
+    if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+    return n.toFixed(2);
+  }
+
+  function setStatus(text, loading) {
+    document.getElementById('statusText').textContent = text;
+    document.getElementById('statusSpinner').style.display = loading ? 'inline-block' : 'none';
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]);
+  }
+
+  // ============ UI ============
+  function populateAssetDropdown() {
+    const dropdown = document.getElementById('assetDropdown');
+    dropdown.innerHTML = ASSETS.map(a => `
+      <div class="asset-option ${a.symbol === state.symbol ? 'active' : ''}" data-symbol="${a.symbol}">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+               style="background: ${a.color}22; color: ${a.color};">${a.icon}</div>
+          <div>
+            <div class="text-sm font-medium">${a.name}</div>
+            <div class="text-[10px] text-gray-500">${a.full}</div>
+          </div>
+        </div>
+        ${a.symbol === state.symbol ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </div>
+    `).join('');
+
+    dropdown.querySelectorAll('.asset-option').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectAsset(opt.dataset.symbol);
+        dropdown.classList.remove('open');
+      });
+    });
+  }
+
+  function selectAsset(symbol) {
+    state.symbol = symbol;
+    state.asset = ASSETS.find(a => a.symbol === symbol);
+
+    document.getElementById('assetName').textContent = state.asset.name;
+    document.getElementById('assetFullName').textContent = state.asset.full;
+    const icon = document.getElementById('assetIcon');
+    icon.textContent = state.asset.icon;
+    icon.style.background = state.asset.color + '22';
+    icon.style.color = state.asset.color;
+
+    document.documentElement.style.setProperty('--accent', state.asset.color);
+
+    populateAssetDropdown();
+    renderAlarms();
+    updateAlarmPriceLines();
+    loadKlines().then(() => loadTicker());
+  }
+
+  function setDirection(dir) {
+    state.alarmDirection = dir;
+    document.getElementById('dirAbove').classList.toggle('active-above', dir === 'above');
+    document.getElementById('dirBelow').classList.toggle('active-below', dir === 'below');
+  }
+
+  // ============ EVENTS ============
+  function setupEvents() {
+    document.getElementById('assetButton').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('assetDropdown').classList.toggle('open');
+    });
+    document.addEventListener('click', () => {
+      document.getElementById('assetDropdown').classList.remove('open');
+    });
+
+    document.querySelectorAll('.tf-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tf-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.interval = btn.dataset.tf;
+        loadKlines();
+      });
+    });
+
+    document.getElementById('toggleSMA20').addEventListener('click', () => {
+      state.showSMA20 = !state.showSMA20;
+      document.getElementById('toggleSMA20').classList.toggle('on', state.showSMA20);
+      updateSMA(state.lastCandles);
+    });
+    document.getElementById('toggleSMA50').addEventListener('click', () => {
+      state.showSMA50 = !state.showSMA50;
+      document.getElementById('toggleSMA50').classList.toggle('on', state.showSMA50);
+      updateSMA(state.lastCandles);
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      loadKlines().then(() => loadTicker());
+    });
+
+    document.getElementById('dirAbove').addEventListener('click', () => setDirection('above'));
+    document.getElementById('dirBelow').addEventListener('click', () => setDirection('below'));
+
+    document.getElementById('createAlarmBtn').addEventListener('click', addAlarm);
+    document.getElementById('alarmPrice').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addAlarm();
+    });
+
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.dataset.preset;
+        let price;
+        if (preset === 'current') {
+          price = state.lastPrice;
+        } else {
+          const pct = parseFloat(preset) / 100;
+          price = state.lastPrice * (1 + pct);
+        }
+        document.getElementById('alarmPrice').value = price.toFixed(2);
+      });
+    });
+
+    document.getElementById('clearTriggeredBtn').addEventListener('click', clearTriggeredAlarms);
+  }
+
+  // ============ INIT ============
+  async function init() {
+    initChart();
+    populateAssetDropdown();
+    setupEvents();
+    setDirection('above');
+
+    await loadKlines();
+    await loadTicker();
+
+    renderAlarms();
+    updateAlarmPriceLines();
+
+    // Actualizar ticker cada 3 segundos
+    setInterval(loadTicker, 3000);
+    // Refrescar gráfico cada 30 segundos
+    setInterval(() => loadKlines(), 30000);
+  }
+
+  window.removeAlarm = removeAlarm;
+  init();
+</script>
 
 </body>
 </html>
