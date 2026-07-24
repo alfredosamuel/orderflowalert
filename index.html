@@ -3,1234 +3,614 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CryptoWatch — Dashboard de Trading</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<title>BTC // Cycle Terminal</title>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+  // Respaldo: si jsdelivr falla por algún motivo, se intenta con unpkg como plan B.
+  window.addEventListener('error', function loadFallback(e){
+    if(typeof LightweightCharts === 'undefined'){
+      var s = document.createElement('script');
+      s.src = 'https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js';
+      s.onload = function(){ if(window.__initChart) window.__initChart(); };
+      document.head.appendChild(s);
+      window.removeEventListener('error', loadFallback);
+    }
+  }, true);
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0e14;
-    --bg-2: #0d1117;
-    --card: rgba(22, 27, 34, 0.7);
-    --border: rgba(255, 255, 255, 0.06);
-    --border-strong: rgba(255, 255, 255, 0.12);
-    --fg: #e6edf3;
-    --muted: #8b949e;
-    --accent: #ffb800;
-    --green: #00d68f;
-    --red: #ff4757;
-    --blue: #3b82f6;
+  :root{
+    --bg:#070a10;
+    --panel:#0e141d;
+    --panel-2:#111a25;
+    --border:#1c2733;
+    --cyan:#00e5ff;
+    --magenta:#ff2e88;
+    --green:#39ff88;
+    --amber:#ffb020;
+    --text:#dce8f2;
+    --muted:#5f7387;
   }
-  * { box-sizing: border-box; }
-  body {
-    font-family: 'Space Grotesk', sans-serif;
-    background: var(--bg);
-    color: var(--fg);
-    margin: 0;
-    min-height: 100vh;
-    background-image:
-      radial-gradient(ellipse 80% 50% at top left, rgba(255, 184, 0, 0.07) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at bottom right, rgba(0, 214, 143, 0.05) 0%, transparent 60%),
-      linear-gradient(180deg, #0a0e14 0%, #0d1117 100%);
-    background-attachment: fixed;
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;background:var(--bg);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    overflow:hidden;
   }
-  .mono { font-family: 'JetBrains Mono', monospace; }
-  .glass {
-    background: var(--card);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border);
+  .app{
+    display:grid;
+    grid-template-columns: 1fr 340px;
+    grid-template-rows: 56px 1fr;
+    height:100vh;
+    width:100vw;
   }
-  .price-up { color: var(--green); }
-  .price-down { color: var(--red); }
-  .pulse-up { animation: pulseUp 0.7s ease-out; }
-  .pulse-down { animation: pulseDown 0.7s ease-out; }
-  @keyframes pulseUp {
-    0% { background: rgba(0, 214, 143, 0.25); transform: scale(1.02); }
-    100% { background: transparent; transform: scale(1); }
+  header{
+    grid-column: 1 / 3;
+    display:flex;align-items:center;gap:18px;
+    padding:0 18px;
+    background:linear-gradient(180deg,#0c121a,#0a0f16);
+    border-bottom:1px solid var(--border);
   }
-  @keyframes pulseDown {
-    0% { background: rgba(255, 71, 87, 0.25); transform: scale(1.02); }
-    100% { background: transparent; transform: scale(1); }
+  header h1{
+    font-family:'Orbitron',sans-serif;
+    font-size:15px;font-weight:800;letter-spacing:2px;
+    color:var(--cyan);
+    text-shadow:0 0 12px rgba(0,229,255,.5);
+    margin:0;white-space:nowrap;
   }
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+  header h1 span{color:var(--muted);font-weight:600;font-size:11px;letter-spacing:1px;}
+  .controls{display:flex;gap:10px;align-items:center;flex:1;flex-wrap:wrap;}
+  select, input[type=text], input[type=number]{
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    padding:7px 9px;
+    border-radius:4px;
+    outline:none;
+  }
+  select:focus, input:focus{border-color:var(--cyan);}
+  .price-tag{
+    margin-left:auto;
+    display:flex;align-items:center;gap:10px;
+    font-family:'Orbitron',sans-serif;
+  }
+  .price-tag .val{font-size:20px;font-weight:800;transition:color .2s;}
+  .up{color:var(--green);text-shadow:0 0 10px rgba(57,255,136,.5);}
+  .down{color:var(--magenta);text-shadow:0 0 10px rgba(255,46,136,.5);}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);}
+  .status-dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s infinite;}
+  .status-dot.err{background:var(--magenta);box-shadow:0 0 8px var(--magenta);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
 
-  .asset-selector { position: relative; }
-  .asset-dropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    min-width: 260px;
-    background: #161b22;
-    border: 1px solid var(--border-strong);
-    border-radius: 12px;
-    padding: 6px;
-    z-index: 50;
-    box-shadow: 0 24px 48px rgba(0,0,0,0.5);
-    opacity: 0;
-    transform: translateY(-8px);
-    pointer-events: none;
-    transition: all 0.2s ease;
-  }
-  .asset-dropdown.open {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-  .asset-option {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .asset-option:hover { background: rgba(255,255,255,0.05); }
-  .asset-option.active { background: rgba(255, 184, 0, 0.08); }
+  #chart-wrap{position:relative;border-right:1px solid var(--border);}
+  #chart{width:100%;height:100%;}
 
-  .tf-pill {
-    padding: 6px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.15s;
-    border: 1px solid transparent;
-    background: transparent;
-    font-family: inherit;
+  aside{
+    background:var(--panel);
+    display:flex;flex-direction:column;
+    overflow:hidden;
   }
-  .tf-pill:hover { color: var(--fg); background: rgba(255,255,255,0.04); }
-  .tf-pill.active {
-    color: var(--accent);
-    background: rgba(255, 184, 0, 0.1);
-    border-color: rgba(255, 184, 0, 0.25);
+  .side-section{
+    padding:14px 16px;
+    border-bottom:1px solid var(--border);
   }
+  .side-section h2{
+    font-family:'Orbitron',sans-serif;
+    font-size:11px;letter-spacing:2px;color:var(--muted);
+    margin:0 0 10px 0;text-transform:uppercase;
+  }
+  .alarm-form{display:flex;flex-direction:column;gap:8px;}
+  .alarm-form .row{display:flex;gap:8px;}
+  .alarm-form select, .alarm-form input{flex:1;width:100%;}
+  button{
+    background:var(--panel-2);
+    border:1px solid var(--cyan);
+    color:var(--cyan);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;font-weight:700;
+    padding:8px 10px;border-radius:4px;
+    cursor:pointer;transition:.15s;
+  }
+  button:hover{background:var(--cyan);color:#031014;}
+  button.secondary{border-color:var(--border);color:var(--muted);}
+  button.secondary:hover{background:var(--panel-2);color:var(--text);border-color:var(--muted);}
+  button.danger{border-color:var(--magenta);color:var(--magenta);}
+  button.danger:hover{background:var(--magenta);color:#1a0008;}
 
-  .input-field {
-    background: rgba(0,0,0,0.35);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    color: var(--fg);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    width: 100%;
-    transition: all 0.15s;
+  #alarm-list, #log-list{
+    flex:1;overflow-y:auto;padding:8px 12px;
   }
-  .input-field:focus {
-    outline: none;
-    border-color: var(--accent);
-    background: rgba(0,0,0,0.5);
-    box-shadow: 0 0 0 3px rgba(255, 184, 0, 0.1);
+  .alarm-item{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-left:3px solid var(--cyan);
+    border-radius:4px;
+    padding:8px 10px;margin-bottom:8px;
+    font-size:12px;
   }
+  .alarm-item.below{border-left-color:var(--magenta);}
+  .alarm-item.triggered{border-left-color:var(--amber);opacity:.55;}
+  .alarm-item .meta{display:flex;flex-direction:column;gap:2px;}
+  .alarm-item .meta small{color:var(--muted);font-size:10px;}
+  .alarm-item .price{font-weight:700;font-family:'Orbitron',sans-serif;}
+  .del-btn{
+    background:none;border:none;color:var(--muted);
+    font-size:14px;cursor:pointer;padding:2px 6px;
+  }
+  .del-btn:hover{color:var(--magenta);}
 
-  .btn-primary {
-    background: linear-gradient(135deg, #ffb800 0%, #ff9500 100%);
-    color: #0a0e14;
-    font-weight: 700;
-    padding: 12px 16px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: inherit;
-    font-size: 14px;
-    letter-spacing: 0.02em;
+  .log-entry{
+    font-size:11px;color:var(--muted);padding:6px 0;
+    border-bottom:1px dashed var(--border);
   }
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 24px rgba(255, 184, 0, 0.35);
-  }
-  .btn-primary:active { transform: translateY(0); }
+  .log-entry.hit{color:var(--green);}
 
-  .btn-secondary {
-    background: rgba(255,255,255,0.04);
-    color: var(--fg);
-    border: 1px solid var(--border-strong);
-    padding: 9px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: inherit;
-    font-size: 13px;
-  }
-  .btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+  .empty{color:var(--muted);font-size:11px;text-align:center;padding:20px 0;}
 
-  .btn-icon {
-    background: rgba(255,255,255,0.04);
-    color: var(--muted);
-    border: 1px solid var(--border);
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .btn-icon:hover { color: var(--fg); background: rgba(255,255,255,0.08); }
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted);}
+  .toggle-row label{display:flex;align-items:center;gap:6px;cursor:pointer;}
 
-  .dir-btn {
-    background: rgba(255,255,255,0.04);
-    color: var(--muted);
-    border: 1px solid var(--border-strong);
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: inherit;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-  .dir-btn:hover { background: rgba(255,255,255,0.08); }
-  .dir-btn.active-above {
-    background: rgba(0, 214, 143, 0.1);
-    color: var(--green);
-    border-color: rgba(0, 214, 143, 0.35);
-  }
-  .dir-btn.active-below {
-    background: rgba(255, 71, 87, 0.1);
-    color: var(--red);
-    border-color: rgba(255, 71, 87, 0.35);
-  }
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
-  .toggle {
-    position: relative;
-    width: 34px;
-    height: 18px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.2s;
-    flex-shrink: 0;
+  #flash-overlay{
+    position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(circle at 50% 0%, rgba(255,176,32,.25), transparent 60%);
+    opacity:0;transition:opacity .3s;z-index:50;
   }
-  .toggle.on { background: var(--accent); }
-  .toggle::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 14px;
-    height: 14px;
-    background: white;
-    border-radius: 50%;
-    transition: transform 0.2s;
-  }
-  .toggle.on::after { transform: translateX(16px); }
-
-  .alarm-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 11px 13px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    transition: all 0.2s;
-  }
-  .alarm-card:hover {
-    border-color: var(--border-strong);
-    background: rgba(255,255,255,0.05);
-  }
-  .alarm-card.triggered {
-    border-color: rgba(0, 214, 143, 0.3);
-    background: rgba(0, 214, 143, 0.05);
-  }
-  .alarm-card.triggered .alarm-bell { animation: bellShake 0.5s ease-in-out 3; }
-  @keyframes bellShake {
-    0%, 100% { transform: rotate(0); }
-    25% { transform: rotate(-12deg); }
-    75% { transform: rotate(12deg); }
-  }
-
-  .live-dot {
-    width: 8px;
-    height: 8px;
-    background: var(--green);
-    border-radius: 50%;
-    box-shadow: 0 0 12px var(--green);
-    animation: livePulse 2s infinite;
-  }
-  @keyframes livePulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(0.85); }
-  }
-
-  #chart { width: 100%; height: 100%; }
-
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: #161b22;
-    border: 1px solid var(--border-strong);
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 24px 48px rgba(0,0,0,0.6);
-    transform: translateX(120%);
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 1000;
-    max-width: 380px;
-  }
-  .toast.show { transform: translateX(0); }
-  .toast.alarm {
-    border-color: var(--accent);
-    box-shadow: 0 24px 48px rgba(255, 184, 0, 0.25);
-  }
-  .toast.error { border-color: var(--red); }
-
-  @media (max-width: 1024px) {
-    .main-grid { grid-template-columns: 1fr !important; }
-    .chart-wrapper { min-height: 400px !important; }
-  }
-
-  .logo-glow { text-shadow: 0 0 24px rgba(255, 184, 0, 0.4); }
-
-  .chart-wrapper {
-    position: relative;
-    overflow: hidden;
-    border-radius: 12px;
-  }
-  .chart-legend {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    z-index: 10;
-    background: rgba(10, 14, 20, 0.75);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    pointer-events: none;
-    display: flex;
-    gap: 12px;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 24px 12px;
-    color: var(--muted);
-    font-size: 13px;
-  }
-
-  .spinner {
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255,255,255,0.1);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    display: inline-block;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .preset-btn {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 6px 4px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .preset-btn:hover { color: var(--fg); background: rgba(255,255,255,0.08); border-color: var(--border-strong); }
-  .preset-btn.positive { color: var(--green); }
-  .preset-btn.negative { color: var(--red); }
-
-  .alarm-list-scroll {
-    max-height: 320px;
-    overflow-y: auto;
-    padding-right: 4px;
-  }
+  #flash-overlay.on{opacity:1;}
 </style>
 </head>
 <body>
 
-<div class="min-h-screen flex flex-col">
-  <!-- HEADER -->
-  <header class="border-b border-white/5 backdrop-blur-md sticky top-0 z-40" style="background: rgba(10, 14, 20, 0.85);">
-    <div class="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
-      <div class="flex items-center gap-6">
-        <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #ffb800, #ff9500); box-shadow: 0 8px 24px rgba(255, 184, 0, 0.3);">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0e14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 3v18h18"/>
-              <path d="M7 14l4-4 4 4 6-6"/>
-            </svg>
-          </div>
-          <div>
-            <h1 class="text-lg font-bold tracking-tight logo-glow" style="color: var(--accent);">CryptoWatch</h1>
-            <p class="text-[10px] text-gray-500 -mt-0.5 tracking-wider uppercase">Trading Dashboard</p>
-          </div>
-        </div>
+<div id="flash-overlay"></div>
 
-        <div class="asset-selector" id="assetSelector">
-          <button class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-white/10 hover:border-white/20 transition-colors" id="assetButton">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm" id="assetIcon" style="background: rgba(247,147,26,0.15); color: #f7931a;">₿</div>
-            <div class="text-left">
-              <div class="text-sm font-semibold" id="assetName">BTC/USDT</div>
-              <div class="text-[10px] text-gray-500" id="assetFullName">Bitcoin</div>
-            </div>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-500 ml-1">
-              <path d="M6 9l6 6 6-6"/>
-            </svg>
-          </button>
-          <div class="asset-dropdown" id="assetDropdown"></div>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-5">
-        <div class="text-right">
-          <div class="text-[10px] text-gray-500 uppercase tracking-wider">Precio Actual</div>
-          <div class="text-2xl font-bold mono" id="priceDisplay">--</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[10px] text-gray-500 uppercase tracking-wider">Cambio 24h</div>
-          <div class="text-lg font-semibold mono" id="changeDisplay">--</div>
-        </div>
-        <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background: rgba(0, 214, 143, 0.08);">
-          <div class="live-dot"></div>
-          <span class="text-xs font-semibold tracking-wider" style="color: var(--green);">LIVE</span>
-        </div>
-      </div>
+<div class="app">
+  <header>
+    <h1>◆ CYCLE TERMINAL <span>v0.1 // spot data via binance</span></h1>
+    <div class="controls">
+      <select id="symbolSelect">
+        <option value="BTCUSDT">BTC/USDT</option>
+        <option value="ETHUSDT">ETH/USDT</option>
+        <option value="SOLUSDT">SOL/USDT</option>
+        <option value="BNBUSDT">BNB/USDT</option>
+        <option value="XRPUSDT">XRP/USDT</option>
+      </select>
+      <input type="text" id="customSymbol" placeholder="otro par (ej PEPEUSDT)" style="width:150px;">
+      <select id="intervalSelect">
+        <option value="1m">1m</option>
+        <option value="5m" selected>5m</option>
+        <option value="15m">15m</option>
+        <option value="1h">1h</option>
+        <option value="4h">4h</option>
+        <option value="1d">1D</option>
+      </select>
+      <span class="status-dot" id="statusDot" title="estado conexión"></span>
+    </div>
+    <div class="price-tag">
+      <span id="symbolLabel">BTCUSDT</span>
+      <span class="val" id="priceVal">--</span>
     </div>
   </header>
 
-  <!-- TOOLBAR -->
-  <div class="border-b border-white/5" style="background: rgba(13, 17, 23, 0.5);">
-    <div class="max-w-[1600px] mx-auto px-6 py-2 flex items-center justify-between flex-wrap gap-3">
-      <div class="flex items-center gap-1" id="timeframeContainer">
-        <span class="text-[10px] text-gray-500 uppercase tracking-wider mr-2">Intervalo</span>
-        <button class="tf-pill" data-tf="1m">1m</button>
-        <button class="tf-pill" data-tf="5m">5m</button>
-        <button class="tf-pill" data-tf="15m">15m</button>
-        <button class="tf-pill active" data-tf="1h">1h</button>
-        <button class="tf-pill" data-tf="4h">4h</button>
-        <button class="tf-pill" data-tf="1d">1d</button>
-        <button class="tf-pill" data-tf="1w">1w</button>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-500">SMA 20</span>
-          <div class="w-3 h-3 rounded-sm" style="background: #3b82f6;"></div>
-          <div class="toggle on" id="toggleSMA20"></div>
+  <div id="chart-wrap"><div id="chart"></div></div>
+
+  <aside>
+    <div class="side-section">
+      <h2>Nueva Alarma</h2>
+      <div class="alarm-form">
+        <div class="row">
+          <select id="alarmDir">
+            <option value="above">Cruce ↑ arriba de</option>
+            <option value="below">Cruce ↓ abajo de</option>
+          </select>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-500">SMA 50</span>
-          <div class="w-3 h-3 rounded-sm" style="background: #a855f7;"></div>
-          <div class="toggle on" id="toggleSMA50"></div>
+        <div class="row">
+          <input type="number" id="alarmPrice" placeholder="precio ej. 65000" step="any">
         </div>
-        <button class="btn-icon" id="refreshBtn" title="Recargar datos">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M23 4v6h-6"/>
-            <path d="M1 20v-6h6"/>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-          </svg>
-        </button>
+        <div class="row">
+          <input type="text" id="alarmNote" placeholder="nota (opcional)">
+        </div>
+        <button id="addAlarmBtn">+ Agregar alarma</button>
+        <div class="toggle-row">
+          <label><input type="checkbox" id="soundToggle" checked> sonido</label>
+          <label><input type="checkbox" id="notifToggle"> notificaciones</label>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- MAIN -->
-  <main class="flex-1 max-w-[1600px] mx-auto w-full px-6 py-4">
-    <div class="main-grid grid gap-4" style="grid-template-columns: 1fr 360px;">
-
-      <!-- CHART -->
-      <section class="glass rounded-2xl p-1.5 flex flex-col">
-        <div class="chart-wrapper flex-1" style="background: rgba(0,0,0,0.25); min-height: 560px;">
-          <div class="chart-legend" id="chartLegend" style="display: none;">
-            <div><span class="text-gray-500">O</span> <span id="legendOpen">--</span></div>
-            <div><span class="text-gray-500">H</span> <span id="legendHigh" style="color: var(--green);">--</span></div>
-            <div><span class="text-gray-500">L</span> <span id="legendLow" style="color: var(--red);">--</span></div>
-            <div><span class="text-gray-500">C</span> <span id="legendClose">--</span></div>
-            <div><span class="text-gray-500">Vol</span> <span id="legendVol">--</span></div>
-          </div>
-          <div id="chart"></div>
-        </div>
-      </section>
-
-      <!-- SIDEBAR -->
-      <aside class="flex flex-col gap-4">
-
-        <!-- NEW ALARM -->
-        <div class="glass rounded-2xl p-5">
-          <div class="flex items-center gap-2 mb-4">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
-              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-            </svg>
-            <h2 class="text-sm font-semibold uppercase tracking-wider">Crear Alarma</h2>
-          </div>
-
-          <div class="space-y-3">
-            <div>
-              <label class="text-[10px] text-gray-500 uppercase tracking-wider block mb-1.5">Precio Objetivo (USDT)</label>
-              <input type="number" class="input-field" id="alarmPrice" placeholder="0.00" step="any" min="0">
-              <div class="grid grid-cols-5 gap-1 mt-2">
-                <button class="preset-btn negative" data-preset="-5">-5%</button>
-                <button class="preset-btn negative" data-preset="-2">-2%</button>
-                <button class="preset-btn" data-preset="current">Actual</button>
-                <button class="preset-btn positive" data-preset="+2">+2%</button>
-                <button class="preset-btn positive" data-preset="+5">+5%</button>
-              </div>
-            </div>
-
-            <div>
-              <label class="text-[10px] text-gray-500 uppercase tracking-wider block mb-1.5">Condición</label>
-              <div class="grid grid-cols-2 gap-2">
-                <button class="dir-btn" id="dirAbove">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M12 19V5M5 12l7-7 7 7"/>
-                  </svg>
-                  Cruza arriba
-                </button>
-                <button class="dir-btn" id="dirBelow">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M12 5v14M19 12l-7 7-7-7"/>
-                  </svg>
-                  Cruza abajo
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label class="text-[10px] text-gray-500 uppercase tracking-wider block mb-1.5">Nota (opcional)</label>
-              <input type="text" class="input-field" id="alarmNote" placeholder="Ej: Take profit, Stop loss..." maxlength="60">
-            </div>
-
-            <button class="btn-primary w-full" id="createAlarmBtn">Crear Alarma</button>
-          </div>
-        </div>
-
-        <!-- ALARMS LIST -->
-        <div class="glass rounded-2xl p-5">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-              <h2 class="text-sm font-semibold uppercase tracking-wider">Alarmas</h2>
-              <span class="text-xs px-2 py-0.5 rounded-full mono" id="alarmCount" style="background: rgba(255,184,0,0.1); color: var(--accent);">0</span>
-            </div>
-            <button class="text-[11px] text-gray-500 hover:text-white transition-colors" id="clearTriggeredBtn" style="display: none;">Limpiar disparadas</button>
-          </div>
-
-          <div class="alarm-list-scroll space-y-2" id="alarmsList">
-            <div class="empty-state">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2 opacity-40">
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-              </svg>
-              No hay alarmas para este activo
-            </div>
-          </div>
-        </div>
-
-        <!-- STATS -->
-        <div class="glass rounded-2xl p-5">
-          <h2 class="text-sm font-semibold uppercase tracking-wider mb-3 text-gray-400">Estadísticas 24h</h2>
-          <div class="space-y-2.5 text-sm">
-            <div class="flex justify-between items-center">
-              <span class="text-gray-500 text-xs">Máximo</span>
-              <span class="mono font-medium" id="statHigh" style="color: var(--green);">--</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-500 text-xs">Mínimo</span>
-              <span class="mono font-medium" id="statLow" style="color: var(--red);">--</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-500 text-xs">Volumen</span>
-              <span class="mono font-medium" id="statVolume">--</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-500 text-xs">Volumen (USD)</span>
-              <span class="mono font-medium" id="statQuoteVolume">--</span>
-            </div>
-            <div class="flex justify-between items-center pt-2 border-t border-white/5">
-              <span class="text-gray-500 text-xs">Última actualización</span>
-              <span class="mono text-xs" id="lastUpdate">--</span>
-            </div>
-          </div>
-        </div>
-
-      </aside>
+    <div class="side-section" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+      <h2>Alarmas activas — <span id="symbolLabel2">BTCUSDT</span></h2>
+      <div id="alarm-list"></div>
     </div>
-  </main>
 
-  <footer class="border-t border-white/5 py-3 mt-4">
-    <div class="max-w-[1600px] mx-auto px-6 flex items-center justify-between text-xs text-gray-500 flex-wrap gap-2">
-      <div class="flex items-center gap-3">
-        <span>Datos: Binance Public API</span>
-        <span class="text-gray-700">•</span>
-        <span>Gráficos: TradingView Lightweight Charts</span>
-        <span class="text-gray-700">•</span>
-        <span>Alarmas locales (localStorage)</span>
-      </div>
-      <div id="footerStatus" class="flex items-center gap-2">
-        <span class="spinner" id="statusSpinner" style="display: none;"></span>
-        <span id="statusText">Listo</span>
-      </div>
+    <div class="side-section" style="max-height:180px;display:flex;flex-direction:column;">
+      <h2>Historial</h2>
+      <div id="log-list"><div class="empty">sin eventos aún</div></div>
     </div>
-  </footer>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast">
-  <div class="flex items-start gap-3">
-    <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" id="toastIcon" style="background: rgba(255,184,0,0.15);">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5">
-        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-      </svg>
-    </div>
-    <div class="flex-1 min-w-0">
-      <div class="font-semibold text-sm" id="toastTitle">Alarma</div>
-      <div class="text-xs text-gray-400 mt-0.5" id="toastMsg">Mensaje</div>
-    </div>
-    <button class="text-gray-500 hover:text-white flex-shrink-0" onclick="document.getElementById('toast').classList.remove('show')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"/>
-        <line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-  </div>
+  </aside>
 </div>
 
 <script>
-  // ============ CONFIG ============
-  const ASSETS = [
-    { symbol: 'BTCUSDT', name: 'BTC/USDT', full: 'Bitcoin', icon: '₿', color: '#f7931a' },
-    { symbol: 'ETHUSDT', name: 'ETH/USDT', full: 'Ethereum', icon: 'Ξ', color: '#627eea' },
-    { symbol: 'SOLUSDT', name: 'SOL/USDT', full: 'Solana', icon: '◎', color: '#14f195' },
-    { symbol: 'BNBUSDT', name: 'BNB/USDT', full: 'BNB', icon: 'B', color: '#f3ba2f' },
-    { symbol: 'XRPUSDT', name: 'XRP/USDT', full: 'Ripple', icon: 'X', color: '#23292f' },
-    { symbol: 'ADAUSDT', name: 'ADA/USDT', full: 'Cardano', icon: '₳', color: '#0033ad' },
-    { symbol: 'DOGEUSDT', name: 'DOGE/USDT', full: 'Dogecoin', icon: 'Ð', color: '#c2a633' },
-    { symbol: 'AVAXUSDT', name: 'AVAX/USDT', full: 'Avalanche', icon: 'A', color: '#e84142' },
-    { symbol: 'LINKUSDT', name: 'LINK/USDT', full: 'Chainlink', icon: 'L', color: '#2a5ada' },
-    { symbol: 'MATICUSDT', name: 'MATIC/USDT', full: 'Polygon', icon: 'M', color: '#8247e5' }
-  ];
+/* =========================================================
+   CYCLE TERMINAL — BTC candlestick + alarms, single file
+   Datos: Binance public REST + WebSocket (sin API key)
+   Extensible: agregar más pares o exchanges más adelante
+   ========================================================= */
 
-  // ============ STATE ============
-  const state = {
-    symbol: 'BTCUSDT',
-    asset: ASSETS[0],
-    interval: '1h',
-    showSMA20: true,
-    showSMA50: true,
-    alarms: JSON.parse(localStorage.getItem('cryptowatch_alarms') || '[]'),
-    lastPrice: 0,
-    lastCandles: [],
-    alarmDirection: 'above'
+const state = {
+  symbol: 'BTCUSDT',
+  interval: '5m',
+  ws: null,
+  candleSeries: null,
+  volSeries: null,
+  lastPrice: null,
+  alarms: [],       // {id, symbol, price, direction, note, triggered}
+  priceLines: {},   // id -> priceLine ref
+  audioCtx: null,
+};
+
+// ---------- persistence ----------
+function loadAlarms(){
+  try{
+    const raw = localStorage.getItem('cycle_terminal_alarms_v1');
+    state.alarms = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    state.alarms = [];
+  }
+}
+function saveAlarms(){
+  try{ localStorage.setItem('cycle_terminal_alarms_v1', JSON.stringify(state.alarms)); }
+  catch(e){ /* almacenamiento no disponible, se mantiene solo en memoria */ }
+}
+
+// ---------- boot guard ----------
+// Si la librería no llegó a cargar todavía (CDN lento o caído),
+// esperamos a que el script de respaldo la traiga.
+if(typeof LightweightCharts === 'undefined'){
+  window.__initChart = initApp;
+  window.addEventListener('DOMContentLoaded', function(){
+    if(typeof LightweightCharts === 'undefined'){
+      setTimeout(function(){
+        if(typeof LightweightCharts === 'undefined'){
+          document.getElementById('chart').innerHTML =
+            '<div style="padding:24px;color:#ff2e88;font-family:JetBrains Mono,monospace;font-size:13px;">No se pudo cargar la librería de gráficos (CDN bloqueado o sin internet). Revisa tu conexión o si tu red bloquea cdn.jsdelivr.net / unpkg.com, y recarga la página.</div>';
+        }
+      }, 4000);
+    }
+  });
+} else {
+  initApp();
+}
+
+function initApp(){
+
+// ---------- chart setup ----------
+const chartWrap = document.getElementById('chart-wrap');
+const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+  layout:{
+    background:{color:'transparent'},
+    textColor:'#5f7387',
+    fontFamily:"'JetBrains Mono', monospace",
+  },
+  grid:{
+    vertLines:{color:'#131c27'},
+    horzLines:{color:'#131c27'},
+  },
+  crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
+  rightPriceScale:{borderColor:'#1c2733'},
+  timeScale:{borderColor:'#1c2733', timeVisible:true, secondsVisible:false},
+  autoSize:true,
+});
+
+state.candleSeries = chart.addCandlestickSeries({
+  upColor:'#39ff88', downColor:'#ff2e88',
+  borderUpColor:'#39ff88', borderDownColor:'#ff2e88',
+  wickUpColor:'#39ff88', wickDownColor:'#ff2e88',
+});
+
+state.volSeries = chart.addHistogramSeries({
+  priceFormat:{type:'volume'},
+  priceScaleId:'',
+  color:'#2a3a4a',
+});
+state.volSeries.priceScale().applyOptions({
+  scaleMargins:{top:0.82, bottom:0},
+});
+state.candleSeries.priceScale().applyOptions({
+  scaleMargins:{top:0.05, bottom:0.22},
+});
+
+// ---------- data fetch ----------
+async function loadHistory(symbol, interval){
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=500`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('binance http ' + res.status);
+  const raw = await res.json();
+  const candles = raw.map(k => ({
+    time: Math.floor(k[0]/1000),
+    open: parseFloat(k[1]), high: parseFloat(k[2]),
+    low: parseFloat(k[3]), close: parseFloat(k[4]),
+  }));
+  const vols = raw.map(k => ({
+    time: Math.floor(k[0]/1000),
+    value: parseFloat(k[5]),
+    color: parseFloat(k[4]) >= parseFloat(k[1]) ? 'rgba(57,255,136,.35)' : 'rgba(255,46,136,.35)',
+  }));
+  state.candleSeries.setData(candles);
+  state.volSeries.setData(vols);
+  if(candles.length){
+    state.lastPrice = candles[candles.length-1].close;
+    updatePriceDisplay(state.lastPrice, null);
+  }
+}
+
+// ---------- websocket live updates ----------
+function connectWS(symbol, interval){
+  if(state.ws){
+    try{ state.ws.onclose = null; state.ws.close(); }catch(e){}
+  }
+  setStatus('connecting');
+  const wsUrl = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`;
+  const ws = new WebSocket(wsUrl);
+  state.ws = ws;
+
+  ws.onopen = () => setStatus('live');
+  ws.onerror = () => setStatus('error');
+  ws.onclose = () => {
+    setStatus('error');
+    // reintento simple con backoff fijo
+    setTimeout(() => {
+      if(state.symbol === symbol && state.interval === interval){
+        connectWS(symbol, interval);
+      }
+    }, 3000);
   };
-
-  // ============ CHART ============
-  let chart, candleSeries, sma20Series, sma50Series, currentPriceLine;
-  const alarmPriceLines = new Map();
-
-  function initChart() {
-    const chartEl = document.getElementById('chart');
-    chart = LightweightCharts.createChart(chartEl, {
-      layout: {
-        background: { type: 'solid', color: 'transparent' },
-        textColor: '#8b949e',
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 11
-      },
-      grid: {
-        vertLines: { color: 'rgba(255,255,255,0.03)' },
-        horzLines: { color: 'rgba(255,255,255,0.03)' }
-      },
-      crosshair: {
-        mode: LightweightCharts.CrosshairMode.Normal,
-        vertLine: { color: 'rgba(255,184,0,0.4)', width: 1, style: LightweightCharts.LineStyle.Dashed, labelBackgroundColor: '#ffb800' },
-        horzLine: { color: 'rgba(255,184,0,0.4)', width: 1, style: LightweightCharts.LineStyle.Dashed, labelBackgroundColor: '#ffb800' }
-      },
-      rightPriceScale: {
-        borderColor: 'rgba(255,255,255,0.05)',
-        scaleMargins: { top: 0.08, bottom: 0.08 }
-      },
-      timeScale: {
-        borderColor: 'rgba(255,255,255,0.05)',
-        timeVisible: true,
-        secondsVisible: false
-      }
-    });
-
-    candleSeries = chart.addCandlestickSeries({
-      upColor: '#00d68f',
-      downColor: '#ff4757',
-      borderUpColor: '#00d68f',
-      borderDownColor: '#ff4757',
-      wickUpColor: 'rgba(0, 214, 143, 0.6)',
-      wickDownColor: 'rgba(255, 71, 87, 0.6)'
-    });
-
-    sma20Series = chart.addLineSeries({
-      color: '#3b82f6',
-      lineWidth: 1.5,
-      priceLineVisible: false,
-      lastValueVisible: false,
-      crosshairMarkerVisible: false
-    });
-
-    sma50Series = chart.addLineSeries({
-      color: '#a855f7',
-      lineWidth: 1.5,
-      priceLineVisible: false,
-      lastValueVisible: false,
-      crosshairMarkerVisible: false
-    });
-
-    chart.subscribeCrosshairMove(param => {
-      const legend = document.getElementById('chartLegend');
-      if (!param.time || !param.seriesData || !param.seriesData.size) {
-        legend.style.display = 'none';
-        return;
-      }
-      const data = param.seriesData.get(candleSeries);
-      if (!data) { legend.style.display = 'none'; return; }
-      legend.style.display = 'flex';
-      document.getElementById('legendOpen').textContent = formatPrice(data.open);
-      document.getElementById('legendHigh').textContent = formatPrice(data.high);
-      document.getElementById('legendLow').textContent = formatPrice(data.low);
-      document.getElementById('legendClose').textContent = formatPrice(data.close);
-    });
-
-    const resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        chart.applyOptions({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height
-        });
-      }
-    });
-    resizeObserver.observe(chartEl);
-    chart.applyOptions({ width: chartEl.clientWidth, height: chartEl.clientHeight });
-  }
-
-  // ============ DATA ============
-  async function loadKlines() {
-    setStatus('Cargando datos...', true);
-    try {
-      const url = `https://api.binance.com/api/v3/klines?symbol=${state.symbol}&interval=${state.interval}&limit=500`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const raw = await res.json();
-
-      const candles = raw.map(k => ({
-        time: Math.floor(k[0] / 1000),
-        open: parseFloat(k[1]),
-        high: parseFloat(k[2]),
-        low: parseFloat(k[3]),
-        close: parseFloat(k[4]),
-        volume: parseFloat(k[5])
-      }));
-
-      state.lastCandles = candles;
-      candleSeries.setData(candles);
-      updateSMA(candles);
-      chart.timeScale().fitContent();
-
-      if (candles.length > 0) {
-        const last = candles[candles.length - 1];
-        updatePriceDisplay(last.close, undefined, undefined, true);
-      }
-      setStatus('Conectado', false);
-    } catch (e) {
-      console.error(e);
-      setStatus('Error de conexión', false);
-      showToast('Error', 'No se pudieron cargar los datos del gráfico. Intenta recargar.', 'error');
-    }
-  }
-
-  function calculateSMA(data, period) {
-    const result = [];
-    for (let i = period - 1; i < data.length; i++) {
-      let sum = 0;
-      for (let j = 0; j < period; j++) sum += data[i - j].close;
-      result.push({ time: data[i].time, value: sum / period });
-    }
-    return result;
-  }
-
-  function updateSMA(candles) {
-    sma20Series.setData(state.showSMA20 ? calculateSMA(candles, 20) : []);
-    sma50Series.setData(state.showSMA50 && candles.length >= 50 ? calculateSMA(candles, 50) : []);
-  }
-
-  async function loadTicker() {
-    try {
-      const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${state.symbol}`);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-
-      const price = parseFloat(data.lastPrice);
-      const change = parseFloat(data.priceChange);
-      const changePercent = parseFloat(data.priceChangePercent);
-
-      updatePriceDisplay(price, change, changePercent);
-
-      document.getElementById('statHigh').textContent = '$' + formatPrice(parseFloat(data.highPrice));
-      document.getElementById('statLow').textContent = '$' + formatPrice(parseFloat(data.lowPrice));
-      document.getElementById('statVolume').textContent = formatNumber(parseFloat(data.volume)) + ' ' + state.asset.name.split('/')[0];
-      document.getElementById('statQuoteVolume').textContent = '$' + formatNumber(parseFloat(data.quoteVolume));
-      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('es-ES');
-
-      // Update last candle close in chart
-      if (state.lastCandles.length > 0) {
-        const lastCandle = state.lastCandles[state.lastCandles.length - 1];
-        lastCandle.close = price;
-        lastCandle.high = Math.max(lastCandle.high, price);
-        lastCandle.low = Math.min(lastCandle.low, price);
-        candleSeries.update(lastCandle);
-      }
-
-      checkAlarms(price);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  function updatePriceDisplay(price, change, changePercent, skipPulse) {
-    const priceEl = document.getElementById('priceDisplay');
-    const changeEl = document.getElementById('changeDisplay');
-
-    if (!skipPulse && state.lastPrice && price !== state.lastPrice) {
-      priceEl.classList.remove('pulse-up', 'pulse-down');
-      void priceEl.offsetWidth;
-      priceEl.classList.add(price > state.lastPrice ? 'pulse-up' : 'pulse-down');
-    }
-
-    state.lastPrice = price;
-    priceEl.textContent = '$' + formatPrice(price);
-
-    if (change !== undefined) {
-      const isUp = change >= 0;
-      changeEl.textContent = `${isUp ? '+' : ''}$${formatPrice(change)} (${isUp ? '+' : ''}${changePercent.toFixed(2)}%)`;
-      changeEl.className = 'text-lg font-semibold mono ' + (isUp ? 'price-up' : 'price-down');
-    }
-
-    if (candleSeries) {
-      if (currentPriceLine) candleSeries.removePriceLine(currentPriceLine);
-      currentPriceLine = candleSeries.createPriceLine({
-        price: price,
-        color: '#3b82f6',
-        lineWidth: 1,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: true,
-        title: 'ACTUAL'
-      });
-    }
-  }
-
-  // ============ ALARMS ============
-  function saveAlarms() {
-    localStorage.setItem('cryptowatch_alarms', JSON.stringify(state.alarms));
-  }
-
-  function addAlarm() {
-    const priceInput = document.getElementById('alarmPrice');
-    const noteInput = document.getElementById('alarmNote');
-    const price = parseFloat(priceInput.value);
-
-    if (!price || price <= 0 || isNaN(price)) {
-      showToast('Datos inválidos', 'Ingresa un precio válido mayor a 0', 'error');
-      priceInput.focus();
-      return;
-    }
-
-    const alarm = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      symbol: state.symbol,
-      assetName: state.asset.name,
-      price: price,
-      direction: state.alarmDirection,
-      note: noteInput.value.trim(),
-      created: Date.now(),
-      triggered: false,
-      triggeredAt: null
+  ws.onmessage = (msg) => {
+    const data = JSON.parse(msg.data);
+    const k = data.k;
+    if(!k) return;
+    const candle = {
+      time: Math.floor(k.t/1000),
+      open: parseFloat(k.o), high: parseFloat(k.h),
+      low: parseFloat(k.l), close: parseFloat(k.c),
     };
-
-    state.alarms.unshift(alarm);
-    saveAlarms();
-    renderAlarms();
-    updateAlarmPriceLines();
-
-    priceInput.value = '';
-    noteInput.value = '';
-
-    showToast('Alarma creada', `${state.asset.name} ${state.alarmDirection === 'above' ? '↑' : '↓'} $${formatPrice(price)}`, 'success');
-    
-    // Request notification permission on first alarm
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }
-
-  function removeAlarm(id) {
-    state.alarms = state.alarms.filter(a => a.id !== id);
-    saveAlarms();
-    renderAlarms();
-    updateAlarmPriceLines();
-  }
-
-  function clearTriggeredAlarms() {
-    state.alarms = state.alarms.filter(a => !a.triggered);
-    saveAlarms();
-    renderAlarms();
-    updateAlarmPriceLines();
-  }
-
-  function checkAlarms(price) {
-    let anyTriggered = false;
-    state.alarms.forEach(alarm => {
-      if (alarm.triggered || alarm.symbol !== state.symbol) return;
-      let fire = false;
-      if (alarm.direction === 'above' && price >= alarm.price) fire = true;
-      else if (alarm.direction === 'below' && price <= alarm.price) fire = true;
-
-      if (fire) {
-        alarm.triggered = true;
-        alarm.triggeredAt = Date.now();
-        anyTriggered = true;
-        triggerAlarm(alarm);
-      }
+    state.candleSeries.update(candle);
+    state.volSeries.update({
+      time: candle.time,
+      value: parseFloat(k.v),
+      color: candle.close >= candle.open ? 'rgba(57,255,136,.35)' : 'rgba(255,46,136,.35)',
     });
+    const prev = state.lastPrice;
+    state.lastPrice = candle.close;
+    updatePriceDisplay(candle.close, prev);
+    checkAlarms(candle.close);
+  };
+}
 
-    if (anyTriggered) {
-      saveAlarms();
-      renderAlarms();
-      updateAlarmPriceLines();
-    }
+function setStatus(s){
+  const dot = document.getElementById('statusDot');
+  dot.classList.remove('live','err');
+  if(s === 'live') dot.classList.add('live');
+  if(s === 'error') dot.classList.add('err');
+}
+
+function updatePriceDisplay(price, prev){
+  const el = document.getElementById('priceVal');
+  el.textContent = formatPrice(price);
+  el.classList.remove('up','down');
+  if(prev != null){
+    el.classList.add(price >= prev ? 'up' : 'down');
   }
+}
 
-  function triggerAlarm(alarm) {
-    playAlarmSound();
-    const dirText = alarm.direction === 'above' ? 'cruzó por encima de' : 'cruzó por debajo de';
-    const title = `¡Alarma! ${alarm.assetName}`;
-    const msg = `Precio ${dirText} $${formatPrice(alarm.price)}${alarm.note ? ' — ' + alarm.note : ''}`;
-    showToast(title, msg, 'alarm');
-    sendBrowserNotification(title, msg);
-  }
+function formatPrice(p){
+  if(p >= 1000) return p.toLocaleString('en-US',{maximumFractionDigits:2});
+  if(p >= 1) return p.toFixed(4);
+  return p.toFixed(8);
+}
 
-  function renderAlarms() {
-    const list = document.getElementById('alarmsList');
-    const count = document.getElementById('alarmCount');
-    const clearBtn = document.getElementById('clearTriggeredBtn');
-
-    const assetAlarms = state.alarms.filter(a => a.symbol === state.symbol);
-    count.textContent = assetAlarms.length;
-
-    const hasTriggered = assetAlarms.some(a => a.triggered);
-    clearBtn.style.display = hasTriggered ? 'block' : 'none';
-
-    if (assetAlarms.length === 0) {
-      list.innerHTML = `
-        <div class="empty-state">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2 opacity-40">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-          </svg>
-          No hay alarmas para ${state.asset.name}
-        </div>`;
-      return;
-    }
-
-    list.innerHTML = assetAlarms.map(a => {
-      const isAbove = a.direction === 'above';
-      const diff = state.lastPrice ? ((a.price - state.lastPrice) / state.lastPrice * 100) : 0;
-      const diffText = a.triggered
-        ? 'Disparada'
-        : `${diff > 0 ? '+' : ''}${diff.toFixed(2)}%`;
-      const time = a.triggered ? new Date(a.triggeredAt).toLocaleTimeString('es-ES') : new Date(a.created).toLocaleTimeString('es-ES');
-
-      return `
-        <div class="alarm-card ${a.triggered ? 'triggered' : ''}">
-          <div class="flex items-center gap-3 flex-1 min-w-0">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 alarm-bell"
-                 style="background: ${a.triggered ? 'rgba(0,214,143,0.15)' : isAbove ? 'rgba(0,214,143,0.1)' : 'rgba(255,71,87,0.1)'};
-                        color: ${a.triggered ? 'var(--green)' : isAbove ? 'var(--green)' : 'var(--red)'};">
-              ${a.triggered
-                ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
-                : isAbove
-                  ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'
-                  : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>'}
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="mono font-semibold text-sm">$${formatPrice(a.price)}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded mono"
-                      style="background: ${a.triggered ? 'rgba(0,214,143,0.15)' : 'rgba(255,255,255,0.05)'};
-                             color: ${a.triggered ? 'var(--green)' : 'var(--muted)'};">
-                  ${diffText}
-                </span>
-              </div>
-              <div class="text-[11px] text-gray-500 truncate mt-0.5">
-                ${isAbove ? 'Cruza arriba' : 'Cruza abajo'}${a.note ? ' · ' + escapeHtml(a.note) : ''}
-                <span class="text-gray-700">· ${time}</span>
-              </div>
-            </div>
-          </div>
-          <button class="text-gray-500 hover:text-red-400 p-1.5 rounded transition-colors flex-shrink-0" onclick="removeAlarm('${a.id}')" title="Eliminar">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            </svg>
-          </button>
-        </div>`;
-    }).join('');
-  }
-
-  function updateAlarmPriceLines() {
-    if (!candleSeries) return;
-    alarmPriceLines.forEach(line => candleSeries.removePriceLine(line));
-    alarmPriceLines.clear();
-
-    state.alarms
-      .filter(a => a.symbol === state.symbol && !a.triggered)
-      .forEach(alarm => {
-        const line = candleSeries.createPriceLine({
-          price: alarm.price,
-          color: alarm.direction === 'above' ? 'rgba(0, 214, 143, 0.6)' : 'rgba(255, 71, 87, 0.6)',
-          lineWidth: 1,
-          lineStyle: LightweightCharts.LineStyle.Dashed,
-          axisLabelVisible: true,
-          title: alarm.direction === 'above' ? '↑ ' + formatPrice(alarm.price) : '↓ ' + formatPrice(alarm.price)
-        });
-        alarmPriceLines.set(alarm.id, line);
-      });
-  }
-
-  // ============ AUDIO ============
-  let audioCtx;
-  function playAlarmSound() {
-    try {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-      const playBeep = (freq, start, duration) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0, audioCtx.currentTime + start);
-        gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + start + duration);
-        osc.start(audioCtx.currentTime + start);
-        osc.stop(audioCtx.currentTime + start + duration);
-      };
-
-      // Patrón distintivo de 3 tonos ascendentes
-      playBeep(880, 0, 0.18);
-      playBeep(1100, 0.22, 0.18);
-      playBeep(1320, 0.44, 0.3);
-    } catch (e) {
-      console.error('Audio error:', e);
-    }
-  }
-
-  // ============ NOTIFICATIONS ============
-  async function sendBrowserNotification(title, body) {
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'granted') {
-      try {
-        new Notification(title, {
-          body,
-          icon: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ffb800"/></svg>')
-        });
-      } catch (e) {}
-    }
-  }
-
-  // ============ TOAST ============
-  let toastTimer;
-  function showToast(title, msg, type = 'success') {
-    const toast = document.getElementById('toast');
-    document.getElementById('toastTitle').textContent = title;
-    document.getElementById('toastMsg').textContent = msg;
-
-    toast.classList.remove('alarm', 'error');
-    if (type === 'alarm') toast.classList.add('alarm');
-    if (type === 'error') toast.classList.add('error');
-
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 6000);
-  }
-
-  // ============ UTILS ============
-  function formatPrice(p) {
-    if (p == null || isNaN(p)) return '--';
-    if (p >= 1000) return p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (p >= 1) return p.toFixed(2);
-    if (p >= 0.01) return p.toFixed(4);
-    return p.toFixed(6);
-  }
-
-  function formatNumber(n) {
-    if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
-    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-    if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
-    return n.toFixed(2);
-  }
-
-  function setStatus(text, loading) {
-    document.getElementById('statusText').textContent = text;
-    document.getElementById('statusSpinner').style.display = loading ? 'inline-block' : 'none';
-  }
-
-  function escapeHtml(s) {
-    return s.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]);
-  }
-
-  // ============ UI ============
-  function populateAssetDropdown() {
-    const dropdown = document.getElementById('assetDropdown');
-    dropdown.innerHTML = ASSETS.map(a => `
-      <div class="asset-option ${a.symbol === state.symbol ? 'active' : ''}" data-symbol="${a.symbol}">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
-               style="background: ${a.color}22; color: ${a.color};">${a.icon}</div>
-          <div>
-            <div class="text-sm font-medium">${a.name}</div>
-            <div class="text-[10px] text-gray-500">${a.full}</div>
-          </div>
+// ---------- alarms ----------
+function renderAlarms(){
+  const list = document.getElementById('alarm-list');
+  const symAlarms = state.alarms.filter(a => a.symbol === state.symbol);
+  if(!symAlarms.length){
+    list.innerHTML = '<div class="empty">sin alarmas para este par</div>';
+  } else {
+    list.innerHTML = symAlarms.map(a => `
+      <div class="alarm-item ${a.direction} ${a.triggered ? 'triggered' : ''}">
+        <div class="meta">
+          <span class="price">${a.direction === 'above' ? '↑' : '↓'} ${formatPrice(a.price)}</span>
+          <small>${a.note ? a.note : (a.triggered ? 'disparada' : 'activa')}</small>
         </div>
-        ${a.symbol === state.symbol ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+        <button class="del-btn" onclick="removeAlarm('${a.id}')">✕</button>
       </div>
     `).join('');
-
-    dropdown.querySelectorAll('.asset-option').forEach(opt => {
-      opt.addEventListener('click', (e) => {
-        e.stopPropagation();
-        selectAsset(opt.dataset.symbol);
-        dropdown.classList.remove('open');
-      });
-    });
   }
+  syncPriceLines();
+}
 
-  function selectAsset(symbol) {
-    state.symbol = symbol;
-    state.asset = ASSETS.find(a => a.symbol === symbol);
+function syncPriceLines(){
+  // limpiar líneas previas
+  Object.values(state.priceLines).forEach(line => {
+    try{ state.candleSeries.removePriceLine(line); }catch(e){}
+  });
+  state.priceLines = {};
+  state.alarms.filter(a => a.symbol === state.symbol && !a.triggered).forEach(a => {
+    const line = state.candleSeries.createPriceLine({
+      price: a.price,
+      color: a.direction === 'above' ? '#39ff88' : '#ff2e88',
+      lineWidth: 1,
+      lineStyle: LightweightCharts.LineStyle.Dashed,
+      axisLabelVisible: true,
+      title: a.note ? a.note : (a.direction === 'above' ? 'alarma ↑' : 'alarma ↓'),
+    });
+    state.priceLines[a.id] = line;
+  });
+}
 
-    document.getElementById('assetName').textContent = state.asset.name;
-    document.getElementById('assetFullName').textContent = state.asset.full;
-    const icon = document.getElementById('assetIcon');
-    icon.textContent = state.asset.icon;
-    icon.style.background = state.asset.color + '22';
-    icon.style.color = state.asset.color;
+function addAlarm(){
+  const priceInput = document.getElementById('alarmPrice');
+  const price = parseFloat(priceInput.value);
+  if(isNaN(price) || price <= 0){
+    priceInput.style.borderColor = '#ff2e88';
+    setTimeout(() => priceInput.style.borderColor = '', 800);
+    return;
+  }
+  const direction = document.getElementById('alarmDir').value;
+  const note = document.getElementById('alarmNote').value.trim();
+  state.alarms.push({
+    id: 'a_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+    symbol: state.symbol,
+    price, direction, note,
+    triggered:false,
+  });
+  saveAlarms();
+  renderAlarms();
+  priceInput.value = '';
+  document.getElementById('alarmNote').value = '';
+}
 
-    document.documentElement.style.setProperty('--accent', state.asset.color);
+function removeAlarm(id){
+  state.alarms = state.alarms.filter(a => a.id !== id);
+  saveAlarms();
+  renderAlarms();
+}
+window.removeAlarm = removeAlarm; // para el onclick inline
 
-    populateAssetDropdown();
+function checkAlarms(price){
+  let changed = false;
+  state.alarms.forEach(a => {
+    if(a.symbol !== state.symbol || a.triggered) return;
+    const hit = (a.direction === 'above' && price >= a.price) ||
+                (a.direction === 'below' && price <= a.price);
+    if(hit){
+      a.triggered = true;
+      changed = true;
+      fireAlarm(a, price);
+    }
+  });
+  if(changed){
+    saveAlarms();
     renderAlarms();
-    updateAlarmPriceLines();
-    loadKlines().then(() => loadTicker());
   }
+}
 
-  function setDirection(dir) {
-    state.alarmDirection = dir;
-    document.getElementById('dirAbove').classList.toggle('active-above', dir === 'above');
-    document.getElementById('dirBelow').classList.toggle('active-below', dir === 'below');
+function fireAlarm(alarm, price){
+  logEvent(alarm, price);
+  flashScreen();
+  if(document.getElementById('soundToggle').checked) playBeep();
+  if(document.getElementById('notifToggle').checked && Notification.permission === 'granted'){
+    new Notification('⚠ Alarma ' + alarm.symbol, {
+      body: `Precio ${alarm.direction === 'above' ? 'superó' : 'cayó bajo'} ${formatPrice(alarm.price)} (actual: ${formatPrice(price)})${alarm.note ? ' — ' + alarm.note : ''}`,
+    });
   }
+}
 
-  // ============ EVENTS ============
-  function setupEvents() {
-    document.getElementById('assetButton').addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.getElementById('assetDropdown').classList.toggle('open');
-    });
-    document.addEventListener('click', () => {
-      document.getElementById('assetDropdown').classList.remove('open');
-    });
+function logEvent(alarm, price){
+  const logList = document.getElementById('log-list');
+  if(logList.querySelector('.empty')) logList.innerHTML = '';
+  const entry = document.createElement('div');
+  entry.className = 'log-entry hit';
+  const time = new Date().toLocaleTimeString('es-CL');
+  entry.textContent = `${time} — ${alarm.symbol} ${alarm.direction === 'above' ? '↑' : '↓'} ${formatPrice(alarm.price)} (actual ${formatPrice(price)})`;
+  logList.prepend(entry);
+}
 
-    document.querySelectorAll('.tf-pill').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tf-pill').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.interval = btn.dataset.tf;
-        loadKlines();
-      });
-    });
+function flashScreen(){
+  const overlay = document.getElementById('flash-overlay');
+  overlay.classList.add('on');
+  setTimeout(() => overlay.classList.remove('on'), 500);
+}
 
-    document.getElementById('toggleSMA20').addEventListener('click', () => {
-      state.showSMA20 = !state.showSMA20;
-      document.getElementById('toggleSMA20').classList.toggle('on', state.showSMA20);
-      updateSMA(state.lastCandles);
-    });
-    document.getElementById('toggleSMA50').addEventListener('click', () => {
-      state.showSMA50 = !state.showSMA50;
-      document.getElementById('toggleSMA50').classList.toggle('on', state.showSMA50);
-      updateSMA(state.lastCandles);
-    });
+function playBeep(){
+  try{
+    if(!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = state.audioCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+    // segundo pulso
+    setTimeout(() => {
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'square';
+      osc2.frequency.value = 1100;
+      gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc2.connect(gain2).connect(ctx.destination);
+      osc2.start();
+      osc2.stop(ctx.currentTime + 0.4);
+    }, 180);
+  }catch(e){ /* audio no disponible */ }
+}
 
-    document.getElementById('refreshBtn').addEventListener('click', () => {
-      loadKlines().then(() => loadTicker());
-    });
-
-    document.getElementById('dirAbove').addEventListener('click', () => setDirection('above'));
-    document.getElementById('dirBelow').addEventListener('click', () => setDirection('below'));
-
-    document.getElementById('createAlarmBtn').addEventListener('click', addAlarm);
-    document.getElementById('alarmPrice').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') addAlarm();
-    });
-
-    document.querySelectorAll('[data-preset]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const preset = btn.dataset.preset;
-        let price;
-        if (preset === 'current') {
-          price = state.lastPrice;
-        } else {
-          const pct = parseFloat(preset) / 100;
-          price = state.lastPrice * (1 + pct);
-        }
-        document.getElementById('alarmPrice').value = price.toFixed(2);
-      });
-    });
-
-    document.getElementById('clearTriggeredBtn').addEventListener('click', clearTriggeredAlarms);
-  }
-
-  // ============ INIT ============
-  async function init() {
-    initChart();
-    populateAssetDropdown();
-    setupEvents();
-    setDirection('above');
-
-    await loadKlines();
-    await loadTicker();
-
+// ---------- symbol / interval switching ----------
+async function switchMarket(){
+  const symbol = state.symbol;
+  const interval = state.interval;
+  document.getElementById('symbolLabel').textContent = symbol;
+  document.getElementById('symbolLabel2').textContent = symbol;
+  setStatus('connecting');
+  try{
+    await loadHistory(symbol, interval);
+    connectWS(symbol, interval);
     renderAlarms();
-    updateAlarmPriceLines();
-
-    // Actualizar ticker cada 3 segundos
-    setInterval(loadTicker, 3000);
-    // Refrescar gráfico cada 30 segundos
-    setInterval(() => loadKlines(), 30000);
+  }catch(e){
+    setStatus('error');
+    console.error(e);
+    alert('No se pudo cargar el par "' + symbol + '". Verifica que exista en Binance Spot.');
   }
+}
 
-  window.removeAlarm = removeAlarm;
-  init();
+// ---------- UI wiring ----------
+document.getElementById('symbolSelect').addEventListener('change', (e) => {
+  document.getElementById('customSymbol').value = '';
+  state.symbol = e.target.value;
+  switchMarket();
+});
+document.getElementById('customSymbol').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && e.target.value.trim()){
+    state.symbol = e.target.value.trim().toUpperCase();
+    switchMarket();
+  }
+});
+document.getElementById('intervalSelect').addEventListener('change', (e) => {
+  state.interval = e.target.value;
+  switchMarket();
+});
+document.getElementById('addAlarmBtn').addEventListener('click', addAlarm);
+document.getElementById('alarmPrice').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') addAlarm();
+});
+document.getElementById('notifToggle').addEventListener('change', (e) => {
+  if(e.target.checked && Notification.permission !== 'granted'){
+    Notification.requestPermission().then(p => {
+      if(p !== 'granted') e.target.checked = false;
+    });
+  }
+});
+
+// ---------- init ----------
+loadAlarms();
+switchMarket();
+
+window.addEventListener('beforeunload', () => {
+  if(state.ws) try{ state.ws.close(); }catch(e){}
+});
+
+} // fin initApp()
 </script>
-
 </body>
 </html>
