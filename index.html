@@ -78,7 +78,7 @@
   .ind-dropdown{position:relative;}
   .ind-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:600;font-size:11px;transition:.12s;}
   .ind-btn:hover{color:var(--cyan);border-color:var(--cyan);}
-  .ind-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:225px;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:6px;z-index:100;box-shadow:0 16px 40px rgba(0,0,0,.6);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s;}
+  .ind-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:225px;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:6px;z-index:100;box-shadow:0 16px 40px rgba(0,0,0,.6);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s;max-height:480px;overflow-y:auto;}
   .ind-menu.open{opacity:1;transform:translateY(0);pointer-events:auto;}
   .ind-block{border-bottom:1px solid var(--border);padding-bottom:2px;margin-bottom:2px;}
   .ind-block:last-child{border-bottom:none;margin-bottom:0;}
@@ -116,8 +116,9 @@
   .tool-btn.active { color: var(--cyan); border-color: var(--cyan); background: rgba(0,229,255,0.1); box-shadow: 0 0 8px rgba(0,229,255,0.2); }
 
   #chartsGrid{display:grid;gap:1px;background:var(--border);height:100%;width:100%;min-height:0;min-width:0;overflow:hidden;}
-  .chart-cell{position:relative;background:var(--bg);overflow:hidden;cursor:crosshair;min-height:0;min-width:0;}
+  .chart-cell{position:relative;background:var(--bg);overflow:hidden;cursor:crosshair;min-height:0;min-width:0;display:flex;flex-direction:column;}
   .chart-cell.active{outline:2px solid var(--cyan);outline-offset:-2px;z-index:5;}
+  .main-chart-area{position:relative;flex:1 1 auto;min-height:0;min-width:0;overflow:hidden;}
   .chart-container{width:100%;height:100%;position:absolute;top:0;left:0;min-height:0;min-width:0;}
   .chart-price-tag{position:absolute;top:8px;left:8px;z-index:10;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;pointer-events:none;display:flex;align-items:center;gap:8px;}
   .chart-price-tag .sym{font-weight:700;color:var(--cyan);}
@@ -127,6 +128,14 @@
   .overlay-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4;}
   .draw-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;}
   .draw-canvas.active{pointer-events:auto;cursor:crosshair;}
+
+  .cycle-pane{position:relative;flex-shrink:0;height:190px;border-top:1px solid var(--border);background:var(--bg);overflow:hidden;}
+  .cycle-pane.hidden{display:none;}
+  .cycle-chart-container{position:absolute;inset:0;}
+  .cycle-title{position:absolute;top:6px;left:8px;z-index:10;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;background:rgba(7,10,16,.6);padding:3px 6px;border-radius:4px;pointer-events:none;}
+  .cycle-diag{position:absolute;top:6px;right:8px;z-index:10;background:rgba(7,10,16,.82);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-size:9px;line-height:1.6;pointer-events:none;min-width:120px;}
+  .cycle-diag .row{display:flex;justify-content:space-between;gap:12px;white-space:nowrap;}
+  .cycle-diag .k{color:var(--muted);}
   
   .live-flow-box { position: absolute; z-index: 4; pointer-events: none; display: none; background: rgba(7,10,16,0.5); border-left: 1px solid rgba(0,229,255,.25); border-right: 1px solid rgba(0,229,255,.25); font-family: 'JetBrains Mono', monospace; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
   .flow-row { position: absolute; display: flex; align-items: center; width: 100%; border-top: 1px solid rgba(255,255,255,.05); box-sizing: border-box; }
@@ -143,7 +152,7 @@
   .flow-val.sell { color: var(--magenta); }
   .flow-val.buy { color: var(--green); }
 
-  .auto-scale-btn{position:absolute;right:8px;bottom:30px;z-index:10;width:24px;height:24px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:4px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;transition:.15s;}
+  .auto-scale-btn{position:absolute;right:8px;bottom:10px;z-index:10;width:24px;height:24px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:4px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;transition:.15s;}
   .auto-scale-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.2);}
   
   .chart-legend{position:absolute;top:45px;left:8px;z-index:10;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:9px;pointer-events:none;display:none;gap:8px;}
@@ -249,7 +258,7 @@
   <header>
     <div class="logo">
       <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg></div>
-      <h1>CYCLE TERMINAL<span>v5.6 // Clean Layout</span></h1>
+      <h1>CYCLE TERMINAL<span>v5.7 // Larry Williams Panel</span></h1>
     </div>
     <div class="asset-selector" id="assetSelector">
       <button type="button" class="asset-btn" id="assetBtn">
@@ -416,6 +425,41 @@
           </div>
         </div>
 
+        <div class="ind-block">
+          <div class="ind-item" data-ind="cycle">
+            <span>Ciclo LW <b class="ind-tag" id="tagCycle">L/5/1</b></span>
+            <div class="ind-actions">
+              <button type="button" class="ind-gear" data-opts="cycle" title="Opciones">⚙</button>
+              <div class="ind-toggle on"></div>
+            </div>
+          </div>
+          <div class="ind-options" id="opts-cycle">
+            <div class="opt-row">
+              <span class="opt-label">Anclaje</span>
+              <div class="opt-btn-group" id="cycleAnchorGroup">
+                <button type="button" class="opt-btn active" data-anchor="L">Piso</button>
+                <button type="button" class="opt-btn" data-anchor="H">Techo</button>
+              </div>
+            </div>
+            <div class="opt-row" style="margin-top:6px;">
+              <span class="opt-label">Left Bars</span>
+              <input type="number" class="opt-input" id="input-cycle-left" min="1" max="100" value="5">
+            </div>
+            <div class="opt-row" style="margin-top:6px;">
+              <span class="opt-label">Right Bars</span>
+              <input type="number" class="opt-input" id="input-cycle-right" min="1" max="50" value="1">
+            </div>
+            <div class="opt-row" style="margin-top:6px;">
+              <span class="opt-label">Forecast (barras)</span>
+              <input type="number" class="opt-input" id="input-cycle-forecast" min="10" max="150" value="60">
+            </div>
+            <div class="opt-row" style="margin-top:6px;">
+              <span class="opt-label">L Manual (0=auto)</span>
+              <input type="number" class="opt-input" id="input-cycle-manuall" min="0" max="300" value="0">
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
     <div class="toolbar-right">
@@ -506,7 +550,7 @@ const DEFAULT_LAYOUT_SYMBOLS = ['BTCUSDT', 'GC=F', '^NDX', 'CLP=X'];
 
 const globalState = {
   interval: '5m',
-  indicators: { sma20: true, sma50: true, vwap: true, flow: true, fractal: true, vp: true, vpFractal: true },
+  indicators: { sma20: true, sma50: true, vwap: true, flow: true, fractal: true, vp: true, vpFractal: true, cycle: true },
   indicatorConfig: {
     sma20: { period: 20 },
     sma50: { period: 50 },
@@ -514,7 +558,8 @@ const globalState = {
     flow: { precisionMult: 1 },
     fractal: { lookback: 40, lookforward: 2 },
     vp: { rows: 24 },
-    vpFractal: { lookback: 40, lookforward: 2, rows: 24 }
+    vpFractal: { lookback: 40, lookforward: 2, rows: 24 },
+    cycle: { anchorType: 'L', leftBars: 5, rightBars: 1, forecastBars: 60, manualL: 0, smoothW: 3, emaLens: [20, 50, 200], bbLength: 20, bbMult: 2.0 }
   },
   activeTool: 'cursor',
   alarms: JSON.parse(localStorage.getItem('cycle_terminal_alarms_v4') || '[]'),
@@ -533,6 +578,51 @@ if(typeof LightweightCharts === 'undefined'){
   window.addEventListener('DOMContentLoaded', () => setTimeout(() => { if(typeof LightweightCharts === 'undefined') document.getElementById('chartsGrid').innerHTML = '<div style="padding:24px;color:#ff2e88;">Error cargando gráficos.</div>'; }, 4000));
 } else { initApp(); }
 
+// ============================================================
+// Utilidades numéricas para el panel "Ciclo LW" (SMA/EMA/STDEV causales)
+// ============================================================
+function calcSMA(arr, period) {
+  const n = arr.length; const out = new Array(n);
+  for (let i = 0; i < n; i++) {
+    let sum = 0;
+    for (let k = 0; k < period; k++) {
+      const idx = i - k;
+      sum += idx >= 0 ? arr[idx] : arr[0];
+    }
+    out[i] = sum / period;
+  }
+  return out;
+}
+function calcEMA(arr, len) {
+  const n = arr.length; const out = new Array(n);
+  const mult = 2 / (len + 1);
+  out[0] = arr[0];
+  for (let i = 1; i < n; i++) out[i] = (arr[i] - out[i-1]) * mult + out[i-1];
+  return out;
+}
+function calcSTDEV(arr, period) {
+  const n = arr.length; const out = new Array(n);
+  const meanArr = calcSMA(arr, period);
+  for (let i = 0; i < n; i++) {
+    let sq = 0;
+    const m = meanArr[i];
+    for (let k = 0; k < period; k++) {
+      const idx = i - k;
+      const v = idx >= 0 ? arr[idx] : arr[0];
+      const d = v - m;
+      sq += d * d;
+    }
+    out[i] = Math.sqrt(sq / period);
+  }
+  return out;
+}
+function medianOf(arr) {
+  const s = [...arr].sort((a,b)=>a-b);
+  const m = s.length;
+  if (m === 0) return NaN;
+  return m % 2 ? s[(m-1)/2] : (s[m/2-1] + s[m/2]) / 2;
+}
+
 function initApp() {
   document.getElementById('assetBtn').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('assetDropdown').classList.toggle('open'); });
   document.addEventListener('click', () => { document.getElementById('assetDropdown').classList.remove('open'); document.getElementById('indMenu').classList.remove('open'); });
@@ -549,9 +639,19 @@ function initApp() {
         inst.calcVWAP(true);
         inst.updateFractals();
         inst.updateVpFractal();
+        inst.updateCycleIndicator();
         inst.requestDraw();
         inst.updateFlowBox();
       });
+      if (key === 'cycle') {
+        globalState.instances.forEach(inst => {
+          if (inst.cyclePaneEl) inst.cyclePaneEl.classList.toggle('hidden', !globalState.indicators.cycle);
+          if (inst.cycleChart && inst.cycleChartEl) {
+            inst.cycleChart.applyOptions({ width: inst.cycleChartEl.clientWidth, height: inst.cycleChartEl.clientHeight });
+            if (globalState.indicators.cycle) inst.updateCycleIndicator();
+          }
+        });
+      }
     });
   });
 
@@ -657,6 +757,38 @@ function initApp() {
   vpFractalInput('input-vpFractal-lookback', 'lookback', 200);
   vpFractalInput('input-vpFractal-lookforward', 'lookforward', 50);
   vpFractalInput('input-vpFractal-rows', 'rows', 100);
+
+  // --- Config del panel "Ciclo LW" (Larry Williams Cycle Forecast) ---
+  function updateCycleTag() {
+    const c = globalState.indicatorConfig.cycle;
+    document.getElementById('tagCycle').textContent = `${c.anchorType}/${c.leftBars}/${c.rightBars}`;
+  }
+  document.querySelectorAll('#cycleAnchorGroup .opt-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('#cycleAnchorGroup .opt-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      globalState.indicatorConfig.cycle.anchorType = btn.dataset.anchor;
+      updateCycleTag();
+      globalState.instances.forEach(inst => inst.updateCycleIndicator());
+    });
+  });
+  const cycleInput = (id, key, max, min) => {
+    const input = document.getElementById(id);
+    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('change', (e) => {
+      let v = parseInt(e.target.value, 10);
+      if (isNaN(v) || v < min) v = min; if (v > max) v = max;
+      e.target.value = v;
+      globalState.indicatorConfig.cycle[key] = v;
+      updateCycleTag();
+      globalState.instances.forEach(inst => inst.updateCycleIndicator());
+    });
+  };
+  cycleInput('input-cycle-left', 'leftBars', 100, 1);
+  cycleInput('input-cycle-right', 'rightBars', 50, 1);
+  cycleInput('input-cycle-forecast', 'forecastBars', 150, 10);
+  cycleInput('input-cycle-manuall', 'manualL', 300, 0);
 
   document.getElementById('customSymbol').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.value.trim()) { let val = e.target.value.trim().toUpperCase(); if(val.includes('USD') && !val.includes('USDT') && val.length <= 7) val += '=X'; changeActiveAsset(val); } });
   
@@ -823,7 +955,9 @@ function createChartInstance(cell, asset, interval, index) {
     drawings: [], isDrawing: false, currentDrawing: null,
     vwapData: [],
     fractalMarkers: [], vpFractalMarkers: [], vpFractalRange: null,
-    drawThrottle: null
+    drawThrottle: null,
+    cycleChart: null, cycleChartEl: null, cyclePaneEl: null, cycleDiagEl: null,
+    residualSeries: null, bbUpperSeries: null, bbLowerSeries: null, ema1Series: null, ema2Series: null, ema3Series: null, forecastSeries: null
   };
 
   inst.requestDraw = function() {
@@ -837,13 +971,20 @@ function createChartInstance(cell, asset, interval, index) {
 
   inst.init = function() {
     inst.cell.innerHTML = `
-      <div class="chart-price-tag"><span class="sym">${inst.asset.name}</span> <span class="val">--</span> <span class="chg" style="font-size:10px;"></span></div>
-      <div class="chart-legend"><div><span class="k">O</span> <span class="lgO">--</span></div><div><span class="k">H</span> <span class="lgH" style="color:var(--green);">--</span></div><div><span class="k">L</span> <span class="lgL" style="color:var(--magenta);">--</span></div><div><span class="k">C</span> <span class="lgC">--</span></div></div>
-      <canvas class="overlay-canvas"></canvas>
-      <div class="live-flow-box"></div>
-      <canvas class="draw-canvas"></canvas>
-      <button class="auto-scale-btn">A</button>
-      <div class="chart-container"></div>
+      <div class="main-chart-area">
+        <div class="chart-price-tag"><span class="sym">${inst.asset.name}</span> <span class="val">--</span> <span class="chg" style="font-size:10px;"></span></div>
+        <div class="chart-legend"><div><span class="k">O</span> <span class="lgO">--</span></div><div><span class="k">H</span> <span class="lgH" style="color:var(--green);">--</span></div><div><span class="k">L</span> <span class="lgL" style="color:var(--magenta);">--</span></div><div><span class="k">C</span> <span class="lgC">--</span></div></div>
+        <canvas class="overlay-canvas"></canvas>
+        <div class="live-flow-box"></div>
+        <canvas class="draw-canvas"></canvas>
+        <button class="auto-scale-btn">A</button>
+        <div class="chart-container"></div>
+      </div>
+      <div class="cycle-pane">
+        <div class="cycle-title">Ciclo LW</div>
+        <div class="cycle-diag"></div>
+        <div class="cycle-chart-container"></div>
+      </div>
     `;
     inst.chartEl = inst.cell.querySelector('.chart-container');
     inst.overlayCanvas = inst.cell.querySelector('.overlay-canvas');
@@ -852,6 +993,9 @@ function createChartInstance(cell, asset, interval, index) {
     inst.autoScaleBtn = inst.cell.querySelector('.auto-scale-btn');
     inst.legendEl = inst.cell.querySelector('.chart-legend');
     inst.priceTagEl = inst.cell.querySelector('.chart-price-tag');
+    inst.cyclePaneEl = inst.cell.querySelector('.cycle-pane');
+    inst.cycleChartEl = inst.cell.querySelector('.cycle-chart-container');
+    inst.cycleDiagEl = inst.cell.querySelector('.cycle-diag');
 
     inst.autoScaleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -901,6 +1045,62 @@ function createChartInstance(cell, asset, interval, index) {
         color:'#ffb020', lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false, lineStyle: LightweightCharts.LineStyle.Dotted, 
         autoscaleInfoProvider: () => null
     });
+
+    // --- Panel de Ciclo (Larry Williams Cycle Forecast) — gráfico independiente sincronizado ---
+    inst.cycleChart = LightweightCharts.createChart(inst.cycleChartEl, {
+      layout: { background:{type:'solid', color:'transparent'}, textColor:'#5f7387', fontFamily:"'JetBrains Mono', monospace", fontSize:9 },
+      grid: { vertLines:{color:'#101820'}, horzLines:{color:'#101820'} },
+      crosshair: { mode:LightweightCharts.CrosshairMode.Normal, vertLine:{color:'rgba(0,229,255,.4)',width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:'#00e5ff'}, horzLine:{color:'rgba(0,229,255,.25)',width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:'#00e5ff'} },
+      rightPriceScale: { borderColor:'#1c2733' },
+      timeScale: {
+        borderColor:'#1c2733', timeVisible:true, secondsVisible:false,
+        tickMarkFormatter: (time, tickMarkType) => {
+          const date = new Date(time * 1000);
+          if (tickMarkType === LightweightCharts.TickMarkType.Year) return date.toLocaleDateString('es-CL', { timeZone: TZ, year: 'numeric' });
+          if (tickMarkType === LightweightCharts.TickMarkType.Month) return date.toLocaleDateString('es-CL', { timeZone: TZ, month: 'short' });
+          if (tickMarkType === LightweightCharts.TickMarkType.DayOfMonth) return date.toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' });
+          return date.toLocaleTimeString('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+      },
+      localization: {
+        timeFormatter: (timestamp) => new Date(timestamp * 1000).toLocaleTimeString('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+      },
+      width: inst.cycleChartEl.clientWidth,
+      height: inst.cycleChartEl.clientHeight
+    });
+
+    const cycleResizeObserver = new ResizeObserver(() => {
+      if (inst.cycleChartEl.clientWidth > 0 && inst.cycleChartEl.clientHeight > 0) {
+        inst.cycleChart.applyOptions({ width: inst.cycleChartEl.clientWidth, height: inst.cycleChartEl.clientHeight });
+      }
+    });
+    cycleResizeObserver.observe(inst.cycleChartEl);
+
+    inst.residualSeries = inst.cycleChart.addLineSeries({ color:'#00e5ff', lineWidth:1, priceLineVisible:false, lastValueVisible:true, title:'Residual' });
+    inst.residualSeries.createPriceLine({ price:0, color:'rgba(150,160,170,.45)', lineWidth:1, lineStyle:LightweightCharts.LineStyle.Solid, axisLabelVisible:false });
+    inst.bbUpperSeries = inst.cycleChart.addLineSeries({ color:'rgba(255,176,32,.55)', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
+    inst.bbLowerSeries = inst.cycleChart.addLineSeries({ color:'rgba(255,176,32,.55)', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
+    inst.ema1Series = inst.cycleChart.addLineSeries({ color:'#ffe066', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
+    inst.ema2Series = inst.cycleChart.addLineSeries({ color:'#4d7fff', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
+    inst.ema3Series = inst.cycleChart.addLineSeries({ color:'#ff5566', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
+    inst.forecastSeries = inst.cycleChart.addLineSeries({ color:'#ffb020', lineWidth:2, lineStyle:LightweightCharts.LineStyle.Dashed, priceLineVisible:false, lastValueVisible:false });
+
+    // Sincroniza el rango visible entre el gráfico principal y el panel de ciclo (ambas direcciones)
+    let syncingRange = false;
+    inst.chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+      if (syncingRange || !range) return;
+      syncingRange = true;
+      try { inst.cycleChart.timeScale().setVisibleLogicalRange(range); } catch(e) {}
+      syncingRange = false;
+    });
+    inst.cycleChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+      if (syncingRange || !range) return;
+      syncingRange = true;
+      try { inst.chart.timeScale().setVisibleLogicalRange(range); } catch(e) {}
+      syncingRange = false;
+    });
+
+    if (!globalState.indicators.cycle) inst.cyclePaneEl.classList.add('hidden');
 
     inst.chart.timeScale().subscribeVisibleTimeRangeChange(() => { inst.requestDraw(); inst.drawDrawCanvas(); });
     inst.chart.timeScale().subscribeVisibleLogicalRangeChange(range => { if (range && range.from < 5 && !inst.isLoadingHistory && !inst.noMoreHistory && inst.lastCandles.length > 0) inst.loadMoreHistory(); });
@@ -1012,7 +1212,7 @@ function createChartInstance(cell, asset, interval, index) {
       for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; data.candles.push({ time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }); data.vols.push({ time, value: q.volume[i] || 0, color: q.close[i] >= q.open[i] ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); }
     }
     inst.lastCandles = data.candles; inst.candleSeries.setData(data.candles); inst.volSeries.setData(data.vols);
-    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
+    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator(); inst.chart.timeScale().fitContent(); inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0;
     if(data.candles.length){ inst.lastPrice = data.candles[data.candles.length-1].close; inst.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null; inst.lastCandleTime = data.candles[data.candles.length-1].time; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = data.candles[data.candles.length-1].high; inst.currentCandleLow = data.candles[data.candles.length-1].low; inst.bucketSize = computeBucketSize(inst); inst.updatePriceDisplay(inst.lastPrice, null); }
     inst.status = 'live'; updateStatusPill(); inst.requestDraw();
   };
@@ -1033,7 +1233,7 @@ function createChartInstance(cell, asset, interval, index) {
         data = { candles: [], vols: [] };
         for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; data.candles.push({ time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }); data.vols.push({ time, value: q.volume[i] || 0, color: q.close[i] >= q.open[i] ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); }
       }
-      if (data.candles.length > 0) { const range = inst.chart.timeScale().getVisibleLogicalRange(); inst.lastCandles = [...data.candles, ...inst.lastCandles]; inst.candleSeries.setData(inst.lastCandles); inst.volSeries.setData([...data.vols, ...inst.volSeries.data()]); if (range) inst.chart.timeScale().setVisibleLogicalRange({ from: range.from + data.candles.length, to: range.to + data.candles.length }); inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); }
+      if (data.candles.length > 0) { const range = inst.chart.timeScale().getVisibleLogicalRange(); inst.lastCandles = [...data.candles, ...inst.lastCandles]; inst.candleSeries.setData(inst.lastCandles); inst.volSeries.setData([...data.vols, ...inst.volSeries.data()]); if (range) inst.chart.timeScale().setVisibleLogicalRange({ from: range.from + data.candles.length, to: range.to + data.candles.length }); inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator(); }
       else { inst.noMoreHistory = true; }
     } catch(e) { console.error(e); inst.noMoreHistory = true; } finally { inst.isLoadingHistory = false; }
   };
@@ -1053,7 +1253,7 @@ function createChartInstance(cell, asset, interval, index) {
         inst.prevPrice = inst.lastPrice; inst.lastPrice = candle.close; inst.lastCandleTime = candle.time;
         // k.T is the actual close time of this kline (ms epoch) — do NOT add another interval on top of it.
         inst.currentCandleCloseTime = k.T; inst.currentCandleHigh = candle.high; inst.currentCandleLow = candle.low;
-        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; inst.updateFractals(); inst.updateVpFractal(); }
+        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator(); }
         inst.updatePriceDisplay(candle.close, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst);
         inst.calcVWAP(k.x); 
         if(globalState.activeChartIndex === inst.index) updateSidebarFlow(); inst.requestDraw();
@@ -1076,7 +1276,7 @@ function createChartInstance(cell, asset, interval, index) {
         const res = await fetch(url); if(!res.ok) return; const d = await res.json(); const result = d.chart.result[0]; const ts = result.timestamp; const q = result.indicators.quote[0];
         for(let i=0; i<ts.length; i++){ if(q.open[i] == null) continue; const time = ts[i]; const candle = { time, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], vol: q.volume[i] || 0 }; inst.candleSeries.update(candle); inst.volSeries.update({ time, value: q.volume[i] || 0, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' }); if(inst.lastCandles.length){ const last = inst.lastCandles[inst.lastCandles.length-1]; if(last.time === time){ last.close = candle.close; last.high = Math.max(last.high, candle.high); last.low = Math.min(last.low, candle.low); last.vol = candle.vol; } else { inst.lastCandles.push(candle); if(inst.lastCandles.length > 600) inst.lastCandles.shift(); } } }
         inst.prevPrice = inst.lastPrice; inst.lastPrice = q.close[ts.length-1]; inst.lastCandleTime = ts[ts.length-1]; inst.currentCandleCloseTime = (inst.lastCandleTime * 1000) + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = q.high[ts.length-1]; inst.currentCandleLow = q.low[ts.length-1];
-        inst.updatePriceDisplay(inst.lastPrice, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal();
+        inst.updatePriceDisplay(inst.lastPrice, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator();
       } catch(e){ console.error(e); }
     }, 10000);
   };
@@ -1210,6 +1410,195 @@ function createChartInstance(cell, asset, interval, index) {
     inst.vpFractalRange = (lastHigh && lastLow) ? { top: lastHigh, bottom: lastLow } : null;
     inst.syncMarkers();
     inst.requestDraw();
+  };
+
+  // ============================================================
+  // Panel "Ciclo LW" — puerto simplificado a JS del indicador Pine
+  // "Larry Williams Cycle Forecast (Hurst Natural Aligned)":
+  // detecta anclas por fractal, estima el largo de ciclo L, calcula
+  // el residual (precio - CMA), pliega el residual en una onda ideal
+  // de largo L y proyecta esa onda hacia el futuro con continuidad
+  // de fase. Se recalcula por completo en cada actualización.
+  // ============================================================
+  inst.updateCycleIndicator = function() {
+    if (!inst.cycleChart) return;
+    const cfg = globalState.indicatorConfig.cycle;
+    const clearAll = () => {
+      inst.residualSeries.setData([]); inst.ema1Series.setData([]); inst.ema2Series.setData([]); inst.ema3Series.setData([]);
+      inst.bbUpperSeries.setData([]); inst.bbLowerSeries.setData([]); inst.forecastSeries.setData([]);
+      if (inst.cycleDiagEl) inst.cycleDiagEl.innerHTML = '';
+    };
+    if (!globalState.indicators.cycle) { clearAll(); return; }
+    const candles = inst.lastCandles;
+    if (!candles || candles.length < 30) {
+      clearAll();
+      if (inst.cycleDiagEl) inst.cycleDiagEl.innerHTML = `<div class="row"><span class="k">Estado</span><span>historial insuficiente</span></div>`;
+      return;
+    }
+
+    const closes = candles.map(c => c.close);
+    const times = candles.map(c => c.time);
+    const n = closes.length;
+
+    // 1) Anclas por fractal (piso o techo, según configuración)
+    const back = cfg.leftBars, fwd = cfg.rightBars;
+    const { highs, lows } = inst.computeFractalPoints(back, fwd, candles);
+    const anchorPts = cfg.anchorType === 'H' ? highs : lows;
+    const anchors = anchorPts.map(p => p.index);
+
+    if (anchors.length < 2) {
+      clearAll();
+      if (inst.cycleDiagEl) inst.cycleDiagEl.innerHTML = `<div class="row"><span class="k">Estado</span><span>anclas insuficientes</span></div>`;
+      return;
+    }
+
+    // 2) Estimación del largo de ciclo L (mediana de distancias entre anclas)
+    const deltas = [];
+    for (let i = 0; i < anchors.length - 1; i++) deltas.push(anchors[i+1] - anchors[i]);
+    const Lnatural = Math.max(4, Math.round(medianOf(deltas)));
+    let L = cfg.manualL > 0 ? cfg.manualL : Lnatural;
+    L = Math.max(4, Math.min(300, L));
+
+    // 3) CMA y residual (SMA causal de largo L, igual que la aproximación del script original)
+    const cmaArr = calcSMA(closes, L);
+    const residual = closes.map((c, i) => c - cmaArr[i]);
+
+    // 4) EMAs y Bandas de Bollinger sobre el residual
+    const ema1 = calcEMA(residual, cfg.emaLens[0]);
+    const ema2 = calcEMA(residual, cfg.emaLens[1]);
+    const ema3 = calcEMA(residual, cfg.emaLens[2]);
+    const bbBasis = calcSMA(residual, cfg.bbLength);
+    const bbDev = calcSTDEV(residual, cfg.bbLength).map(v => v * cfg.bbMult);
+    const bbUpper = bbBasis.map((v, i) => v + bbDev[i]);
+    const bbLower = bbBasis.map((v, i) => v - bbDev[i]);
+
+    // 5) Plegado: construye la onda ideal de largo L promediando el residual
+    // alrededor de cada ancla (ponderado por recencia)
+    const halfL = Math.floor(L / 2), halfR = L - halfL;
+    const idealSum = new Array(L).fill(0), wCounts = new Array(L).fill(0);
+    const halflifeCycles = 6;
+    anchors.forEach((a, ai) => {
+      const w = Math.pow(0.5, (anchors.length - 1 - ai) / halflifeCycles);
+      for (let k = -halfL; k < halfR; k++) {
+        const pos = a + k;
+        if (pos >= 0 && pos < n) {
+          let slot = (k + halfL) % L; if (slot < 0) slot += L;
+          idealSum[slot] += residual[pos] * w;
+          wCounts[slot] += w;
+        }
+      }
+    });
+    let idealWave = idealSum.map((s, i) => wCounts[i] > 0 ? s / wCounts[i] : 0);
+    if (cfg.smoothW > 1) {
+      const sw = Math.floor(cfg.smoothW / 2);
+      const base = idealWave.slice();
+      idealWave = idealWave.map((_, k) => {
+        let sum = 0, cnt = 0;
+        for (let wi = -sw; wi <= sw; wi++) { let idx = (k + wi) % L; if (idx < 0) idx += L; sum += base[idx]; cnt++; }
+        return sum / cnt;
+      });
+    }
+
+    // Escala la onda ideal para que coincida con la volatilidad reciente del residual
+    const recentWindow = Math.max(4, L);
+    const recentSlice = residual.slice(Math.max(0, n - recentWindow));
+    const recentMean = recentSlice.reduce((a, b) => a + b, 0) / recentSlice.length;
+    const recentVar = recentSlice.reduce((a, b) => a + (b - recentMean) * (b - recentMean), 0) / recentSlice.length;
+    const recentStdev = Math.sqrt(Math.max(recentVar, 0));
+    const idealMean = idealWave.reduce((a, b) => a + b, 0) / L;
+    const idealVar = idealWave.reduce((a, b) => a + (b - idealMean) * (b - idealMean), 0) / L;
+    const idealStdev = Math.sqrt(Math.max(idealVar, 0));
+    const naturalScale = idealStdev > 0.00001 ? recentStdev / idealStdev : 1;
+    idealWave = idealWave.map(v => v * naturalScale);
+
+    // 6) Ajuste fino de fase (-2..+2) para que la onda calce con el residual reciente
+    const lastAnchor = anchors[anchors.length - 1];
+    let bestShift = 0, bestErr = Infinity;
+    const lookback = Math.min(L, n - 1);
+    for (let sh = -2; sh <= 2; sh++) {
+      let err = 0;
+      for (let k = 0; k < lookback; k++) {
+        const idx = n - 1 - k;
+        let phase = (idx - lastAnchor - sh) % L; if (phase < 0) phase += L;
+        err += Math.abs(residual[idx] - idealWave[phase]);
+      }
+      if (err < bestErr) { bestErr = err; bestShift = sh; }
+    }
+
+    // 7) Offset de continuidad para que la proyección arranque pegada al precio actual
+    const tail = residual.slice(Math.max(0, n - 3));
+    const smoothResid = tail.reduce((a, b) => a + b, 0) / tail.length;
+    let phaseNow = (n - 1 - lastAnchor - bestShift) % L; if (phaseNow < 0) phaseNow += L;
+    const continuityOffset = smoothResid - idealWave[phaseNow];
+
+    // 8) Salud del ciclo: consistencia del espaciado de anclas + correlación de la forma de onda
+    let cvPct = null;
+    if (deltas.length >= 2) {
+      const meanD = deltas.reduce((a, b) => a + b, 0) / deltas.length;
+      const varD = deltas.reduce((a, b) => a + (b - meanD) * (b - meanD), 0) / deltas.length;
+      const stdD = Math.sqrt(varD);
+      if (meanD > 0) cvPct = (stdD / meanD) * 100;
+    }
+    let corrSum = 0, corrCnt = 0;
+    anchors.forEach(a => {
+      let s1 = 0, s2 = 0, s11 = 0, s22 = 0, s12 = 0, cnt = 0;
+      for (let k = -halfL; k < halfR; k++) {
+        const pos = a + k;
+        if (pos >= 0 && pos < n) {
+          let slot = (k + halfL) % L; if (slot < 0) slot += L;
+          const v1 = residual[pos], v2 = idealWave[slot];
+          s1 += v1; s2 += v2; s11 += v1*v1; s22 += v2*v2; s12 += v1*v2; cnt++;
+        }
+      }
+      if (cnt > 5) {
+        const m1 = s1/cnt, m2 = s2/cnt;
+        const cov = s12/cnt - m1*m2;
+        const var1 = s11/cnt - m1*m1, var2 = s22/cnt - m2*m2;
+        const denom = Math.sqrt(var1*var2);
+        if (denom > 1e-9) { corrSum += cov/denom; corrCnt++; }
+      }
+    });
+    const waveConsistencyPct = corrCnt > 0 ? (corrSum/corrCnt) * 100 : null;
+    const cvScore = cvPct != null ? Math.max(0, 100 - cvPct) : null;
+    const waveScore = waveConsistencyPct != null ? Math.max(0, waveConsistencyPct) : null;
+    let healthScore = null;
+    if (cvScore != null && waveScore != null) healthScore = cvScore*0.5 + waveScore*0.5;
+    else if (cvScore != null) healthScore = cvScore;
+    else if (waveScore != null) healthScore = waveScore;
+
+    // 9) Pinta series históricas
+    const toPoints = (arr) => { const out = []; for (let i=0;i<arr.length;i++) if (isFinite(arr[i])) out.push({ time: times[i], value: arr[i] }); return out; };
+    inst.residualSeries.setData(toPoints(residual));
+    inst.ema1Series.setData(toPoints(ema1));
+    inst.ema2Series.setData(toPoints(ema2));
+    inst.ema3Series.setData(toPoints(ema3));
+    inst.bbUpperSeries.setData(toPoints(bbUpper));
+    inst.bbLowerSeries.setData(toPoints(bbLower));
+
+    // 10) Proyección futura
+    const lastTime = times[n-1];
+    const intervalSec = (INTERVAL_MS[inst.interval] || 60000) / 1000;
+    const hideForecast = healthScore != null && healthScore < 30;
+    const forecastPts = [{ time: lastTime, value: residual[n-1] }];
+    if (!hideForecast) {
+      for (let k = 1; k <= cfg.forecastBars; k++) {
+        const targetIdx = n - 1 + k;
+        let phase = (targetIdx - lastAnchor - bestShift) % L; if (phase < 0) phase += L;
+        forecastPts.push({ time: lastTime + k*intervalSec, value: idealWave[phase] + continuityOffset });
+      }
+    }
+    inst.forecastSeries.setData(hideForecast ? [] : forecastPts);
+
+    // 11) Panel de diagnóstico
+    if (inst.cycleDiagEl) {
+      const healthColor = healthScore == null ? 'var(--muted)' : (healthScore >= 70 ? 'var(--green)' : healthScore >= 40 ? 'var(--amber)' : 'var(--magenta)');
+      inst.cycleDiagEl.innerHTML = `
+        <div class="row"><span class="k">L</span><span>${L}${cfg.manualL > 0 ? ' (manual)' : ' (auto)'}</span></div>
+        <div class="row"><span class="k">Anclas</span><span>${anchors.length}</span></div>
+        <div class="row"><span class="k">Salud</span><span style="color:${healthColor};">${healthScore == null ? 'n/d' : healthScore.toFixed(0) + '%'}</span></div>
+        ${hideForecast ? '<div class="row"><span class="k">Forecast</span><span style="color:var(--magenta);">oculto</span></div>' : ''}
+      `;
+    }
   };
 
   // Calcula un volume profile (histograma de volumen por nivel de precio) para las velas
