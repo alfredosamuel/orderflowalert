@@ -92,22 +92,11 @@
 
   #chart-wrap{position:relative;border-right:1px solid var(--border);background:var(--bg);overflow:hidden;}
   #chart{width:100%;height:100%;}
+  #flowCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4;}
   .chart-legend{position:absolute;top:10px;left:10px;z-index:10;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:10px;pointer-events:none;display:none;gap:10px;}
   .chart-legend.show{display:flex;}
   .chart-legend span.k{color:var(--muted);}
   
-  /* FOOTPRINT ON CANDLE */
-  #liveFlowBox {
-    position: absolute; z-index: 4; pointer-events: none; display: none;
-    border-radius: 2px; padding: 1px; background: transparent; 
-    border-left: 2px solid var(--amber); font-size: 8px; font-family: 'JetBrains Mono', monospace;
-    overflow: hidden; flex-direction: column-reverse; justify-content: space-around;
-  }
-  .flow-row { display: flex; justify-content: space-between; gap: 4px; align-items: center; width: 100%; padding: 0 2px; }
-  .flow-buy { color: var(--green); font-weight: 700; opacity: 0.9; }
-  .flow-sell { color: var(--magenta); font-weight: 700; opacity: 0.9; }
-
-  /* ALARM DELETE X ON CHART */
   #chartDeleteAlarm {
     position: absolute; z-index: 6; display: none; width: 20px; height: 20px;
     background: var(--magenta); border-radius: 4px; cursor: pointer; color: #fff;
@@ -118,7 +107,6 @@
   .auto-scale-btn{position:absolute;right:70px;bottom:60px;z-index:10;width:28px;height:28px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:5px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;transition:.15s;}
   .auto-scale-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.2);}
 
-  /* SIDEBAR TABS LAYOUT */
   aside{background:var(--panel);display:flex;overflow:hidden;}
   .side-content{flex:1;overflow-y:auto;overflow-x:hidden;}
   .tab-nav{width:50px;border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding-top:15px;gap:10px;background:var(--bg-2);}
@@ -218,7 +206,7 @@
       <div class="logo-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg>
       </div>
-      <h1>CYCLE TERMINAL<span>v3.0 // Countdown & Tabs</span></h1>
+      <h1>CYCLE TERMINAL<span>v3.1 // Footprint Heatmap</span></h1>
     </div>
 
     <div class="asset-selector" id="assetSelector">
@@ -275,7 +263,7 @@
       <div><span class="k">L</span> <span id="lgL" style="color:var(--magenta);">--</span></div>
       <div><span class="k">C</span> <span id="lgC">--</span></div>
     </div>
-    <div id="liveFlowBox"></div>
+    <canvas id="flowCanvas"></canvas>
     <div id="chartDeleteAlarm">✕</div>
     <button type="button" class="auto-scale-btn" id="autoScaleBtn" title="Ajustar a la vista">A</button>
     <div id="chart"></div>
@@ -284,7 +272,6 @@
   <aside>
     <div class="side-content">
       
-      <!-- TAB 1: ORDER FLOW -->
       <div class="tab-panel active" id="tab-flow">
         <div class="side-section of-section">
           <div class="side-title">
@@ -315,7 +302,6 @@
         </div>
       </div>
 
-      <!-- TAB 2: ALARMS -->
       <div class="tab-panel" id="tab-alarms">
         <div class="side-section flex">
           <div class="side-title">
@@ -328,7 +314,6 @@
         </div>
       </div>
 
-      <!-- TAB 3: TELEGRAM -->
       <div class="tab-panel" id="tab-tg">
         <div class="side-section tg-section">
           <div class="side-title">
@@ -417,7 +402,7 @@ const state = {
   draggingAlarm: null,
   liveBuyVol: 0,
   liveSellVol: 0,
-  livePriceLevels: {},
+  candleFlows: {}, // Persistent flow data per candle time
   bucketSize: 1,
   lastMouseY: null,
 };
@@ -461,7 +446,7 @@ function initApp(){
   state.sma50Series = state.chart.addLineSeries({ color:'#a855f7', lineWidth:1.5, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
 
   state.chart.timeScale().subscribeVisibleTimeRangeChange(() => {
-    if(state.showFlow) updateFlowBoxPosition();
+    drawFlowCanvas();
   });
 
   state.chart.subscribeCrosshairMove(param => {
@@ -509,9 +494,9 @@ function initApp(){
       chartEl.style.cursor = 'default';
       delBtn.style.display = 'none';
     }
+    drawFlowCanvas(); // redraw flow in case of pan
   });
 
-  // Delete alarm button click
   document.getElementById('chartDeleteAlarm').addEventListener('click', () => {
     if(state.hoveredAlarm) {
       removeAlarm(state.hoveredAlarm.id);
@@ -520,7 +505,6 @@ function initApp(){
     }
   });
 
-  // Tab navigation
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -530,7 +514,6 @@ function initApp(){
     });
   });
 
-  // Countdown Timer
   setInterval(() => {
     if (!state.currentCandleCloseTime || !state.currentPriceLine) return;
     const msLeft = state.currentCandleCloseTime - Date.now();
@@ -569,7 +552,7 @@ function initApp(){
     if (state.hoveredAlarm) {
       state.draggingAlarm = state.hoveredAlarm;
       chartEl.style.cursor = 'grabbing';
-      document.getElementById('chartDeleteAlarm').style.display = 'none'; // hide X while dragging
+      document.getElementById('chartDeleteAlarm').style.display = 'none';
       e.preventDefault(); e.stopPropagation();
     }
   }, true);
@@ -606,13 +589,13 @@ function initApp(){
   document.getElementById('autoScaleBtn').addEventListener('click', () => {
     state.chart.timeScale().fitContent();
     state.chart.priceScale('right').applyOptions({ autoScale: true });
+    drawFlowCanvas();
   });
   
   document.getElementById('toggleFlow').addEventListener('click', () => {
     state.showFlow = !state.showFlow;
     document.getElementById('toggleFlow').classList.toggle('on', state.showFlow);
-    if(!state.showFlow) document.getElementById('liveFlowBox').style.display = 'none';
-    else updateFlowBoxPosition();
+    drawFlowCanvas();
   });
 
   document.getElementById('clearAllAlarmsBtn').addEventListener('click', () => {
@@ -621,6 +604,10 @@ function initApp(){
     renderAlarms();
     showToast('Alarmas eliminadas', `Se borraron todas las alarmas de ${state.asset.name}`, 'alarm');
   });
+
+  // Resize listener for canvas
+  const resizeObserver = new ResizeObserver(() => drawFlowCanvas());
+  resizeObserver.observe(chartEl);
 
   async function loadHistoryYahoo(symbol, interval){
     const yInt = interval === '1h' ? '60m' : interval === '1d' ? '1d' : interval === '1w' ? '1wk' : (interval === '4h' ? '60m' : interval);
@@ -665,6 +652,12 @@ function initApp(){
       updateSMA();
       state.chart.timeScale().fitContent();
 
+      // Clear old flow data on asset/interval switch
+      state.candleFlows = {};
+      state.liveBuyVol = 0;
+      state.liveSellVol = 0;
+      updateOrderFlowUI();
+
       if(data.candles.length){
         state.lastPrice = data.candles[data.candles.length-1].close;
         state.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null;
@@ -676,6 +669,7 @@ function initApp(){
         updatePriceDisplay(state.lastPrice, null);
       }
       setStatus('live', 'LIVE');
+      drawFlowCanvas();
     } catch(e){
       setStatus('err', 'ERROR');
       console.error(e);
@@ -732,8 +726,6 @@ function initApp(){
 
   function connectBinanceWS(symbol, interval){
     if(state.ws){ try{ state.ws.onclose = null; state.ws.close(); }catch(e){} }
-    state.liveBuyVol = 0; state.liveSellVol = 0; state.livePriceLevels = {};
-    updateOrderFlowUI(); updateFlowBoxContent();
     
     const wsUrl = `wss://stream.binance.com:9443/stream?streams=${symbol.toLowerCase()}@kline_${interval}/${symbol.toLowerCase()}@aggTrade`;
     const ws = new WebSocket(wsUrl);
@@ -765,17 +757,18 @@ function initApp(){
         state.prevPrice = state.lastPrice;
         state.lastPrice = candle.close;
         state.lastCandleTime = candle.time;
-        state.currentCandleCloseTime = k.T + INTERVAL_MS[interval]; // k.T is start time
+        state.currentCandleCloseTime = k.T + INTERVAL_MS[interval];
         state.currentCandleHigh = candle.high;
         state.currentCandleLow = candle.low;
         updatePriceDisplay(candle.close, state.prevPrice);
         if(state.prevPrice !== null) checkAlarms(candle.close, state.prevPrice);
 
-        if(k.x) {
-          state.liveBuyVol = 0; state.liveSellVol = 0; state.livePriceLevels = {};
+        if(k.x) { // Candle closed
+          state.liveBuyVol = 0; state.liveSellVol = 0;
+          // Keep the flow data in state.candleFlows, don't delete it!
         }
         updateOrderFlowUI(); 
-        updateFlowBoxContent();
+        drawFlowCanvas();
       }
       
       if(stream.includes('@aggTrade')){
@@ -783,26 +776,29 @@ function initApp(){
         const vol = parseFloat(data.q);
         const bucket = Math.floor(price / state.bucketSize) * state.bucketSize;
         
-        if(!state.livePriceLevels[bucket]) state.livePriceLevels[bucket] = { buy: 0, sell: 0 };
+        const time = state.lastCandleTime;
+        if(!state.candleFlows[time]) state.candleFlows[time] = { levels: {}, maxVol: 0 };
         
-        if(data.m) {
+        if(!state.candleFlows[time].levels[bucket]) state.candleFlows[time].levels[bucket] = { buy: 0, sell: 0 };
+        
+        if(data.m) { // Seller is maker
           state.liveSellVol += vol;
-          state.livePriceLevels[bucket].sell += vol;
+          state.candleFlows[time].levels[bucket].sell += vol;
+          state.candleFlows[time].maxVol = Math.max(state.candleFlows[time].maxVol, state.candleFlows[time].levels[bucket].sell);
         } else {
           state.liveBuyVol += vol;
-          state.livePriceLevels[bucket].buy += vol;
+          state.candleFlows[time].levels[bucket].buy += vol;
+          state.candleFlows[time].maxVol = Math.max(state.candleFlows[time].maxVol, state.candleFlows[time].levels[bucket].buy);
         }
         
         updateOrderFlowUI();
-        updateFlowBoxContent();
+        drawFlowCanvas();
       }
     };
   }
 
   function startYahooPolling(symbol, interval){
     if(state.pollTimer) clearInterval(state.pollTimer);
-    state.liveBuyVol = 0; state.liveSellVol = 0; state.livePriceLevels = {};
-    updateOrderFlowUI(); updateFlowBoxContent();
     
     state.pollTimer = setInterval(async () => {
       try {
@@ -857,62 +853,75 @@ function initApp(){
     document.getElementById('ofSellVol').textContent = fmtNum(state.liveSellVol);
   }
 
-  function updateFlowBoxContent() {
-    const box = document.getElementById('liveFlowBox');
-    if(!state.showFlow || state.asset.src !== 'binance') {
-      box.style.display = 'none';
-      return;
+  function drawFlowCanvas() {
+    const canvas = document.getElementById('flowCanvas');
+    const ctx = canvas.getContext('2d');
+    const chartEl = document.getElementById('chart');
+    
+    if (canvas.width !== chartEl.clientWidth || canvas.height !== chartEl.clientHeight) {
+      canvas.width = chartEl.clientWidth;
+      canvas.height = chartEl.clientHeight;
     }
-    
-    let levels = Object.entries(state.livePriceLevels).map(([k, v]) => ({price: parseFloat(k), ...v}));
-    if(levels.length === 0) {
-      box.style.display = 'none';
-      return;
-    }
-    
-    levels = levels.filter(l => l.price >= state.currentCandleLow && l.price <= state.currentCandleHigh);
-    if(levels.length === 0) {
-        box.style.display = 'none';
-        return;
-    }
-    
-    levels.sort((a, b) => a.price - b.price);
-    
-    let html = '';
-    levels.forEach(l => {
-      html += `<div class="flow-row">
-                 <span class="flow-buy">${fmtNum(l.buy)}</span>
-                 <span class="flow-sell">${fmtNum(l.sell)}</span>
-               </div>`;
-    });
-    box.innerHTML = html;
-    updateFlowBoxPosition();
-  }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  function updateFlowBoxPosition() {
-    const box = document.getElementById('liveFlowBox');
-    if(!state.showFlow || box.innerHTML === '' || !state.lastCandleTime || !state.currentCandleHigh || !state.currentCandleLow) {
-      box.style.display = 'none';
-      return;
-    }
-    
-    const timeCoord = state.chart.timeScale().timeToCoordinate(state.lastCandleTime);
-    if(timeCoord === null) {
-      box.style.display = 'none';
-      return;
-    }
-    
-    const highCoord = state.candleSeries.priceToCoordinate(state.currentCandleHigh);
-    const lowCoord = state.candleSeries.priceToCoordinate(state.currentCandleLow);
-    
-    if(highCoord !== null && lowCoord !== null) {
-      box.style.display = 'flex';
-      box.style.flexDirection = 'column-reverse';
-      box.style.left = timeCoord + 'px';
-      box.style.top = Math.min(highCoord, lowCoord) + 'px';
-      box.style.height = Math.abs(highCoord - lowCoord) + 'px';
-      box.style.width = '60px'; 
-    }
+    if (!state.showFlow || state.asset.src !== 'binance' || !state.lastCandles.length) return;
+
+    const barWidth = 10;
+    const timeScale = state.chart.timeScale();
+    const visibleRange = timeScale.getVisibleRange();
+    if(!visibleRange) return;
+
+    const visibleCandles = state.lastCandles.filter(c => c.time >= visibleRange.from && c.time <= visibleRange.to);
+
+    visibleCandles.forEach(candle => {
+      const flow = state.candleFlows[candle.time];
+      if (!flow) return;
+
+      const x = timeScale.timeToCoordinate(candle.time);
+      if (x === null) return;
+
+      const maxVol = flow.maxVol || 1;
+
+      const levels = Object.entries(flow.levels).map(([k, v]) => ({ price: parseFloat(k), ...v }));
+      levels.sort((a, b) => a.price - b.price);
+
+      levels.forEach(l => {
+        if (l.price < candle.low || l.price > candle.high) return;
+        
+        const y = state.candleSeries.priceToCoordinate(l.price);
+        if (y === null) return;
+
+        const buyRatio = l.buy / maxVol;
+        const sellRatio = l.sell / maxVol;
+
+        // Draw Buy (Left)
+        if (l.buy > 0) {
+          ctx.fillStyle = `rgba(57, 255, 136, ${0.15 + buyRatio * 0.7})`;
+          ctx.fillRect(x - (buyRatio * barWidth / 2), y - 3, buyRatio * barWidth / 2, 6);
+        }
+
+        // Draw Sell (Right)
+        if (l.sell > 0) {
+          ctx.fillStyle = `rgba(255, 46, 136, ${0.15 + sellRatio * 0.7})`;
+          ctx.fillRect(x, y - 3, sellRatio * barWidth / 2, 6);
+        }
+
+        // Draw Text (only if significant)
+        ctx.font = "7px 'JetBrains Mono', monospace";
+        ctx.textBaseline = "middle";
+        
+        if (buyRatio > 0.3) {
+          ctx.fillStyle = `rgba(220, 255, 230, 1)`;
+          ctx.textAlign = "right";
+          ctx.fillText(fmtNum(l.buy), x - (barWidth / 2) - 2, y);
+        }
+        if (sellRatio > 0.3) {
+          ctx.fillStyle = `rgba(255, 220, 230, 1)`;
+          ctx.textAlign = "left";
+          ctx.fillText(fmtNum(l.sell), x + (barWidth / 2) + 2, y);
+        }
+      });
+    });
   }
 
   function setStatus(cls, text){
