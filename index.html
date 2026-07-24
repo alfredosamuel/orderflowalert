@@ -3,127 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor de Orderflow y Alertas</title>
+    <title>Gráfico BTC 5m y Alertas</title>
+    <!-- Importamos la librería Lightweight Charts desde un CDN -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            text-align: center;
-            padding: 40px;
+            background-color: #111111;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
-        .container {
-            background-color: #1e293b;
-            padding: 30px;
-            border-radius: 12px;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-width: 400px;
-            width: 100%;
+
+        #header {
+            background-color: #1e1e1e;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
         }
-        #price {
-            font-size: 42px;
+
+        #ticker-info {
+            display: flex;
+            gap: 20px;
+            align-items: baseline;
+        }
+
+        #current-price {
+            font-size: 24px;
             font-weight: bold;
             color: #38bdf8;
-            margin: 15px 0;
         }
-        input, button {
-            padding: 12px;
-            margin: 8px 0;
-            font-size: 16px;
-            border-radius: 6px;
-            border: none;
-            width: 90%;
+
+        .alert-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
+
         input {
-            background-color: #334155;
-            color: #fff;
-            text-align: center;
+            padding: 6px;
+            background-color: #333;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 4px;
+            width: 100px;
         }
+
         button {
+            padding: 6px 12px;
             background-color: #10b981;
             color: white;
-            font-weight: bold;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            transition: background 0.2s;
         }
-        button:hover {
-            background-color: #059669;
-        }
+        button:hover { background-color: #059669; }
+
         #status {
-            margin-top: 15px;
-            font-size: 14px;
+            font-size: 12px;
             color: #94a3b8;
+            margin-left: 10px;
         }
-        .alert-triggered {
-            color: #f43f5e !important;
-            animation: pulse 1s infinite;
+
+        /* Contenedor del gráfico */
+        #chart-container {
+            flex-grow: 1; /* Ocupa el resto de la pantalla */
+            position: relative;
         }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
+
+        /* Estilo de alerta visual */
+        .alert-flash {
+            animation: flash 1s infinite;
         }
+        @keyframes flash { 0% { background-color: rgba(244, 63, 94, 0.3); } 100% { background-color: transparent; } }
+
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Monitor BTC / USDT</h2>
-        <div id="price">Conectando...</div>
-        
-        <div>
-            <label for="targetPrice">Meta de Precio para Alerta:</label><br>
-            <input type="number" id="targetPrice" placeholder="Ej: 95000">
-            <br>
-            <button onclick="activarAlerta()">Fijar Meta</button>
+    <div id="header">
+        <div id="ticker-info">
+            <h2>BTC / USDT (5m)</h2>
+            <div id="current-price">Conectando...</div>
         </div>
-        
-        <div id="status">Sin alerta configurada</div>
+        <div class="alert-container">
+            <label for="targetPrice">Alerta Precio:</label>
+            <input type="number" id="targetPrice" placeholder="Ej: 98000">
+            <button onclick="fijarAlerta()">Fijar</button>
+            <span id="status">Inactiva</span>
+        </div>
     </div>
 
+    <!-- Div donde se dibujará el gráfico -->
+    <div id="chart-container"></div>
+
     <script>
+        // --- Configuración del Gráfico ---
+        const chartContainer = document.getElementById('chart-container');
+        
+        // Crear el gráfico con tema oscuro
+        const chart = LightweightCharts.createChart(chartContainer, {
+            layout: {
+                background: { type: 'solid', color: '#111111' },
+                textColor: '#d1d4dc',
+            },
+            grid: {
+                vertLines: { color: '#2B2B43' },
+                horzLines: { color: '#2B2B43' },
+            },
+            timeScale: {
+                timeVisible: true,
+                secondsVisible: false,
+            },
+            rightPriceScale: {
+                borderColor: '#555',
+            },
+        });
+
+        // Añadir la serie de velas (Candlestick Series)
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: '#26a69a', downColor: '#ef5350',
+            borderUpColor: '#26a69a', borderDownColor: '#ef5350',
+            wickUpColor: '#26a69a', wickDownColor: '#ef5350',
+        });
+
+        // Ajustar el tamaño del gráfico al redimensionar la ventana
+        window.addEventListener('resize', () => {
+            chart.applyOptions({ width: chartContainer.clientWidth, height: chartContainer.clientHeight });
+        });
+        // Forzar ajuste inicial
+        chart.applyOptions({ width: chartContainer.clientWidth, height: chartContainer.clientHeight });
+
+        // --- Lógica de Datos y Velas 5m ---
+        // Usaremos una estructura para guardar la vela actual que se está formando
+        let currentBar = null;
+        let lastTradePrice = 0;
+        const TIMEFRAME_MINUTES = 5;
+
+        // Función para redondear el tiempo al inicio del bloque de 5m (ej: 10:00, 10:05, etc.)
+        function flattenTime(time) {
+            // Multiplicar por 1000 para pasar de segundos a milisegundos JS
+            const date = new Date(time * 1000);
+            const minutes = date.getMinutes();
+            const resto = minutes % TIMEFRAME_MINUTES;
+            date.setMinutes(minutes - resto, 0, 0);
+            // Volver a segundos para la librería
+            return Math.floor(date.getTime() / 1000);
+        }
+
+        // --- Conexión WebSocket Binance ---
+        // Usamos el stream de trades agregados para mayor eficiencia
+        const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@aggTrade');
+
+        ws.onopen = () => {
+            console.log("Conectado a Binance Aggregated Trades");
+            document.getElementById('current-price').innerText = "Esperando primer tick...";
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const price = parseFloat(data.p); // Precio del trade
+            const tradeTime = data.T; // Tiempo del trade en milisegundos (importante)
+            
+            lastTradePrice = price;
+
+            // Actualizar interfaz de precio superior
+            const priceElement = document.getElementById('current-price');
+            priceElement.innerText = "$" + price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            // --- Lógica de agregación de velas 5m ---
+            const eventTimeSeconds = Math.floor(tradeTime / 1000);
+            const barTime = flattenTime(eventTimeSeconds);
+
+            if (currentBar === null || barTime > currentBar.time) {
+                // --- Iniciar una nueva vela ---
+                // Si ya teníamos una vela anterior, la "cerramos" implícitamente al empezar una nueva
+                // La librería Lightweight Charts maneja esto automáticamente si la nueva barra tiene un tiempo mayor.
+                
+                currentBar = {
+                    time: barTime,
+                    open: price,
+                    high: price,
+                    low: price,
+                    close: price
+                };
+            } else {
+                // --- Actualizar la vela existente ---
+                currentBar.high = Math.max(currentBar.high, price);
+                currentBar.low = Math.min(currentBar.low, price);
+                currentBar.close = price;
+            }
+
+            // Enviar la vela actualizada al gráfico
+            candleSeries.update(currentBar);
+
+            // Verificar alerta
+            verificarAlerta(price);
+        };
+
+        ws.onerror = (error) => {
+            console.error("Error WebSocket:", error);
+            document.getElementById('current-price').innerText = "Error de conexión";
+        };
+
+        // --- Lógica de Alertas ---
         let metaPrecio = null;
         let alertaSonada = false;
 
-        function activarAlerta() {
+        function fijarAlerta() {
             const inputVal = document.getElementById('targetPrice').value;
             if (!inputVal) return;
             
             metaPrecio = parseFloat(inputVal);
             alertaSonada = false;
-            document.getElementById('status').innerText = "✅ Alerta activa en: $" + metaPrecio;
-            document.getElementById('status').style.color = "#38bdf8";
+            const statusEl = document.getElementById('status');
+            statusEl.innerText = "✅ $" + metaPrecio;
+            statusEl.style.color = "#38bdf8";
+            document.body.classList.remove('alert-flash');
+            console.log("Alerta fijada en:", metaPrecio);
         }
 
-        // Conexión en tiempo real con el WebSocket público de Binance
-        const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
-
-        ws.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            const precioActual = parseFloat(data.p);
-
-            // Actualizar interfaz visual
-            const priceElement = document.getElementById('price');
-            priceElement.innerText = "$" + precioActual.toLocaleString('en-US', {minimumFractionDigits: 2});
-
-            // Verificar si se alcanzó la meta
+        function verificarAlerta(precioActual) {
             if (metaPrecio !== null && !alertaSonada) {
+                // Alerta si el precio cruza la meta (hacia arriba o abajo)
                 if (precioActual >= metaPrecio) {
                     alertaSonada = true;
-                    document.getElementById('status').innerText = "🚨 ¡META ALCANZADA! Precio: $" + precioActual;
-                    document.getElementById('status').className = "alert-triggered";
+                    document.getElementById('status').innerText = "🚨 ¡ALCANZADA! $" + precioActual;
+                    document.body.classList.add('alert-flash'); // Efecto visual
                     
-                    // Alerta nativa del navegador y sonido opcional
-                    alert("¡Alerta! El precio alcanzó tu meta: $" + precioActual);
+                    alert("¡ALERTA! BTC ha alcanzado tu meta de $" + precioActual);
+                    // Opcional: reproducir sonido
+                    // new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
                 }
             }
-        };
-
-        ws.onerror = function(error) {
-            document.getElementById('price').innerText = "Error de conexión";
-        };
+        }
     </script>
-
 </body>
 </html>
