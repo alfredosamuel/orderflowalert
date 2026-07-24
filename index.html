@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CYCLE TERMINAL // Multi-Asset Flow</title>
+<title>CYCLE TERMINAL // Flow & Alarms</title>
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <script>
   window.addEventListener('error', function loadFallback(e){
@@ -80,6 +80,7 @@
   .toggle-group{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);}
   .toggle{position:relative;width:30px;height:16px;background:rgba(255,255,255,.08);border-radius:8px;cursor:pointer;transition:.2s;flex-shrink:0;}
   .toggle.on{background:var(--cyan);}
+  .toggle.on.amber{background:var(--amber);}
   .toggle::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:.2s;}
   .toggle.on::after{transform:translateX(14px);}
   .color-chip{width:10px;height:10px;border-radius:2px;}
@@ -95,6 +96,21 @@
   .chart-legend.show{display:flex;}
   .chart-legend span.k{color:var(--muted);}
   
+  /* LIVE ORDER FLOW FOOTPRINT BOX */
+  #liveFlowBox {
+    position: absolute; z-index: 5; pointer-events: none; display: none;
+    background: rgba(7,10,16,0.92); border: 1px solid var(--amber);
+    border-radius: 4px; padding: 6px; font-size: 9px; font-family: 'JetBrains Mono', monospace;
+    min-width: 130px; box-shadow: 0 4px 15px rgba(255, 176, 32, 0.2);
+  }
+  .flow-row { display: flex; justify-content: space-between; gap: 8px; margin: 1px 0; align-items: center; }
+  .flow-price { color: var(--muted); min-width: 45px; text-align: right; }
+  .flow-buy { color: var(--green); min-width: 40px; text-align: right; padding: 1px 4px; border-radius: 2px; }
+  .flow-sell { color: var(--magenta); min-width: 40px; text-align: right; padding: 1px 4px; border-radius: 2px; }
+  .flow-header { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 2px; margin-bottom: 4px; font-weight: bold; color: var(--text); font-size: 8px; text-transform: uppercase; letter-spacing: 1px;}
+  .flow-header span { min-width: 45px; text-align: right;}
+  .flow-header span:nth-child(2), .flow-header span:nth-child(3) { min-width: 40px; }
+
   .auto-scale-btn{position:absolute;right:70px;bottom:60px;z-index:10;width:28px;height:28px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:5px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;transition:.15s;}
   .auto-scale-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.2);}
 
@@ -186,7 +202,7 @@
       <div class="logo-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg>
       </div>
-      <h1>CYCLE TERMINAL<span>v2.1 // Alt+A Alarm System</span></h1>
+      <h1>CYCLE TERMINAL<span>v2.2 // Footprint Flow</span></h1>
     </div>
 
     <div class="asset-selector" id="assetSelector">
@@ -229,6 +245,7 @@
     <div class="toolbar-sep"></div>
     <div class="toggle-group"><div class="color-chip" style="background:var(--cyan);"></div><span>SMA20</span><div class="toggle on" id="toggleSMA20"></div></div>
     <div class="toggle-group"><div class="color-chip" style="background:var(--purple);"></div><span>SMA50</span><div class="toggle on" id="toggleSMA50"></div></div>
+    <div class="toggle-group"><div class="color-chip" style="background:var(--amber);"></div><span>OrderFlow</span><div class="toggle on amber" id="toggleFlow"></div></div>
     <div class="toolbar-right">
       <div class="alt-a-hint">ALT + A = Alarma</div>
       <button type="button" class="icon-btn" id="refreshBtn" title="Recargar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
@@ -242,16 +259,16 @@
       <div><span class="k">L</span> <span id="lgL" style="color:var(--magenta);">--</span></div>
       <div><span class="k">C</span> <span id="lgC">--</span></div>
     </div>
+    <div id="liveFlowBox"></div>
     <button type="button" class="auto-scale-btn" id="autoScaleBtn" title="Ajustar a la vista">A</button>
     <div id="chart"></div>
   </div>
 
   <aside>
-    <!-- ORDER FLOW -->
     <div class="side-section of-section">
       <div class="side-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 12h4l3-9 3 18 3-9h2"/></svg>
-        Order Flow (Vela Actual)
+        Totales Vela Actual
       </div>
       <div class="of-bar-container">
         <div class="of-bar-buy" id="ofBuyBar" style="width:50%;">0%</div>
@@ -263,7 +280,6 @@
       </div>
     </div>
 
-    <!-- TELEGRAM SETTINGS -->
     <div class="side-section tg-section">
       <div class="side-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
@@ -277,7 +293,6 @@
       </div>
     </div>
 
-    <!-- ALARM LIST -->
     <div class="side-section flex">
       <div class="side-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -287,7 +302,6 @@
       <div class="alarm-scroll" id="alarmList"><div class="empty">Pon el mouse en el gráfico y presiona Alt+A</div></div>
     </div>
 
-    <!-- STATS 24H -->
     <div class="side-section">
       <div class="side-title">Stats 24h</div>
       <div class="stat-grid">
@@ -298,7 +312,6 @@
       </div>
     </div>
 
-    <!-- LOG -->
     <div class="side-section" style="max-height:170px;display:flex;flex-direction:column;">
       <div class="side-title">Historial</div>
       <div class="log-scroll" id="logList"><div class="empty">sin eventos aún</div></div>
@@ -350,8 +363,10 @@ const state = {
   lastPrice: null,
   prevPrice: null,
   lastCandles: [],
+  lastCandleTime: null,
   showSMA20: true,
   showSMA50: true,
+  showFlow: true,
   alarms: [],
   audioCtx: null,
   tgToken: localStorage.getItem('tg_token') || '',
@@ -360,6 +375,8 @@ const state = {
   draggingAlarm: null,
   liveBuyVol: 0,
   liveSellVol: 0,
+  livePriceLevels: {}, // For Footprint DOM
+  bucketSize: 1,
   lastMouseY: null,
 };
 
@@ -401,6 +418,11 @@ function initApp(){
   state.sma20Series = state.chart.addLineSeries({ color:'#00e5ff', lineWidth:1.5, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
   state.sma50Series = state.chart.addLineSeries({ color:'#a855f7', lineWidth:1.5, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
 
+  // Update Flow Box position on chart pan/zoom
+  state.chart.timeScale().subscribeVisibleTimeRangeChange(() => {
+    if(state.showFlow) updateFlowBoxPosition();
+  });
+
   state.chart.subscribeCrosshairMove(param => {
     const legend = document.getElementById('chartLegend');
     if (state.draggingAlarm) return;
@@ -433,7 +455,6 @@ function initApp(){
     if (!state.draggingAlarm) chartEl.style.cursor = foundHover ? 'ns-resize' : 'default';
   });
 
-  // Alt + A Event Listener
   window.addEventListener('keydown', (e) => {
     if(e.altKey && e.key.toLowerCase() === 'a') {
       if(state.lastMouseY !== null) {
@@ -473,7 +494,6 @@ function initApp(){
       const newPrice = state.candleSeries.coordinateToPrice(y);
       if (newPrice && newPrice > 0) {
         state.draggingAlarm.price = newPrice;
-        // Reactivar si estaba disparada
         state.draggingAlarm.triggered = false;
         state.draggingAlarm.triggeredAt = null;
         syncAlarmPriceLines();
@@ -491,8 +511,12 @@ function initApp(){
     }
   });
 
-  document.getElementById('autoScaleBtn').addEventListener('click', () => {
-    state.chart.timeScale().fitContent();
+  document.getElementById('autoScaleBtn').addEventListener('click', () => state.chart.timeScale().fitContent());
+  document.getElementById('toggleFlow').addEventListener('click', () => {
+    state.showFlow = !state.showFlow;
+    document.getElementById('toggleFlow').classList.toggle('on', state.showFlow);
+    if(!state.showFlow) document.getElementById('liveFlowBox').style.display = 'none';
+    else updateFlowBoxPosition();
   });
 
   async function loadHistoryBinance(symbol, interval){
@@ -541,6 +565,9 @@ function initApp(){
       if(data.candles.length){
         state.lastPrice = data.candles[data.candles.length-1].close;
         state.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null;
+        state.lastCandleTime = data.candles[data.candles.length-1].time;
+        // Calculate bucket size dynamically based on price
+        state.bucketSize = state.lastPrice > 1000 ? 1 : state.lastPrice > 50 ? 0.1 : 0.001;
         updatePriceDisplay(state.lastPrice, null);
       }
       setStatus('live', 'LIVE');
@@ -600,7 +627,8 @@ function initApp(){
 
   function connectBinanceWS(symbol, interval){
     if(state.ws){ try{ state.ws.onclose = null; state.ws.close(); }catch(e){} }
-    state.liveBuyVol = 0; state.liveSellVol = 0; updateOrderFlowUI();
+    state.liveBuyVol = 0; state.liveSellVol = 0; state.livePriceLevels = {};
+    updateOrderFlowUI(); updateFlowBoxContent();
     
     const wsUrl = `wss://stream.binance.com:9443/stream?streams=${symbol.toLowerCase()}@kline_${interval}/${symbol.toLowerCase()}@aggTrade`;
     const ws = new WebSocket(wsUrl);
@@ -631,27 +659,41 @@ function initApp(){
 
         state.prevPrice = state.lastPrice;
         state.lastPrice = candle.close;
+        state.lastCandleTime = candle.time;
         updatePriceDisplay(candle.close, state.prevPrice);
-        
-        // Check cross alarm
-        if(state.prevPrice !== null) {
-          checkAlarms(candle.close, state.prevPrice);
-        }
+        if(state.prevPrice !== null) checkAlarms(candle.close, state.prevPrice);
 
-        if(k.x) { state.liveBuyVol = 0; state.liveSellVol = 0; updateOrderFlowUI(); }
+        if(k.x) { // Candle closed
+          state.liveBuyVol = 0; state.liveSellVol = 0; state.livePriceLevels = {};
+          updateOrderFlowUI(); updateFlowBoxContent();
+        }
       }
       
       if(stream.includes('@aggTrade')){
-        if(data.m) state.liveSellVol += parseFloat(data.q);
-        else state.liveBuyVol += parseFloat(data.q);
+        const price = parseFloat(data.p);
+        const vol = parseFloat(data.q);
+        const bucket = Math.floor(price / state.bucketSize) * state.bucketSize;
+        
+        if(!state.livePriceLevels[bucket]) state.livePriceLevels[bucket] = { buy: 0, sell: 0 };
+        
+        if(data.m) { // Seller is maker
+          state.liveSellVol += vol;
+          state.livePriceLevels[bucket].sell += vol;
+        } else {
+          state.liveBuyVol += vol;
+          state.livePriceLevels[bucket].buy += vol;
+        }
+        
         updateOrderFlowUI();
+        updateFlowBoxContent();
       }
     };
   }
 
   function startYahooPolling(symbol, interval){
     if(state.pollTimer) clearInterval(state.pollTimer);
-    state.liveBuyVol = 0; state.liveSellVol = 0; updateOrderFlowUI();
+    state.liveBuyVol = 0; state.liveSellVol = 0; state.livePriceLevels = {};
+    updateOrderFlowUI(); updateFlowBoxContent();
     
     state.pollTimer = setInterval(async () => {
       try {
@@ -681,10 +723,9 @@ function initApp(){
 
         state.prevPrice = state.lastPrice;
         state.lastPrice = q.close[ts.length-1];
+        state.lastCandleTime = ts[ts.length-1];
         updatePriceDisplay(state.lastPrice, state.prevPrice);
-        if(state.prevPrice !== null) {
-          checkAlarms(state.lastPrice, state.prevPrice);
-        }
+        if(state.prevPrice !== null) checkAlarms(state.lastPrice, state.prevPrice);
       } catch(e){ console.error(e); }
     }, 10000);
   }
@@ -702,6 +743,64 @@ function initApp(){
     document.getElementById('ofSellBar').textContent = total > 0 ? sellPct.toFixed(1) + '%' : '';
     document.getElementById('ofBuyVol').textContent = fmtNum(state.liveBuyVol);
     document.getElementById('ofSellVol').textContent = fmtNum(state.liveSellVol);
+  }
+
+  function updateFlowBoxContent() {
+    const box = document.getElementById('liveFlowBox');
+    if(!state.showFlow || state.asset.src !== 'binance') {
+      box.style.display = 'none';
+      return;
+    }
+    
+    const levels = Object.entries(state.livePriceLevels).map(([k, v]) => ({price: parseFloat(k), ...v}));
+    if(levels.length === 0) {
+      box.style.display = 'none';
+      return;
+    }
+    levels.sort((a, b) => b.price - a.price);
+    
+    const maxLevels = levels.slice(0, 12);
+    const maxBuy = Math.max(...maxLevels.map(l => l.buy), 0.0001);
+    const maxSell = Math.max(...maxLevels.map(l => l.sell), 0.0001);
+    
+    let html = '<div class="flow-header"><span>Price</span><span>Buy</span><span>Sell</span></div>';
+    maxLevels.forEach(l => {
+      const buyPct = (l.buy / maxBuy * 100).toFixed(0);
+      const sellPct = (l.sell / maxSell * 100).toFixed(0);
+      html += `<div class="flow-row">
+                 <span class="flow-price">${fmt(l.price)}</span>
+                 <span class="flow-buy" style="background: linear-gradient(90deg, rgba(57,255,136,0.2) ${buyPct}%, transparent ${buyPct}%);">${fmtNum(l.buy)}</span>
+                 <span class="flow-sell" style="background: linear-gradient(270deg, rgba(255,46,136,0.2) ${sellPct}%, transparent ${sellPct}%);">${fmtNum(l.sell)}</span>
+               </div>`;
+    });
+    box.innerHTML = html;
+    updateFlowBoxPosition();
+  }
+
+  function updateFlowBoxPosition() {
+    const box = document.getElementById('liveFlowBox');
+    if(!state.showFlow || box.innerHTML === '' || !state.lastCandleTime) {
+      box.style.display = 'none';
+      return;
+    }
+    
+    const timeCoord = state.chart.timeScale().timeToCoordinate(state.lastCandleTime);
+    if(timeCoord === null) {
+      box.style.display = 'none';
+      return;
+    }
+    
+    box.style.display = 'block';
+    box.style.left = (timeCoord + 15) + 'px'; 
+    
+    const priceCoord = state.candleSeries.priceToCoordinate(state.lastPrice);
+    if(priceCoord !== null) {
+      let top = priceCoord - box.offsetHeight / 2;
+      const chartEl = document.getElementById('chart');
+      if(top < 10) top = 10; 
+      if(top + box.offsetHeight > chartEl.clientHeight - 10) top = chartEl.clientHeight - box.offsetHeight - 10;
+      box.style.top = top + 'px';
+    }
   }
 
   function setStatus(cls, text){
@@ -786,18 +885,13 @@ function initApp(){
     let changed = false;
     state.alarms.forEach(a => {
       if(a.symbol !== state.symbol || a.triggered) return;
-      
-      // Cross logic: previous was below, current is above OR previous was above, current is below
       const crossed = (previousPrice <= a.price && currentPrice > a.price) || 
                       (previousPrice >= a.price && currentPrice < a.price);
-                      
       if(crossed){
         a.triggered = true;
         a.triggeredAt = Date.now();
         changed = true;
         fireAlarm(a, currentPrice);
-        
-        // Auto-remove after 3 seconds to keep chart clean
         setTimeout(() => {
           state.alarms = state.alarms.filter(x => x.id !== a.id);
           saveAlarms();
@@ -829,18 +923,13 @@ function initApp(){
   }
 
   async function sendTelegram(alarm, price){
-    // Usamos texto plano sin Markdown para evitar errores de parseo de Telegram
     const msg = `🚨 ALARM TRIGGERED\n\nAsset: ${alarm.assetName}\nPrice Crossed: $${fmt(alarm.price)}\nCurrent Price: $${fmt(price)}`;
     const url = `https://api.telegram.org/bot${state.tgToken}/sendMessage`;
-    
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: state.tgChatId,
-                text: msg
-            })
+            body: JSON.stringify({ chat_id: state.tgChatId, text: msg })
         });
         const data = await response.json();
         if(!data.ok) {
