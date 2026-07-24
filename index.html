@@ -112,10 +112,19 @@
   .draw-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;}
   .draw-canvas.active{pointer-events:auto;cursor:crosshair;}
   
-  .live-flow-box { position: absolute; z-index: 4; pointer-events: none; display: none; border-radius: 2px; padding: 1px; background: rgba(7,10,16,0.7); border-left: 2px solid var(--amber); font-size: 8px; font-family: 'JetBrains Mono', monospace; overflow: hidden; flex-direction: column-reverse; justify-content: space-around; min-width: 60px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-  .flow-row { display: flex; justify-content: space-between; gap: 2px; align-items: center; width: 100%; padding: 0 2px; }
-  .flow-buy { color: var(--green); font-weight: 700; opacity: 0.9; text-align: right; flex: 1; }
-  .flow-sell { color: var(--magenta); font-weight: 700; opacity: 0.9; text-align: left; flex: 1; }
+  .live-flow-box { position: absolute; z-index: 4; pointer-events: none; display: none; flex-direction: column-reverse; justify-content: space-around; background: rgba(7,10,16,0.6); border-radius: 3px; padding: 1px 2px; font-family: 'JetBrains Mono', monospace; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.35); }
+  .flow-row { position: relative; display: flex; align-items: center; width: 100%; height: 13px; flex-shrink: 0; }
+  .flow-row.flow-poc { background: rgba(255,176,32,0.08); border-radius: 2px; }
+  .flow-half { flex: 1; display: flex; align-items: center; height: 100%; min-width: 0; overflow: hidden; }
+  .flow-half-sell { justify-content: flex-end; }
+  .flow-half-buy { justify-content: flex-start; }
+  .flow-center-line { width: 1px; align-self: stretch; background: rgba(255,255,255,.2); flex-shrink: 0; }
+  .flow-bar { height: 9px; border-radius: 2px; flex-shrink: 0; min-width: 2px; }
+  .flow-bar-sell { background: rgba(255,46,136,.8); margin-left: 3px; }
+  .flow-bar-buy { background: rgba(57,255,136,.8); margin-right: 3px; }
+  .flow-val { font-size: 8px; font-weight: 700; white-space: nowrap; padding: 0 2px; flex-shrink: 0; }
+  .flow-val.sell { color: var(--magenta); }
+  .flow-val.buy { color: var(--green); }
 
   .auto-scale-btn{position:absolute;right:8px;bottom:30px;z-index:10;width:24px;height:24px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:4px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;transition:.15s;}
   .auto-scale-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.2);}
@@ -223,7 +232,7 @@
   <header>
     <div class="logo">
       <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg></div>
-      <h1>CYCLE TERMINAL<span>v5.5 // Clean Layout</span></h1>
+      <h1>CYCLE TERMINAL<span>v5.6 // Clean Layout</span></h1>
     </div>
     <div class="asset-selector" id="assetSelector">
       <button type="button" class="asset-btn" id="assetBtn">
@@ -334,6 +343,7 @@
 </div>
 
 <script>
+const TZ = 'America/Santiago';
 const ASSETS = [
   { symbol:'BTCUSDT', name:'BTC/USDT', full:'Bitcoin', icon:'₿', color:'#f7931a', src:'binance' },
   { symbol:'ETHUSDT', name:'ETH/USDT', full:'Ethereum', icon:'Ξ', color:'#627eea', src:'binance' },
@@ -447,12 +457,14 @@ function initApp() {
           const min = Math.floor(msLeft / 60000);
           const sec = Math.floor((msLeft % 60000) / 1000);
           inst.currentPriceLine.applyOptions({ title: `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}` });
+        } else {
+          inst.currentPriceLine.applyOptions({ title: `00:00` });
         }
       }
     });
   }, 1000);
 
-  setInterval(() => { document.getElementById('footerClock').textContent = new Date().toLocaleTimeString('es-ES'); }, 1000);
+  setInterval(() => { document.getElementById('footerClock').textContent = new Date().toLocaleTimeString('es-CL', { timeZone: TZ, hour12: false }); }, 1000);
   populateDropdown();
   setLayout(4);
 }
@@ -584,7 +596,20 @@ function createChartInstance(cell, asset, interval, index) {
       grid: { vertLines:{color:'#101820'}, horzLines:{color:'#101820'} },
       crosshair: { mode:LightweightCharts.CrosshairMode.Normal, vertLine:{color:'rgba(0,229,255,.4)',width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:'#00e5ff'}, horzLine:{color:'rgba(0,229,255,.4)',width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:'#00e5ff'} },
       rightPriceScale: { borderColor:'#1c2733', scaleMargins:{top:0.1, bottom:0.2} },
-      timeScale: { borderColor:'#1c2733', timeVisible:true, secondsVisible:false },
+      timeScale: {
+        borderColor:'#1c2733', timeVisible:true, secondsVisible:false,
+        tickMarkFormatter: (time, tickMarkType) => {
+          const date = new Date(time * 1000);
+          if (tickMarkType === LightweightCharts.TickMarkType.Year) return date.toLocaleDateString('es-CL', { timeZone: TZ, year: 'numeric' });
+          if (tickMarkType === LightweightCharts.TickMarkType.Month) return date.toLocaleDateString('es-CL', { timeZone: TZ, month: 'short' });
+          if (tickMarkType === LightweightCharts.TickMarkType.DayOfMonth) return date.toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' });
+          return date.toLocaleTimeString('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+      },
+      localization: {
+        timeFormatter: (timestamp) => new Date(timestamp * 1000).toLocaleTimeString('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
+        dateFormatter: (timestamp) => new Date(timestamp * 1000).toLocaleDateString('es-CL', { timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric' })
+      },
       width: inst.chartEl.clientWidth,
       height: inst.chartEl.clientHeight
     });
@@ -757,10 +782,12 @@ function createChartInstance(cell, asset, interval, index) {
         const k = data.k; const candle = { time: Math.floor(k.t/1000), open: parseFloat(k.o)||0, high: parseFloat(k.h)||0, low: parseFloat(k.l)||0, close: parseFloat(k.c)||0, vol: parseFloat(k.v)||0 };
         inst.candleSeries.update(candle); inst.volSeries.update({ time: candle.time, value: parseFloat(k.v)||0, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' });
         if(inst.lastCandles.length){ const last = inst.lastCandles[inst.lastCandles.length-1]; if(last.time === candle.time){ last.close = candle.close; last.high = Math.max(last.high, candle.high); last.low = Math.min(last.low, candle.low); last.vol = candle.vol; } else { inst.lastCandles.push(candle); if(inst.lastCandles.length > 600) inst.lastCandles.shift(); } }
-        inst.prevPrice = inst.lastPrice; inst.lastPrice = candle.close; inst.lastCandleTime = candle.time; inst.currentCandleCloseTime = k.T + INTERVAL_MS[inst.interval]; inst.currentCandleHigh = candle.high; inst.currentCandleLow = candle.low;
+        inst.prevPrice = inst.lastPrice; inst.lastPrice = candle.close; inst.lastCandleTime = candle.time;
+        // k.T is the actual close time of this kline (ms epoch) — do NOT add another interval on top of it.
+        inst.currentCandleCloseTime = k.T; inst.currentCandleHigh = candle.high; inst.currentCandleLow = candle.low;
+        if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; }
         inst.updatePriceDisplay(candle.close, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst);
         inst.calcVWAP(k.x); 
-        if(k.x) { inst.liveBuyVol = 0; inst.liveSellVol = 0; }
         if(globalState.activeChartIndex === inst.index) updateSidebarFlow(); inst.requestDraw();
       }
       if(stream.includes('@aggTrade')) {
@@ -869,25 +896,32 @@ function createChartInstance(cell, asset, interval, index) {
       return;
     }
     
-    let levels = Object.entries(flow.levels).map(([k, v]) => ({price: parseFloat(k), ...v}));
+    let levels = Object.entries(flow.levels).map(([k, v]) => ({ price: parseFloat(k), buy: v.buy, sell: v.sell, total: v.buy + v.sell }));
+    levels = levels.filter(l => l.price >= inst.currentCandleLow && l.price <= inst.currentCandleHigh);
     if(levels.length === 0) {
       box.style.display = 'none';
       return;
     }
     
-    levels = levels.filter(l => l.price >= inst.currentCandleLow && l.price <= inst.currentCandleHigh);
-    if(levels.length === 0) {
-        box.style.display = 'none';
-        return;
-    }
-    
     levels.sort((a, b) => a.price - b.price);
+    const maxTotal = Math.max(...levels.map(l => l.total), 0.000001);
+    const MAX_BAR_PX = 34;
     
     let html = '';
     levels.forEach(l => {
-      html += `<div class="flow-row">
-                 <span class="flow-buy">${fmtNum(l.buy)}</span>
-                 <span class="flow-sell">${fmtNum(l.sell)}</span>
+      const isPoc = l.total === maxTotal && l.total > 0;
+      const sellPx = l.sell > 0 ? Math.max(2, (l.sell / maxTotal) * MAX_BAR_PX) : 0;
+      const buyPx = l.buy > 0 ? Math.max(2, (l.buy / maxTotal) * MAX_BAR_PX) : 0;
+      html += `<div class="flow-row ${isPoc ? 'flow-poc' : ''}">
+                 <div class="flow-half flow-half-sell">
+                   <span class="flow-val sell">${l.sell > 0 ? fmtNum(l.sell) : ''}</span>
+                   <div class="flow-bar flow-bar-sell" style="width:${sellPx}px;"></div>
+                 </div>
+                 <div class="flow-center-line"></div>
+                 <div class="flow-half flow-half-buy">
+                   <div class="flow-bar flow-bar-buy" style="width:${buyPx}px;"></div>
+                   <span class="flow-val buy">${l.buy > 0 ? fmtNum(l.buy) : ''}</span>
+                 </div>
                </div>`;
     });
     box.innerHTML = html;
@@ -906,8 +940,8 @@ function createChartInstance(cell, asset, interval, index) {
       box.style.flexDirection = 'column-reverse';
       box.style.left = (timeCoord + 8) + 'px'; 
       box.style.top = Math.min(highCoord, lowCoord) + 'px';
-      box.style.height = Math.abs(highCoord - lowCoord) + 'px';
-      box.style.width = '60px';
+      box.style.height = Math.max(Math.abs(highCoord - lowCoord), levels.length * 13) + 'px';
+      box.style.width = '130px';
     } else {
       box.style.display = 'none';
     }
@@ -1004,7 +1038,7 @@ function checkAlarms(inst) {
 
 function fireAlarm(alarm, price) {
   const list = document.getElementById('logList'); if(list.querySelector('.empty')) list.innerHTML = '';
-  const entry = document.createElement('div'); entry.className = 'log-entry'; const time = new Date().toLocaleTimeString('es-ES');
+  const entry = document.createElement('div'); entry.className = 'log-entry'; const time = new Date().toLocaleTimeString('es-CL', { timeZone: TZ, hour12: false });
   entry.innerHTML = `<span class="t">${time}</span> — <span class="s">${alarm.assetName}</span> cruzó $${fmt(alarm.price)} <span style="opacity:.5;">(actual $${fmt(price)})</span>`; list.prepend(entry);
   document.getElementById('flash').classList.add('on'); setTimeout(() => document.getElementById('flash').classList.remove('on'), 500);
   try { if(!globalState.audioCtx) globalState.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const ctx = globalState.audioCtx; [[880, 0], [1100, 0.18], [1320, 0.36]].forEach(([freq, start]) => { const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'square'; osc.frequency.value = freq; gain.gain.setValueAtTime(0, ctx.currentTime + start); gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + start + 0.02); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + 0.18); osc.connect(gain).connect(ctx.destination); osc.start(ctx.currentTime + start); osc.stop(ctx.currentTime + start + 0.2); }); } catch(e){}
@@ -1029,7 +1063,7 @@ function renderSidebarAlarms() {
   else list.innerHTML = symAlarms.map(a => {
     const diff = inst.lastPrice ? ((a.price - inst.lastPrice) / inst.lastPrice * 100) : 0;
     const diffText = a.triggered ? 'DISPARADA' : `${diff > 0 ? '+' : ''}${diff.toFixed(2)}%`;
-    const time = a.triggered && a.triggeredAt ? new Date(a.triggeredAt).toLocaleTimeString('es-ES') : new Date(a.created).toLocaleTimeString('es-ES');
+    const time = a.triggered && a.triggeredAt ? new Date(a.triggeredAt).toLocaleTimeString('es-CL', { timeZone: TZ, hour12: false }) : new Date(a.created).toLocaleTimeString('es-CL', { timeZone: TZ, hour12: false });
     const selectedClass = globalState.selectedItem && globalState.selectedItem.type === 'alarm' && globalState.selectedItem.id === a.id ? 'selected' : '';
     return `<div class="alarm-card ${a.triggered ? 'triggered' : ''} ${selectedClass}"><div class="alarm-icon ${a.triggered ? 'triggered' : ''}">⚠</div><div class="alarm-body"><div class="alarm-price">${fmt(a.price)}</div><div class="alarm-meta">Cruce · ${diffText} · ${time}</div></div><button type="button" class="del-btn" onclick="removeAlarm('${a.id}')">✕</button></div>`;
   }).join('');
