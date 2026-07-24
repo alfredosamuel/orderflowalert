@@ -29,7 +29,7 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;overflow:hidden;}
 
-  .app{display:grid;grid-template-columns:1fr 360px;grid-template-rows:54px 38px 1fr 28px;height:100vh;width:100vw;}
+  .app{display:grid;grid-template-columns:1fr 340px;grid-template-rows:54px 38px 1fr 28px;height:100vh;width:100vw;}
 
   header{grid-column:1/3;display:flex;align-items:center;gap:16px;padding:0 16px;background:linear-gradient(180deg,#0c121a,#080c12);border-bottom:1px solid var(--border);position:relative;}
   header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.35;}
@@ -86,6 +86,8 @@
   .toolbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
   .icon-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--muted);padding:5px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.12s;}
   .icon-btn:hover{color:var(--cyan);border-color:var(--cyan);}
+  
+  .alt-a-hint{background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);color:var(--cyan);padding:4px 8px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:1px;}
 
   #chart-wrap{position:relative;border-right:1px solid var(--border);background:var(--bg);overflow:hidden;}
   #chart{width:100%;height:100%;}
@@ -93,7 +95,6 @@
   .chart-legend.show{display:flex;}
   .chart-legend span.k{color:var(--muted);}
   
-  /* Auto-scale button overlay */
   .auto-scale-btn{position:absolute;right:70px;bottom:60px;z-index:10;width:28px;height:28px;background:rgba(7,10,16,.8);backdrop-filter:blur(10px);border:1px solid var(--border-strong);border-radius:5px;cursor:pointer;color:var(--muted);font-family:'Orbitron',sans-serif;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;transition:.15s;}
   .auto-scale-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.2);}
 
@@ -103,37 +104,18 @@
   .side-title{display:flex;align-items:center;gap:6px;font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
   .side-title .count{background:rgba(0,229,255,.1);color:var(--cyan);padding:1px 7px;border-radius:10px;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:0;}
 
-  .form-grid{display:flex;flex-direction:column;gap:7px;}
-  .field{background:var(--panel-2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:11px;padding:8px 9px;border-radius:5px;outline:none;width:100%;transition:.12s;}
-  .field:focus{border-color:var(--cyan);background:rgba(0,229,255,.03);}
-  .field::placeholder{color:var(--muted);}
-  select.field{cursor:pointer;}
-  .field.flash{border-color:var(--cyan);box-shadow:0 0 8px rgba(0,229,255,.3);}
-
-  .dir-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-  .dir-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--muted);padding:8px;border-radius:5px;cursor:pointer;font-family:inherit;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:4px;transition:.12s;letter-spacing:.5px;}
-  .dir-btn:hover{color:var(--text);}
-  .dir-btn.active-above{background:rgba(57,255,136,.08);color:var(--green);border-color:rgba(57,255,136,.3);}
-  .dir-btn.active-below{background:rgba(255,46,136,.08);color:var(--magenta);border-color:rgba(255,46,136,.3);}
-
-  .presets{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;}
-  .preset{background:var(--panel-2);border:1px solid var(--border);color:var(--muted);padding:4px 2px;border-radius:4px;font-size:9px;font-family:inherit;cursor:pointer;transition:.12s;}
-  .preset:hover{color:var(--text);border-color:var(--border-strong);}
-  .preset.pos{color:var(--green);} .preset.pos:hover{border-color:rgba(57,255,136,.3);}
-  .preset.neg{color:var(--magenta);} .preset.neg:hover{border-color:rgba(255,46,136,.3);}
-
-  .btn-primary{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#031014;font-weight:800;font-family:inherit;font-size:11px;padding:9px;border:none;border-radius:5px;cursor:pointer;transition:.15s;letter-spacing:1px;text-transform:uppercase;}
-  .btn-primary:hover{box-shadow:0 6px 20px rgba(0,229,255,.35);transform:translateY(-1px);}
-
-  .toggle-row{display:flex;align-items:center;gap:12px;font-size:9px;color:var(--muted);}
-  .toggle-row label{display:flex;align-items:center;gap:5px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;}
-
   .tg-section{background:rgba(168,85,247,.03);}
   .tg-section .side-title{color:var(--purple);}
   .tg-help{font-size:9px;color:var(--muted);line-height:1.4;margin-bottom:8px;}
   .tg-help a{color:var(--purple);text-decoration:none;}
 
-  /* Order Flow Styles */
+  .field{background:var(--panel-2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:10px;padding:8px 9px;border-radius:5px;outline:none;width:100%;transition:.12s;}
+  .field:focus{border-color:var(--cyan);background:rgba(0,229,255,.03);}
+  .field::placeholder{color:var(--muted);}
+  .form-grid{display:flex;flex-direction:column;gap:7px;}
+  .btn-primary{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#031014;font-weight:800;font-family:inherit;font-size:11px;padding:9px;border:none;border-radius:5px;cursor:pointer;transition:.15s;letter-spacing:1px;text-transform:uppercase;}
+  .btn-primary:hover{box-shadow:0 6px 20px rgba(0,229,255,.35);transform:translateY(-1px);}
+
   .of-section{background:rgba(0,229,255,.03);}
   .of-bar-container{display:flex;height:18px;border-radius:4px;overflow:hidden;background:var(--panel-2);border:1px solid var(--border);margin-bottom:6px;}
   .of-bar-buy{background:rgba(57,255,136,.3);transition:width .3s;display:flex;align-items:center;justify-content:flex-start;padding-left:6px;font-size:9px;font-weight:700;color:var(--green);white-space:nowrap;overflow:hidden;}
@@ -145,20 +127,13 @@
 
   .alarm-scroll{flex:1;overflow-y:auto;padding-right:4px;}
   .alarm-card{background:var(--panel-2);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:5px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:.15s;}
-  .alarm-card.below{border-left-color:var(--magenta);}
   .alarm-card.triggered{border-left-color:var(--amber);opacity:.5;}
   .alarm-card:hover{border-color:var(--border-strong);}
-  .alarm-card.triggered:hover{opacity:.7;}
-  .alarm-icon{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .alarm-icon.above{background:rgba(57,255,136,.1);color:var(--green);}
-  .alarm-icon.below{background:rgba(255,46,136,.1);color:var(--magenta);}
+  .alarm-icon{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(0,229,255,.1);color:var(--cyan);}
   .alarm-icon.triggered{background:rgba(255,176,32,.1);color:var(--amber);}
   .alarm-body{flex:1;min-width:0;}
   .alarm-price{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;}
   .alarm-meta{font-size:9px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .alarm-pct{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:rgba(255,255,255,.05);color:var(--muted);}
-  .alarm-pct.pos{background:rgba(57,255,136,.1);color:var(--green);}
-  .alarm-pct.neg{background:rgba(255,46,136,.1);color:var(--magenta);}
   .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:3px;transition:.12s;}
   .del-btn:hover{color:var(--magenta);background:rgba(255,46,136,.08);}
   .empty{color:var(--muted);font-size:10px;text-align:center;padding:20px 0;font-style:italic;}
@@ -211,7 +186,7 @@
       <div class="logo-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg>
       </div>
-      <h1>CYCLE TERMINAL<span>v2.0 // Multi-Asset Flow</span></h1>
+      <h1>CYCLE TERMINAL<span>v2.1 // Alt+A Alarm System</span></h1>
     </div>
 
     <div class="asset-selector" id="assetSelector">
@@ -255,6 +230,7 @@
     <div class="toggle-group"><div class="color-chip" style="background:var(--cyan);"></div><span>SMA20</span><div class="toggle on" id="toggleSMA20"></div></div>
     <div class="toggle-group"><div class="color-chip" style="background:var(--purple);"></div><span>SMA50</span><div class="toggle on" id="toggleSMA50"></div></div>
     <div class="toolbar-right">
+      <div class="alt-a-hint">ALT + A = Alarma</div>
       <button type="button" class="icon-btn" id="refreshBtn" title="Recargar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
     </div>
   </div>
@@ -287,44 +263,16 @@
       </div>
     </div>
 
-    <!-- CREATE ALARM -->
-    <div class="side-section">
-      <div class="side-title">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-        Nueva Alarma
-      </div>
-      <div class="form-grid">
-        <div class="dir-row">
-          <button type="button" class="dir-btn active-above" id="dirAbove"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>CRUZA ↑</button>
-          <button type="button" class="dir-btn" id="dirBelow"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>CRUZA ↓</button>
-        </div>
-        <input type="number" class="field" id="alarmPrice" placeholder="precio objetivo" step="any" min="0">
-        <div class="presets">
-          <button type="button" class="preset neg" data-preset="-5">-5%</button>
-          <button type="button" class="preset neg" data-preset="-2">-2%</button>
-          <button type="button" class="preset" data-preset="0">actual</button>
-          <button type="button" class="preset pos" data-preset="2">+2%</button>
-          <button type="button" class="preset pos" data-preset="5">+5%</button>
-        </div>
-        <input type="text" class="field" id="alarmNote" placeholder="nota (opcional)" maxlength="50">
-        <button type="button" class="btn-primary" id="addAlarmBtn">+ Crear Alarma</button>
-        <div class="toggle-row">
-          <label><input type="checkbox" id="soundToggle" checked> sonido</label>
-          <label><input type="checkbox" id="notifToggle"> notif. navegador</label>
-        </div>
-      </div>
-    </div>
-
     <!-- TELEGRAM SETTINGS -->
     <div class="side-section tg-section">
       <div class="side-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         Telegram Celular
       </div>
-      <div class="tg-help">Crea un bot en <a href="https://t.me/BotFather" target="_blank">@BotFather</a> y obtén tu ID en <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a>.</div>
+      <div class="tg-help">Crea un bot en <a href="https://t.me/BotFather" target="_blank">@BotFather</a> y obtén tu ID en <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a>. Recuerda darle a START a tu bot.</div>
       <div class="form-grid">
-        <input type="password" class="field" id="tgToken" placeholder="Bot Token" style="font-size:10px;">
-        <input type="text" class="field" id="tgChatId" placeholder="Chat ID" style="font-size:10px;">
+        <input type="password" class="field" id="tgToken" placeholder="Bot Token">
+        <input type="text" class="field" id="tgChatId" placeholder="Chat ID">
         <button type="button" class="btn-primary" id="testTgBtn" style="background:linear-gradient(135deg,var(--purple),#7c3aed);">Probar Telegram</button>
       </div>
     </div>
@@ -333,11 +281,10 @@
     <div class="side-section flex">
       <div class="side-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Alarmas — <span style="color:var(--cyan);" id="alarmSymLabel">BTCUSDT</span>
+        Alarmas Activas — <span style="color:var(--cyan);" id="alarmSymLabel">BTCUSDT</span>
         <span class="count" id="alarmCount">0</span>
-        <span style="margin-left:auto;font-size:9px;color:var(--muted);cursor:pointer;text-transform:none;letter-spacing:0;display:none;" id="clearTriggered">limpiar</span>
       </div>
-      <div class="alarm-scroll" id="alarmList"><div class="empty">sin alarmas para este par</div></div>
+      <div class="alarm-scroll" id="alarmList"><div class="empty">Pon el mouse en el gráfico y presiona Alt+A</div></div>
     </div>
 
     <!-- STATS 24H -->
@@ -401,8 +348,8 @@ const state = {
   currentPriceLine: null,
   alarmPriceLines: new Map(),
   lastPrice: null,
+  prevPrice: null,
   lastCandles: [],
-  alarmDir: 'above',
   showSMA20: true,
   showSMA50: true,
   alarms: [],
@@ -413,10 +360,11 @@ const state = {
   draggingAlarm: null,
   liveBuyVol: 0,
   liveSellVol: 0,
+  lastMouseY: null,
 };
 
-function loadAlarms(){ try { state.alarms = JSON.parse(localStorage.getItem('cycle_terminal_alarms_v2') || '[]'); } catch(e){ state.alarms = []; } }
-function saveAlarms(){ try { localStorage.setItem('cycle_terminal_alarms_v2', JSON.stringify(state.alarms)); } catch(e){} }
+function loadAlarms(){ try { state.alarms = JSON.parse(localStorage.getItem('cycle_terminal_alarms_v3') || '[]'); } catch(e){ state.alarms = []; } }
+function saveAlarms(){ try { localStorage.setItem('cycle_terminal_alarms_v3', JSON.stringify(state.alarms)); } catch(e){} }
 
 if(typeof LightweightCharts === 'undefined'){
   window.__initApp = initApp;
@@ -456,6 +404,9 @@ function initApp(){
   state.chart.subscribeCrosshairMove(param => {
     const legend = document.getElementById('chartLegend');
     if (state.draggingAlarm) return;
+    
+    if(param.point) state.lastMouseY = param.point.y;
+    
     if(!param.time || !param.seriesData || !param.seriesData.size){
       legend.classList.remove('show');
       if(!state.draggingAlarm) chartEl.style.cursor = 'default';
@@ -482,6 +433,31 @@ function initApp(){
     if (!state.draggingAlarm) chartEl.style.cursor = foundHover ? 'ns-resize' : 'default';
   });
 
+  // Alt + A Event Listener
+  window.addEventListener('keydown', (e) => {
+    if(e.altKey && e.key.toLowerCase() === 'a') {
+      if(state.lastMouseY !== null) {
+        const price = state.candleSeries.coordinateToPrice(state.lastMouseY);
+        if(price && price > 0) {
+          const alarm = {
+            id: 'a_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+            symbol: state.symbol,
+            assetName: state.asset.name,
+            price: price,
+            created: Date.now(),
+            triggered: false,
+            triggeredAt: null
+          };
+          state.alarms.unshift(alarm);
+          saveAlarms();
+          renderAlarms();
+          showToast('Alarma creada', `${state.asset.name} @ $${fmt(price)}`, 'success');
+          e.preventDefault();
+        }
+      }
+    }
+  });
+
   chartEl.addEventListener('mousedown', (e) => {
     if (state.hoveredAlarm) {
       state.draggingAlarm = state.hoveredAlarm;
@@ -497,6 +473,9 @@ function initApp(){
       const newPrice = state.candleSeries.coordinateToPrice(y);
       if (newPrice && newPrice > 0) {
         state.draggingAlarm.price = newPrice;
+        // Reactivar si estaba disparada
+        state.draggingAlarm.triggered = false;
+        state.draggingAlarm.triggeredAt = null;
         syncAlarmPriceLines();
         const card = document.querySelector(`.alarm-card[data-id="${state.draggingAlarm.id}"]`);
         if (card) card.querySelector('.alarm-price').textContent = fmt(newPrice);
@@ -557,10 +536,11 @@ function initApp(){
       state.candleSeries.setData(data.candles);
       state.volSeries.setData(data.vols);
       updateSMA();
-      state.chart.timeScale().fitContent(); // AUTO-FIT ON ASSET CHANGE
+      state.chart.timeScale().fitContent();
 
       if(data.candles.length){
         state.lastPrice = data.candles[data.candles.length-1].close;
+        state.prevPrice = data.candles.length > 1 ? data.candles[data.candles.length-2].close : null;
         updatePriceDisplay(state.lastPrice, null);
       }
       setStatus('live', 'LIVE');
@@ -601,7 +581,6 @@ function initApp(){
         document.getElementById('statVol').textContent = fmtNum(parseFloat(d.volume));
         document.getElementById('statVolUsd').textContent = '$' + fmtNum(parseFloat(d.quoteVolume));
       } else {
-        // Yahoo doesn't provide 24h change in chart endpoint easily, use quote endpoint
         const url = `https://corsproxy.io/?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${state.symbol}`)}`;
         const res = await fetch(url);
         if(!res.ok) return;
@@ -623,7 +602,6 @@ function initApp(){
     if(state.ws){ try{ state.ws.onclose = null; state.ws.close(); }catch(e){} }
     state.liveBuyVol = 0; state.liveSellVol = 0; updateOrderFlowUI();
     
-    // Combined stream: klines + aggTrade for order flow
     const wsUrl = `wss://stream.binance.com:9443/stream?streams=${symbol.toLowerCase()}@kline_${interval}/${symbol.toLowerCase()}@aggTrade`;
     const ws = new WebSocket(wsUrl);
     state.ws = ws;
@@ -651,17 +629,19 @@ function initApp(){
           else { state.lastCandles.push(candle); if(state.lastCandles.length > 600) state.lastCandles.shift(); }
         }
 
-        const prev = state.lastPrice;
+        state.prevPrice = state.lastPrice;
         state.lastPrice = candle.close;
-        updatePriceDisplay(candle.close, prev);
-        checkAlarms(candle.close);
+        updatePriceDisplay(candle.close, state.prevPrice);
+        
+        // Check cross alarm
+        if(state.prevPrice !== null) {
+          checkAlarms(candle.close, state.prevPrice);
+        }
 
-        // Reset order flow on new candle
         if(k.x) { state.liveBuyVol = 0; state.liveSellVol = 0; updateOrderFlowUI(); }
       }
       
       if(stream.includes('@aggTrade')){
-        // m = true means buyer is maker (sell side), m = false means buy side
         if(data.m) state.liveSellVol += parseFloat(data.q);
         else state.liveBuyVol += parseFloat(data.q);
         updateOrderFlowUI();
@@ -673,11 +653,10 @@ function initApp(){
     if(state.pollTimer) clearInterval(state.pollTimer);
     state.liveBuyVol = 0; state.liveSellVol = 0; updateOrderFlowUI();
     
-    // Poll every 10 seconds for Yahoo
     state.pollTimer = setInterval(async () => {
       try {
         const yInt = interval === '1h' ? '60m' : interval === '1d' ? '1d' : interval === '1w' ? '1wk' : (interval === '4h' ? '60m' : interval);
-        const range = '1d'; // Just get the last day to find the latest candle
+        const range = '1d';
         const url = `https://corsproxy.io/?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${yInt}&range=${range}`)}`;
         const res = await fetch(url);
         if(!res.ok) return;
@@ -700,10 +679,12 @@ function initApp(){
           }
         }
 
-        const prev = state.lastPrice;
+        state.prevPrice = state.lastPrice;
         state.lastPrice = q.close[ts.length-1];
-        updatePriceDisplay(state.lastPrice, prev);
-        checkAlarms(state.lastPrice);
+        updatePriceDisplay(state.lastPrice, state.prevPrice);
+        if(state.prevPrice !== null) {
+          checkAlarms(state.lastPrice, state.prevPrice);
+        }
       } catch(e){ console.error(e); }
     }, 10000);
   }
@@ -755,23 +736,27 @@ function initApp(){
   function renderAlarms(){
     const list = document.getElementById('alarmList');
     const count = document.getElementById('alarmCount');
-    const clearBtn = document.getElementById('clearTriggered');
     const symAlarms = state.alarms.filter(a => a.symbol === state.symbol);
     count.textContent = symAlarms.length;
-    const hasTriggered = symAlarms.some(a => a.triggered);
-    clearBtn.style.display = hasTriggered ? 'block' : 'none';
+    
     if(!symAlarms.length){
-      list.innerHTML = '<div class="empty">sin alarmas para este par</div>';
+      list.innerHTML = '<div class="empty">Pon el mouse en el gráfico y presiona Alt+A</div>';
     } else {
       list.innerHTML = symAlarms.map(a => {
-        const isAbove = a.direction === 'above';
         const diff = state.lastPrice ? ((a.price - state.lastPrice) / state.lastPrice * 100) : 0;
         const diffText = a.triggered ? 'DISPARADA' : `${diff > 0 ? '+' : ''}${diff.toFixed(2)}%`;
-        const diffClass = a.triggered ? '' : (diff > 0 ? 'pos' : diff < 0 ? 'neg' : '');
         const time = a.triggered && a.triggeredAt ? new Date(a.triggeredAt).toLocaleTimeString('es-ES') : new Date(a.created).toLocaleTimeString('es-ES');
-        const iconClass = a.triggered ? 'triggered' : (isAbove ? 'above' : 'below');
-        const icon = a.triggered ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : isAbove ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>' : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
-        return `<div class="alarm-card ${a.direction} ${a.triggered ? 'triggered' : ''}" data-id="${a.id}"><div class="alarm-icon ${iconClass}">${icon}</div><div class="alarm-body"><div class="alarm-price">${fmt(a.price)}</div><div class="alarm-meta">${isAbove ? '↑ arriba' : '↓ abajo'}${a.note ? ' · ' + escapeHtml(a.note) : ''} · ${time}</div></div><span class="alarm-pct ${diffClass}">${diffText}</span><button type="button" class="del-btn" onclick="removeAlarm('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>`;
+        const iconClass = a.triggered ? 'triggered' : '';
+        const icon = a.triggered ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+        
+        return `<div class="alarm-card ${a.triggered ? 'triggered' : ''}" data-id="${a.id}">
+          <div class="alarm-icon ${iconClass}">${icon}</div>
+          <div class="alarm-body">
+            <div class="alarm-price">${fmt(a.price)}</div>
+            <div class="alarm-meta">Cruce · ${diffText} · ${time}</div>
+          </div>
+          <button type="button" class="del-btn" onclick="removeAlarm('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        </div>`;
       }).join('');
     }
     syncAlarmPriceLines();
@@ -782,51 +767,55 @@ function initApp(){
     state.alarmPriceLines.forEach(line => { try{ state.candleSeries.removePriceLine(line); }catch(e){} });
     state.alarmPriceLines.clear();
     state.alarms.filter(a => a.symbol === state.symbol && !a.triggered).forEach(a => {
-      const line = state.candleSeries.createPriceLine({ price: a.price, color: a.direction === 'above' ? 'rgba(57,255,136,.6)' : 'rgba(255,46,136,.6)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: (a.direction === 'above' ? '↑ ' : '↓ ') + fmt(a.price) });
+      const line = state.candleSeries.createPriceLine({ 
+        price: a.price, 
+        color: 'rgba(0, 229, 255, 0.6)', 
+        lineWidth: 1, 
+        lineStyle: LightweightCharts.LineStyle.Dashed, 
+        axisLabelVisible: true, 
+        title: 'Alarma ' + fmt(a.price) 
+      });
       state.alarmPriceLines.set(a.id, line);
     });
-  }
-
-  function addAlarm(){
-    const priceInput = document.getElementById('alarmPrice');
-    const price = parseFloat(priceInput.value);
-    if(isNaN(price) || price <= 0){
-      priceInput.style.borderColor = 'var(--magenta)';
-      setTimeout(() => priceInput.style.borderColor = '', 800);
-      showToast('Error', 'Ingresa un precio válido mayor a 0', 'error'); return;
-    }
-    const note = document.getElementById('alarmNote').value.trim();
-    const alarm = { id: 'a_' + Date.now() + '_' + Math.floor(Math.random()*1000), symbol: state.symbol, assetName: state.asset.name, price, direction: state.alarmDir, note, created: Date.now(), triggered: false, triggeredAt: null };
-    state.alarms.unshift(alarm); saveAlarms(); renderAlarms();
-    priceInput.value = ''; document.getElementById('alarmNote').value = '';
-    showToast('Alarma creada', `${state.asset.name} ${state.alarmDir === 'above' ? '↑' : '↓'} $${fmt(price)}`, 'success');
-    if(document.getElementById('notifToggle').checked && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
   }
 
   function removeAlarm(id){ state.alarms = state.alarms.filter(a => a.id !== id); saveAlarms(); renderAlarms(); }
   window.removeAlarm = removeAlarm;
 
-  function clearTriggered(){ state.alarms = state.alarms.filter(a => !(a.symbol === state.symbol && a.triggered)); saveAlarms(); renderAlarms(); }
-
-  function checkAlarms(price){
+  function checkAlarms(currentPrice, previousPrice) {
     let changed = false;
     state.alarms.forEach(a => {
       if(a.symbol !== state.symbol || a.triggered) return;
-      const hit = (a.direction === 'above' && price >= a.price) || (a.direction === 'below' && price <= a.price);
-      if(hit){ a.triggered = true; a.triggeredAt = Date.now(); changed = true; fireAlarm(a, price); }
+      
+      // Cross logic: previous was below, current is above OR previous was above, current is below
+      const crossed = (previousPrice <= a.price && currentPrice > a.price) || 
+                      (previousPrice >= a.price && currentPrice < a.price);
+                      
+      if(crossed){
+        a.triggered = true;
+        a.triggeredAt = Date.now();
+        changed = true;
+        fireAlarm(a, currentPrice);
+        
+        // Auto-remove after 3 seconds to keep chart clean
+        setTimeout(() => {
+          state.alarms = state.alarms.filter(x => x.id !== a.id);
+          saveAlarms();
+          renderAlarms();
+        }, 3000);
+      }
     });
     if(changed){ saveAlarms(); renderAlarms(); }
   }
 
   function fireAlarm(alarm, price){
     logEvent(alarm, price); flashScreen();
-    if(document.getElementById('soundToggle').checked) playBeep();
-    if(document.getElementById('notifToggle').checked && 'Notification' in window && Notification.permission === 'granted'){
-      try{ new Notification('⚠ Alarma ' + alarm.assetName, { body: `Precio ${alarm.direction === 'above' ? 'superó' : 'cayó bajo'} $${fmt(alarm.price)} (actual: $${fmt(price)})${alarm.note ? ' — ' + alarm.note : ''}` }); }catch(e){}
+    playBeep();
+    if('Notification' in window && Notification.permission === 'granted'){
+      try{ new Notification('⚠ Alarma ' + alarm.assetName, { body: `Precio cruzó $${fmt(alarm.price)} (actual: $${fmt(price)})` }); }catch(e){}
     }
     if(state.tgToken && state.tgChatId) sendTelegram(alarm, price);
-    const dirText = alarm.direction === 'above' ? 'cruzó por encima de' : 'cruzó por debajo de';
-    showToast(`¡Alarma! ${alarm.assetName}`, `Precio ${dirText} $${fmt(alarm.price)}${alarm.note ? ' — ' + alarm.note : ''}`, 'alarm');
+    showToast(`¡Alarma! ${alarm.assetName}`, `Precio cruzó $${fmt(alarm.price)}`, 'alarm');
   }
 
   function logEvent(alarm, price){
@@ -835,14 +824,32 @@ function initApp(){
     const entry = document.createElement('div');
     entry.className = 'log-entry';
     const time = new Date().toLocaleTimeString('es-ES');
-    entry.innerHTML = `<span class="t">${time}</span> — <span class="s">${alarm.assetName}</span> ${alarm.direction === 'above' ? '↑' : '↓'} $${fmt(alarm.price)} <span style="opacity:.5;">(actual $${fmt(price)})</span>${alarm.note ? ' · ' + escapeHtml(alarm.note) : ''}`;
+    entry.innerHTML = `<span class="t">${time}</span> — <span class="s">${alarm.assetName}</span> cruzó $${fmt(alarm.price)} <span style="opacity:.5;">(actual $${fmt(price)})</span>`;
     list.prepend(entry);
   }
 
   async function sendTelegram(alarm, price){
-    const msg = `🚨 *ALARM TRIGGERED*\n\n*Asset:* ${alarm.assetName}\n*Condition:* ${alarm.direction === 'above' ? 'Crossed ABOVE' : 'Crossed BELOW'} $${fmt(alarm.price)}\n*Current Price:* $${fmt(price)}${alarm.note ? `\n*Note:* ${alarm.note}` : ''}`;
+    // Usamos texto plano sin Markdown para evitar errores de parseo de Telegram
+    const msg = `🚨 ALARM TRIGGERED\n\nAsset: ${alarm.assetName}\nPrice Crossed: $${fmt(alarm.price)}\nCurrent Price: $${fmt(price)}`;
     const url = `https://api.telegram.org/bot${state.tgToken}/sendMessage`;
-    try { await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: state.tgChatId, text: msg, parse_mode: 'Markdown' }) }); } catch(e) { console.error('Telegram error:', e); }
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: state.tgChatId,
+                text: msg
+            })
+        });
+        const data = await response.json();
+        if(!data.ok) {
+            console.error('Telegram API Error:', data.description);
+            showToast('Error Telegram', data.description, 'error');
+        }
+    } catch(e) {
+        console.error('Fetch Error:', e);
+    }
   }
 
   function flashScreen(){ const f = document.getElementById('flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 500); }
@@ -932,12 +939,6 @@ function initApp(){
     }
   }
 
-  function setDirection(dir){
-    state.alarmDir = dir;
-    document.getElementById('dirAbove').classList.toggle('active-above', dir === 'above');
-    document.getElementById('dirBelow').classList.toggle('active-below', dir === 'below');
-  }
-
   function fmt(p){
     if(p == null || isNaN(p)) return '--';
     if(p >= 1000) return p.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -952,7 +953,6 @@ function initApp(){
     if(n >= 1e3) return (n/1e3).toFixed(2) + 'K';
     return n.toFixed(2);
   }
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 
   document.getElementById('assetBtn').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('assetDropdown').classList.toggle('open'); });
   document.addEventListener('click', () => { document.getElementById('assetDropdown').classList.remove('open'); });
@@ -960,7 +960,6 @@ function initApp(){
   document.getElementById('customSymbol').addEventListener('keydown', (e) => {
     if(e.key === 'Enter' && e.target.value.trim()){
       let val = e.target.value.trim().toUpperCase();
-      // Assume binance if no match, but append =X if it looks like forex
       if(val.includes('USD') && !val.includes('USDT') && val.length <= 7) val += '=X';
       selectAsset(val);
     }
@@ -979,33 +978,6 @@ function initApp(){
   document.getElementById('toggleSMA50').addEventListener('click', () => { state.showSMA50 = !state.showSMA50; document.getElementById('toggleSMA50').classList.toggle('on', state.showSMA50); updateSMA(); });
 
   document.getElementById('refreshBtn').addEventListener('click', switchMarket);
-  document.getElementById('dirAbove').addEventListener('click', () => setDirection('above'));
-  document.getElementById('dirBelow').addEventListener('click', () => setDirection('below'));
-  document.getElementById('addAlarmBtn').addEventListener('click', addAlarm);
-  document.getElementById('alarmPrice').addEventListener('keydown', (e) => { if(e.key === 'Enter') addAlarm(); });
-
-  document.querySelectorAll('[data-preset]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const p = btn.dataset.preset;
-      let price;
-      if(p === '0') price = state.lastPrice;
-      else price = state.lastPrice * (1 + parseFloat(p)/100);
-      if(price && price > 0) {
-        const input = document.getElementById('alarmPrice');
-        input.value = price.toFixed(2);
-        input.classList.remove('flash'); void input.offsetWidth; input.classList.add('flash');
-        setTimeout(() => input.classList.remove('flash'), 600);
-      }
-    });
-  });
-
-  document.getElementById('notifToggle').addEventListener('change', (e) => {
-    if(e.target.checked && 'Notification' in window && Notification.permission !== 'granted'){
-      Notification.requestPermission().then(p => { if(p !== 'granted') e.target.checked = false; });
-    }
-  });
-
-  document.getElementById('clearTriggered').addEventListener('click', clearTriggered);
 
   const tgTokenInput = document.getElementById('tgToken');
   const tgChatIdInput = document.getElementById('tgChatId');
@@ -1015,14 +987,14 @@ function initApp(){
 
   document.getElementById('testTgBtn').addEventListener('click', () => {
     if(!state.tgToken || !state.tgChatId){ showToast('Faltan datos', 'Ingresa el Token y el Chat ID', 'error'); return; }
-    const fakeAlarm = { assetName: state.asset.name, direction: 'above', price: state.lastPrice, note: 'TEST DE TELEGRAM' };
+    const fakeAlarm = { assetName: state.asset.name, price: state.lastPrice };
     sendTelegram(fakeAlarm, state.lastPrice);
-    showToast('Enviando...', 'Revisa tu Telegram. Si no llega, revisa el Token/ID.', 'alarm');
+    showToast('Enviando...', 'Revisa tu Telegram. Si no llega, abre la consola (F12) para ver el error.', 'alarm');
   });
 
   setInterval(() => { document.getElementById('footerClock').textContent = new Date().toLocaleTimeString('es-ES'); }, 1000);
 
-  loadAlarms(); populateDropdown(); setDirection('above'); switchMarket();
+  loadAlarms(); populateDropdown(); switchMarket();
   window.addEventListener('beforeunload', () => { if(state.ws) try{ state.ws.close(); }catch(e){} });
 }
 </script>
