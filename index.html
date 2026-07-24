@@ -30,7 +30,7 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   
-  .app{display:grid;grid-template-columns:1fr 340px;grid-template-rows:54px 38px 1fr 28px;height:100dvh;width:100vw;min-height:0;min-width:0;overflow:hidden;}
+  .app{display:grid;grid-template-columns:1fr 340px;grid-template-rows:54px 38px 1fr 28px 45px;height:100dvh;width:100vw;min-height:0;min-width:0;overflow:hidden;}
   
   header{grid-column:1/3;display:flex;align-items:center;gap:16px;padding:0 16px;background:linear-gradient(180deg,#0c121a,#080c12);border-bottom:1px solid var(--border);position:relative;min-height:54px;}
   header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.35;}
@@ -60,6 +60,7 @@
   .status-pill{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;background:rgba(57,255,136,.08);border:1px solid rgba(57,255,136,.2);font-size:9px;font-weight:700;letter-spacing:1px;color:var(--green);margin-left:auto;}
   .status-pill.err{background:rgba(255,46,136,.08);border-color:rgba(255,46,136,.2);color:var(--magenta);}
   .status-pill.conn{background:rgba(255,176,32,.08);border-color:rgba(255,176,32,.2);color:var(--amber);}
+  .status-pill.paused{background:rgba(168,85,247,.08);border-color:rgba(168,85,247,.2);color:var(--purple);}
   .status-dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;}
   .status-pill.live .status-dot{animation:pulse 1.6s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
@@ -224,6 +225,16 @@
   footer .info{display:flex;gap:12px;align-items:center;}
   footer .sep{color:var(--border-strong);}
 
+  /* REPLAY / BACKTESTING BAR */
+  #replayBar{grid-column:1/3;display:flex;align-items:center;justify-content:center;gap:15px;background:#05070a;padding:8px 16px;border-top:1px solid var(--cyan);}
+  .rp-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:600;font-size:11px;transition:.12s;}
+  .rp-btn:hover{color:var(--cyan);border-color:var(--cyan);}
+  .rp-btn.danger{color:var(--magenta);border-color:var(--magenta);}
+  .rp-btn.danger:hover{background:var(--magenta);color:#1a0008;}
+  .rp-btn.play{background:var(--cyan);border:none;color:#000;font-weight:bold;}
+  .rp-btn.play:hover{background:#fff;}
+  #replayInfo{color:var(--muted);font-size:12px;margin-left:20px;}
+
   ::-webkit-scrollbar{width:5px;height:5px;}
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
@@ -231,7 +242,7 @@
 
   #flash{position:fixed;inset:0;pointer-events:none;z-index:200;background:radial-gradient(circle at 50% 50%, rgba(255,176,32,.3), transparent 65%);opacity:0;transition:opacity .35s;}
   #flash.on{opacity:1;}
-  #toast{position:fixed;bottom:18px;right:18px;z-index:300;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:12px 16px;max-width:340px;box-shadow:0 20px 50px rgba(0,0,0,.7);transform:translateX(120%);transition:transform .4s cubic-bezier(.16,1,.3,1);}
+  #toast{position:fixed;bottom:60px;right:18px;z-index:300;background:#0d141d;border:1px solid var(--border-strong);border-radius:8px;padding:12px 16px;max-width:340px;box-shadow:0 20px 50px rgba(0,0,0,.7);transform:translateX(120%);transition:transform .4s cubic-bezier(.16,1,.3,1);}
   #toast.show{transform:translateX(0);}
   #toast.alarm{border-color:var(--amber);box-shadow:0 20px 50px rgba(255,176,32,.25);}
   #toast.error{border-color:var(--magenta);}
@@ -258,7 +269,7 @@
   <header>
     <div class="logo">
       <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#031014" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg></div>
-      <h1>CYCLE TERMINAL<span>v5.7 // Larry Williams Panel</span></h1>
+      <h1>CYCLE TERMINAL<span>v6.0 // LW Panel + Backtesting</span></h1>
     </div>
     <div class="asset-selector" id="assetSelector">
       <button type="button" class="asset-btn" id="assetBtn">
@@ -531,6 +542,16 @@
     </div>
     <div id="footerClock">--:--:--</div>
   </footer>
+
+  <!-- BARRA DE BACKTESTING / REPLAY -->
+  <div id="replayBar">
+    <button id="rpStart" class="rp-btn">⏮ Inicio</button>
+    <button id="rpPrev" class="rp-btn">◀ Vela</button>
+    <button id="rpPlay" class="rp-btn play">▶ Play</button>
+    <button id="rpNext" class="rp-btn">Vela ▶</button>
+    <button id="rpEnd" class="rp-btn danger">⏭ Tiempo Real</button>
+    <span id="replayInfo">Modo Tiempo Real</span>
+  </div>
 </div>
 
 <script>
@@ -578,9 +599,6 @@ if(typeof LightweightCharts === 'undefined'){
   window.addEventListener('DOMContentLoaded', () => setTimeout(() => { if(typeof LightweightCharts === 'undefined') document.getElementById('chartsGrid').innerHTML = '<div style="padding:24px;color:#ff2e88;">Error cargando gráficos.</div>'; }, 4000));
 } else { initApp(); }
 
-// ============================================================
-// Utilidades numéricas para el panel "Ciclo LW" (SMA/EMA/STDEV causales)
-// ============================================================
 function calcSMA(arr, period) {
   const n = arr.length; const out = new Array(n);
   for (let i = 0; i < n; i++) {
@@ -655,7 +673,6 @@ function initApp() {
     });
   });
 
-  // Botón de opciones (engranaje) por indicador: abre/cierra su panel sin togglear el indicador
   document.querySelectorAll('.ind-gear').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -666,10 +683,8 @@ function initApp() {
       if (!wasOpen) panel.classList.add('open');
     });
   });
-  // Evita que clicks dentro del panel de opciones cierren el menú o togeleen el indicador
   document.querySelectorAll('.ind-options').forEach(panel => panel.addEventListener('click', (e) => e.stopPropagation()));
 
-  // Periodo de SMA 20 / SMA 50
   const smaPeriodInput = (key, tagId) => {
     const input = document.getElementById(`input-${key}-period`);
     input.addEventListener('click', (e) => e.stopPropagation());
@@ -685,7 +700,6 @@ function initApp() {
   smaPeriodInput('sma20', 'tagSma20');
   smaPeriodInput('sma50', 'tagSma50');
 
-  // Anclaje de VWAP (1h / 4h / D / W)
   document.querySelectorAll('#vwapAnchorGroup .opt-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -697,7 +711,6 @@ function initApp() {
     });
   });
 
-  // Precisión del OrderFlow (Fino / Normal / Grueso)
   document.querySelectorAll('#flowPrecisionGroup .opt-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -713,7 +726,6 @@ function initApp() {
     });
   });
 
-  // Periodo/config de Fractales (velas atrás / adelante)
   const fractalInput = (id, key) => {
     const input = document.getElementById(id);
     input.addEventListener('click', (e) => e.stopPropagation());
@@ -730,7 +742,6 @@ function initApp() {
   fractalInput('input-fractal-lookback', 'lookback');
   fractalInput('input-fractal-lookforward', 'lookforward');
 
-  // Filas del Volume Profile
   const vpInput = document.getElementById('input-vp-rows');
   vpInput.addEventListener('click', (e) => e.stopPropagation());
   vpInput.addEventListener('change', (e) => {
@@ -741,7 +752,6 @@ function initApp() {
     globalState.instances.forEach(inst => inst.requestDraw());
   });
 
-  // Config del indicador combinado VP Fractal (velas atrás / adelante / filas)
   const vpFractalInput = (id, key, max) => {
     const input = document.getElementById(id);
     input.addEventListener('click', (e) => e.stopPropagation());
@@ -758,7 +768,6 @@ function initApp() {
   vpFractalInput('input-vpFractal-lookforward', 'lookforward', 50);
   vpFractalInput('input-vpFractal-rows', 'rows', 100);
 
-  // --- Config del panel "Ciclo LW" (Larry Williams Cycle Forecast) ---
   function updateCycleTag() {
     const c = globalState.indicatorConfig.cycle;
     document.getElementById('tagCycle').textContent = `${c.anchorType}/${c.leftBars}/${c.rightBars}`;
@@ -792,12 +801,12 @@ function initApp() {
 
   document.getElementById('customSymbol').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.value.trim()) { let val = e.target.value.trim().toUpperCase(); if(val.includes('USD') && !val.includes('USDT') && val.length <= 7) val += '=X'; changeActiveAsset(val); } });
   
-  document.querySelectorAll('.tf-pill').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.tf-pill').forEach(b => b.classList.remove('active')); btn.classList.add('active'); globalState.interval = btn.dataset.tf; globalState.instances.forEach(inst => inst.switchMarket(globalState.interval)); }));
-  document.getElementById('refreshBtn').addEventListener('click', () => globalState.instances[globalState.activeChartIndex].switchMarket(globalState.interval));
+  document.querySelectorAll('.tf-pill').forEach(btn => btn.addEventListener('click', () => { if(replayMode) toggleReplayMode(false); document.querySelectorAll('.tf-pill').forEach(b => b.classList.remove('active')); btn.classList.add('active'); globalState.interval = btn.dataset.tf; globalState.instances.forEach(inst => inst.switchMarket(globalState.interval)); }));
+  document.getElementById('refreshBtn').addEventListener('click', () => { if(replayMode) toggleReplayMode(false); globalState.instances[globalState.activeChartIndex].switchMarket(globalState.interval); });
   document.getElementById('clearAllAlarmsBtn').addEventListener('click', () => { const inst = globalState.instances[globalState.activeChartIndex]; globalState.alarms = globalState.alarms.filter(a => a.symbol !== inst.symbol); saveAlarms(); renderSidebarAlarms(); inst.syncAlarmPriceLines(); showToast('Alarmas eliminadas', `Se borraron las alarmas de ${inst.asset.name}`, 'alarm'); });
   document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active')); btn.classList.add('active'); document.getElementById('tab-' + btn.dataset.tab).classList.add('active'); }));
 
-  document.querySelectorAll('.layout-btn').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); setLayout(parseInt(btn.dataset.layout)); }));
+  document.querySelectorAll('.layout-btn').forEach(btn => btn.addEventListener('click', () => { if(replayMode) toggleReplayMode(false); document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); setLayout(parseInt(btn.dataset.layout)); }));
 
   document.getElementById('toolCursor').addEventListener('click', () => setTool('cursor'));
   document.getElementById('toolBrush').addEventListener('click', () => setTool('brush'));
@@ -842,10 +851,25 @@ function initApp() {
     }
   });
 
-  // Global Countdown Timer for all charts
+  // Replay Listeners
+  document.getElementById('rpStart').addEventListener('click', () => toggleReplayMode(true));
+  document.getElementById('rpEnd').addEventListener('click', () => toggleReplayMode(false));
+  document.getElementById('rpNext').addEventListener('click', () => stepReplay(1));
+  document.getElementById('rpPrev').addEventListener('click', () => stepReplay(-1));
+  document.getElementById('rpPlay').addEventListener('click', () => {
+    const btn = document.getElementById('rpPlay');
+    if (!replayMode) toggleReplayMode(true);
+    if (replayIntervalId) {
+      clearInterval(replayIntervalId); replayIntervalId = null; btn.innerHTML = '▶ Play';
+    } else {
+      btn.innerHTML = '⏸ Pausa';
+      replayIntervalId = setInterval(() => stepReplay(1), 1000);
+    }
+  });
+
   setInterval(() => {
     globalState.instances.forEach(inst => {
-      if (inst.currentPriceLine && inst.currentCandleCloseTime) {
+      if (inst.currentPriceLine && inst.currentCandleCloseTime && !replayMode) {
         const msLeft = inst.currentCandleCloseTime - Date.now();
         if (msLeft > 0) {
           const min = Math.floor(msLeft / 60000);
@@ -898,6 +922,7 @@ function setLayout(num) {
 }
 
 function setActiveChart(index) {
+  if(replayMode) toggleReplayMode(false);
   globalState.activeChartIndex = index;
   document.querySelectorAll('.chart-cell').forEach((el, i) => el.classList.toggle('active', i === index));
   updateHeaderAsset();
@@ -1046,7 +1071,6 @@ function createChartInstance(cell, asset, interval, index) {
         autoscaleInfoProvider: () => null
     });
 
-    // --- Panel de Ciclo (Larry Williams Cycle Forecast) — gráfico independiente sincronizado ---
     inst.cycleChart = LightweightCharts.createChart(inst.cycleChartEl, {
       layout: { background:{type:'solid', color:'transparent'}, textColor:'#5f7387', fontFamily:"'JetBrains Mono', monospace", fontSize:9 },
       grid: { vertLines:{color:'#101820'}, horzLines:{color:'#101820'} },
@@ -1085,7 +1109,6 @@ function createChartInstance(cell, asset, interval, index) {
     inst.ema3Series = inst.cycleChart.addLineSeries({ color:'#ff5566', lineWidth:1, priceLineVisible:false, lastValueVisible:false });
     inst.forecastSeries = inst.cycleChart.addLineSeries({ color:'#ffb020', lineWidth:2, lineStyle:LightweightCharts.LineStyle.Dashed, priceLineVisible:false, lastValueVisible:false });
 
-    // Sincroniza el rango visible entre el gráfico principal y el panel de ciclo (ambas direcciones)
     let syncingRange = false;
     inst.chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
       if (syncingRange || !range) return;
@@ -1241,17 +1264,17 @@ function createChartInstance(cell, asset, interval, index) {
   inst.connectBinanceWS = function() {
     const wsUrl = `wss://stream.binance.com:9443/stream?streams=${inst.symbol.toLowerCase()}@kline_${inst.interval}/${inst.symbol.toLowerCase()}@aggTrade`;
     const ws = new WebSocket(wsUrl); inst.ws = ws;
-    ws.onopen = () => { inst.status = 'live'; updateStatusPill(); };
-    ws.onerror = () => { inst.status = 'err'; updateStatusPill(); };
-    ws.onclose = () => { inst.status = 'err'; updateStatusPill(); setTimeout(() => { if(inst.asset.src === 'binance') inst.connectBinanceWS(); }, 3000); };
+    ws.onopen = () => { if(!replayMode) { inst.status = 'live'; updateStatusPill(); } };
+    ws.onerror = () => { if(!replayMode) { inst.status = 'err'; updateStatusPill(); } };
+    ws.onclose = () => { if(!replayMode) { inst.status = 'err'; updateStatusPill(); setTimeout(() => { if(inst.asset.src === 'binance' && !replayMode) inst.connectBinanceWS(); }, 3000); } };
     ws.onmessage = (msg) => {
+      if(replayMode) return; // Ignore live updates during replay
       const res = JSON.parse(msg.data); const stream = res.stream; const data = res.data;
       if(stream.includes('@kline')) {
         const k = data.k; const candle = { time: Math.floor(k.t/1000), open: parseFloat(k.o)||0, high: parseFloat(k.h)||0, low: parseFloat(k.l)||0, close: parseFloat(k.c)||0, vol: parseFloat(k.v)||0 };
         inst.candleSeries.update(candle); inst.volSeries.update({ time: candle.time, value: parseFloat(k.v)||0, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' });
         if(inst.lastCandles.length){ const last = inst.lastCandles[inst.lastCandles.length-1]; if(last.time === candle.time){ last.close = candle.close; last.high = Math.max(last.high, candle.high); last.low = Math.min(last.low, candle.low); last.vol = candle.vol; } else { inst.lastCandles.push(candle); if(inst.lastCandles.length > 600) inst.lastCandles.shift(); } }
         inst.prevPrice = inst.lastPrice; inst.lastPrice = candle.close; inst.lastCandleTime = candle.time;
-        // k.T is the actual close time of this kline (ms epoch) — do NOT add another interval on top of it.
         inst.currentCandleCloseTime = k.T; inst.currentCandleHigh = candle.high; inst.currentCandleLow = candle.low;
         if(k.x) { inst.candleFlows = {}; inst.liveBuyVol = 0; inst.liveSellVol = 0; inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator(); }
         inst.updatePriceDisplay(candle.close, inst.prevPrice); if(inst.prevPrice !== null) checkAlarms(inst);
@@ -1270,6 +1293,7 @@ function createChartInstance(cell, asset, interval, index) {
 
   inst.startYahooPolling = function() {
     inst.pollTimer = setInterval(async () => {
+      if(replayMode) return;
       try {
         const yInt = inst.interval === '1h' ? '60m' : inst.interval === '1d' ? '1d' : inst.interval === '1w' ? '1wk' : (inst.interval === '4h' ? '60m' : inst.interval);
         const url = `https://corsproxy.io/?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${inst.symbol}?interval=${yInt}&range=1d`)}`;
@@ -1287,8 +1311,7 @@ function createChartInstance(cell, asset, interval, index) {
     if(prev != null && prev !== price) { valEl.style.textShadow = price > prev ? '0 0 8px var(--green)' : '0 0 8px var(--magenta)'; setTimeout(() => valEl.style.textShadow = 'none', 300); }
     if(inst.candleSeries){ 
       if(inst.currentPriceLine) inst.candleSeries.removePriceLine(inst.currentPriceLine); 
-      // Transparent Dashed Line
-      inst.currentPriceLine = inst.candleSeries.createPriceLine({ price: price, color: 'rgba(0, 229, 255, 0.4)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: '00:00' }); 
+      inst.currentPriceLine = inst.candleSeries.createPriceLine({ price: price, color: 'rgba(0, 229, 255, 0.4)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: replayMode ? 'REPLAY' : '00:00' }); 
     }
   };
 
@@ -1347,9 +1370,6 @@ function createChartInstance(cell, asset, interval, index) {
     }
   };
 
-  // Detecta puntos fractales (techos y pisos) sobre un set de velas dado.
-  // Un techo es una vela cuyo máximo supera al de TODAS las velas en [i-back, i+fwd] (menos ella misma).
-  // Un piso es análogo pero con mínimos. Devuelve listas ordenadas por tiempo ascendente.
   inst.computeFractalPoints = function(back, fwd, candles) {
     candles = candles || inst.lastCandles;
     const highs = [], lows = [];
@@ -1368,8 +1388,6 @@ function createChartInstance(cell, asset, interval, index) {
     return { highs, lows };
   };
 
-  // Combina los markers de los distintos indicadores (Fractales + VP Fractal) en una sola
-  // llamada a setMarkers, ya que la serie solo admite un set de markers a la vez.
   inst.syncMarkers = function() {
     if(!inst.candleSeries) return;
     let markers = [];
@@ -1392,9 +1410,6 @@ function createChartInstance(cell, asset, interval, index) {
     inst.syncMarkers();
   };
 
-  // Indicador combinado: detecta fractales (por defecto 40 atrás / 2 adelante) pero solo conserva
-  // el más reciente de cada lado (techo y piso). Cuando aparece uno nuevo del mismo lado, reemplaza
-  // al anterior. Entre esos dos puntos vigentes se dibuja un volume profile del tramo.
   inst.updateVpFractal = function() {
     if(!inst.candleSeries) return;
     if(!globalState.indicators.vpFractal || inst.lastCandles.length === 0) { inst.vpFractalMarkers = []; inst.vpFractalRange = null; inst.syncMarkers(); inst.requestDraw(); return; }
@@ -1412,14 +1427,6 @@ function createChartInstance(cell, asset, interval, index) {
     inst.requestDraw();
   };
 
-  // ============================================================
-  // Panel "Ciclo LW" — puerto simplificado a JS del indicador Pine
-  // "Larry Williams Cycle Forecast (Hurst Natural Aligned)":
-  // detecta anclas por fractal, estima el largo de ciclo L, calcula
-  // el residual (precio - CMA), pliega el residual en una onda ideal
-  // de largo L y proyecta esa onda hacia el futuro con continuidad
-  // de fase. Se recalcula por completo en cada actualización.
-  // ============================================================
   inst.updateCycleIndicator = function() {
     if (!inst.cycleChart) return;
     const cfg = globalState.indicatorConfig.cycle;
@@ -1440,7 +1447,6 @@ function createChartInstance(cell, asset, interval, index) {
     const times = candles.map(c => c.time);
     const n = closes.length;
 
-    // 1) Anclas por fractal (piso o techo, según configuración)
     const back = cfg.leftBars, fwd = cfg.rightBars;
     const { highs, lows } = inst.computeFractalPoints(back, fwd, candles);
     const anchorPts = cfg.anchorType === 'H' ? highs : lows;
@@ -1452,18 +1458,15 @@ function createChartInstance(cell, asset, interval, index) {
       return;
     }
 
-    // 2) Estimación del largo de ciclo L (mediana de distancias entre anclas)
     const deltas = [];
     for (let i = 0; i < anchors.length - 1; i++) deltas.push(anchors[i+1] - anchors[i]);
     const Lnatural = Math.max(4, Math.round(medianOf(deltas)));
     let L = cfg.manualL > 0 ? cfg.manualL : Lnatural;
     L = Math.max(4, Math.min(300, L));
 
-    // 3) CMA y residual (SMA causal de largo L, igual que la aproximación del script original)
     const cmaArr = calcSMA(closes, L);
     const residual = closes.map((c, i) => c - cmaArr[i]);
 
-    // 4) EMAs y Bandas de Bollinger sobre el residual
     const ema1 = calcEMA(residual, cfg.emaLens[0]);
     const ema2 = calcEMA(residual, cfg.emaLens[1]);
     const ema3 = calcEMA(residual, cfg.emaLens[2]);
@@ -1472,8 +1475,6 @@ function createChartInstance(cell, asset, interval, index) {
     const bbUpper = bbBasis.map((v, i) => v + bbDev[i]);
     const bbLower = bbBasis.map((v, i) => v - bbDev[i]);
 
-    // 5) Plegado: construye la onda ideal de largo L promediando el residual
-    // alrededor de cada ancla (ponderado por recencia)
     const halfL = Math.floor(L / 2), halfR = L - halfL;
     const idealSum = new Array(L).fill(0), wCounts = new Array(L).fill(0);
     const halflifeCycles = 6;
@@ -1499,7 +1500,6 @@ function createChartInstance(cell, asset, interval, index) {
       });
     }
 
-    // Escala la onda ideal para que coincida con la volatilidad reciente del residual
     const recentWindow = Math.max(4, L);
     const recentSlice = residual.slice(Math.max(0, n - recentWindow));
     const recentMean = recentSlice.reduce((a, b) => a + b, 0) / recentSlice.length;
@@ -1511,7 +1511,6 @@ function createChartInstance(cell, asset, interval, index) {
     const naturalScale = idealStdev > 0.00001 ? recentStdev / idealStdev : 1;
     idealWave = idealWave.map(v => v * naturalScale);
 
-    // 6) Ajuste fino de fase (-2..+2) para que la onda calce con el residual reciente
     const lastAnchor = anchors[anchors.length - 1];
     let bestShift = 0, bestErr = Infinity;
     const lookback = Math.min(L, n - 1);
@@ -1525,13 +1524,11 @@ function createChartInstance(cell, asset, interval, index) {
       if (err < bestErr) { bestErr = err; bestShift = sh; }
     }
 
-    // 7) Offset de continuidad para que la proyección arranque pegada al precio actual
     const tail = residual.slice(Math.max(0, n - 3));
     const smoothResid = tail.reduce((a, b) => a + b, 0) / tail.length;
     let phaseNow = (n - 1 - lastAnchor - bestShift) % L; if (phaseNow < 0) phaseNow += L;
     const continuityOffset = smoothResid - idealWave[phaseNow];
 
-    // 8) Salud del ciclo: consistencia del espaciado de anclas + correlación de la forma de onda
     let cvPct = null;
     if (deltas.length >= 2) {
       const meanD = deltas.reduce((a, b) => a + b, 0) / deltas.length;
@@ -1566,7 +1563,6 @@ function createChartInstance(cell, asset, interval, index) {
     else if (cvScore != null) healthScore = cvScore;
     else if (waveScore != null) healthScore = waveScore;
 
-    // 9) Pinta series históricas
     const toPoints = (arr) => { const out = []; for (let i=0;i<arr.length;i++) if (isFinite(arr[i])) out.push({ time: times[i], value: arr[i] }); return out; };
     inst.residualSeries.setData(toPoints(residual));
     inst.ema1Series.setData(toPoints(ema1));
@@ -1575,7 +1571,6 @@ function createChartInstance(cell, asset, interval, index) {
     inst.bbUpperSeries.setData(toPoints(bbUpper));
     inst.bbLowerSeries.setData(toPoints(bbLower));
 
-    // 10) Proyección futura
     const lastTime = times[n-1];
     const intervalSec = (INTERVAL_MS[inst.interval] || 60000) / 1000;
     const hideForecast = healthScore != null && healthScore < 30;
@@ -1589,7 +1584,6 @@ function createChartInstance(cell, asset, interval, index) {
     }
     inst.forecastSeries.setData(hideForecast ? [] : forecastPts);
 
-    // 11) Panel de diagnóstico
     if (inst.cycleDiagEl) {
       const healthColor = healthScore == null ? 'var(--muted)' : (healthScore >= 70 ? 'var(--green)' : healthScore >= 40 ? 'var(--amber)' : 'var(--magenta)');
       inst.cycleDiagEl.innerHTML = `
@@ -1601,8 +1595,6 @@ function createChartInstance(cell, asset, interval, index) {
     }
   };
 
-  // Calcula un volume profile (histograma de volumen por nivel de precio) para las velas
-  // comprendidas en un rango de tiempo [fromTime, toTime]. rows = cantidad de filas/niveles.
   inst.computeVolumeProfileForRange = function(fromTime, toTime, rows) {
     if(!inst.lastCandles.length) return null;
     const candles = inst.lastCandles.filter(c => c.time >= fromTime && c.time <= toTime);
@@ -1632,7 +1624,6 @@ function createChartInstance(cell, asset, interval, index) {
     return inst.computeVolumeProfileForRange(range.from, range.to, globalState.indicatorConfig.vp.rows || 24);
   };
 
-  // Volume Profile de rango visible — barras ancladas al borde DERECHO del gráfico.
   inst.drawVolumeProfile = function(ctx, canvas) {
     const vp = inst.computeVisibleVolumeProfile();
     if(!vp) return;
@@ -1670,8 +1661,6 @@ function createChartInstance(cell, asset, interval, index) {
     }
   };
 
-  // VP Fractal — volume profile confinado al tramo horizontal entre el último fractal de techo
-  // y el último de piso, mostrando cómo se distribuyó el volumen "entre tramos".
   inst.drawVpFractalProfile = function(ctx, canvas) {
     if(!globalState.indicators.vpFractal || !inst.vpFractalRange) return;
     const { top, bottom } = inst.vpFractalRange;
@@ -1736,7 +1725,7 @@ function createChartInstance(cell, asset, interval, index) {
 
   inst.updateFlowBox = function() {
     const box = inst.flowBoxEl;
-    if(!globalState.indicators.flow || inst.asset.src !== 'binance' || !inst.lastCandles.length) {
+    if(!globalState.indicators.flow || inst.asset.src !== 'binance' || !inst.lastCandles.length || replayMode) {
       box.style.display = 'none';
       return;
     }
@@ -1765,17 +1754,15 @@ function createChartInstance(cell, asset, interval, index) {
 
     const boxTop = Math.min(highCoord, lowCoord);
     const boxHeight = Math.abs(lowCoord - highCoord);
-    // Necesitamos al menos ~6px por nivel para que se pueda distinguir uno de otro
     if (boxHeight < 6) { box.style.display = 'none'; return; }
 
-    levels.sort((a, b) => b.price - a.price); // de mayor a menor precio, de arriba hacia abajo
+    levels.sort((a, b) => b.price - a.price);
     const maxTotal = Math.max(...levels.map(l => l.total), 0.000001);
     const MAX_BAR_PX = 34;
     
     let html = '';
     levels.forEach(l => {
       const isPoc = l.total === maxTotal && l.total > 0;
-      // El nivel ocupa el tramo de precio [price, price + bucketSize)
       const yTop = inst.candleSeries.priceToCoordinate(l.price + inst.bucketSize);
       const yBottom = inst.candleSeries.priceToCoordinate(l.price);
       if(yTop === null || yBottom === null) return;
@@ -1844,15 +1831,29 @@ function createChartInstance(cell, asset, interval, index) {
 
 function updateStatusPill() {
   const inst = globalState.instances[globalState.activeChartIndex]; if(!inst) return;
-  const pill = document.getElementById('statusPill'); pill.classList.remove('live','err','conn');
-  if(inst.status === 'live') pill.classList.add('live');
-  else if(inst.status === 'err') pill.classList.add('err');
-  else if(inst.status === 'conn') pill.classList.add('conn');
-  document.getElementById('statusText').textContent = inst.status.toUpperCase();
+  const pill = document.getElementById('statusPill'); pill.classList.remove('live','err','conn','paused');
+  if(replayMode) {
+    pill.classList.add('paused');
+    document.getElementById('statusText').textContent = 'REPLAY';
+  } else {
+    if(inst.status === 'live') pill.classList.add('live');
+    else if(inst.status === 'err') pill.classList.add('err');
+    else if(inst.status === 'conn') pill.classList.add('conn');
+    document.getElementById('statusText').textContent = inst.status.toUpperCase();
+  }
 }
 
 function updateSidebarFlow() {
   const inst = globalState.instances[globalState.activeChartIndex]; if(!inst) return;
+  if(replayMode) {
+    document.getElementById('ofBuyBar').style.width = '50%';
+    document.getElementById('ofSellBar').style.width = '50%';
+    document.getElementById('ofBuyBar').textContent = 'N/A';
+    document.getElementById('ofSellBar').textContent = 'N/A';
+    document.getElementById('ofBuyVol').textContent = '0.00';
+    document.getElementById('ofSellVol').textContent = '0.00';
+    return;
+  }
   const total = inst.liveBuyVol + inst.liveSellVol;
   let buyPct = 50, sellPct = 50;
   if(total > 0){ buyPct = (inst.liveBuyVol / total) * 100; sellPct = (inst.liveSellVol / total) * 100; }
@@ -1940,6 +1941,86 @@ function showToast(title, msg, type) {
 
 function fmt(p) { if(p == null || isNaN(p)) return '--'; if(p >= 1000) return p.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); if(p >= 1) return p.toFixed(4); if(p >= 0.01) return p.toFixed(5); return p.toFixed(8); }
 function fmtNum(n) { if(n >= 1e12) return (n/1e12).toFixed(2) + 'T'; if(n >= 1e9) return (n/1e9).toFixed(2) + 'B'; if(n >= 1e6) return (n/1e6).toFixed(2) + 'M'; if(n >= 1e3) return (n/1e3).toFixed(2) + 'K'; return n.toFixed(2); }
+
+// ============================================================
+// LÓGICA DE BACKTESTING (REPLAY)
+// ============================================================
+let replayMode = false;
+let replayIndex = 0;
+let replayTotal = 0;
+let replayIntervalId = null;
+
+function toggleReplayMode(startMode) {
+  const inst = globalState.instances[globalState.activeChartIndex];
+  if (!inst || !inst.lastCandles.length) return;
+
+  if (startMode) {
+    replayMode = true;
+    if (replayIntervalId) { clearInterval(replayIntervalId); replayIntervalId = null; document.getElementById('rpPlay').innerHTML = '▶ Play'; }
+    
+    // Pausar WebSocket/Polling temporalmente
+    if (inst.ws) { try { inst.ws.onclose = null; inst.ws.close(); } catch(e){} inst.ws = null; }
+    if (inst.pollTimer) { clearInterval(inst.pollTimer); inst.pollTimer = null; }
+    updateStatusPill();
+
+    replayTotal = inst.lastCandles.length;
+    replayIndex = Math.max(10, replayTotal - 100);
+    
+    inst.candleSeries.setData(inst.lastCandles.slice(0, replayIndex));
+    inst.volSeries.setData(inst.lastCandles.slice(0, replayIndex).map(c => ({ time: c.time, value: c.vol, color: c.close >= c.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' })));
+    
+    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator();
+    inst.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, replayIndex - 50), to: replayIndex + 5 });
+    document.getElementById('replayInfo').textContent = `Vela: ${replayIndex} / ${replayTotal}`;
+    showToast("Modo Backtesting", "Replay iniciado. Usa los controles.", "alarm");
+  } else {
+    if (replayIntervalId) { clearInterval(replayIntervalId); replayIntervalId = null; document.getElementById('rpPlay').innerHTML = '▶ Play'; }
+    replayMode = false;
+    inst.candleSeries.setData(inst.lastCandles);
+    inst.volSeries.setData(inst.lastCandles.map(c => ({ time: c.time, value: c.vol, color: c.close >= c.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' })));
+    inst.updateSMA(); inst.calcVWAP(true); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator();
+    inst.chart.timeScale().fitContent();
+    document.getElementById('replayInfo').textContent = `Modo Tiempo Real`;
+    // Reconectar
+    inst.switchMarket(inst.interval);
+    showToast("Modo Tiempo Real", "Reanudando conexión en vivo.", "alarm");
+  }
+}
+
+function stepReplay(steps = 1) {
+  const inst = globalState.instances[globalState.activeChartIndex];
+  if (!inst || !replayMode) return;
+
+  replayIndex += steps;
+  if (replayIndex >= replayTotal) {
+    toggleReplayMode(false);
+    showToast("Backtesting finalizado", "Se ha alcanzado el tiempo real actual.", "alarm");
+    return;
+  }
+  if (replayIndex < 0) replayIndex = 0;
+
+  const candle = inst.lastCandles[replayIndex];
+  inst.candleSeries.update(candle);
+  inst.volSeries.update({ time: candle.time, value: candle.vol, color: candle.close >= candle.open ? 'rgba(57,255,136,.3)' : 'rgba(255,46,136,.3)' });
+  
+  inst.prevPrice = inst.lastPrice;
+  inst.lastPrice = candle.close;
+  inst.lastCandleTime = candle.time;
+  inst.currentCandleHigh = candle.high;
+  inst.currentCandleLow = candle.low;
+  
+  inst.updateSMA(); inst.calcVWAP(false); inst.updateFractals(); inst.updateVpFractal(); inst.updateCycleIndicator();
+  inst.updatePriceDisplay(candle.close, inst.prevPrice);
+  
+  if(inst.prevPrice !== null) checkAlarms(inst);
+
+  document.getElementById('replayInfo').textContent = `Vela: ${replayIndex} / ${replayTotal}`;
+  
+  const range = inst.chart.timeScale().getVisibleLogicalRange();
+  if (range && range.to < replayIndex + 2) {
+    inst.chart.timeScale().scrollToPosition(replayIndex, false);
+  }
+}
 </script>
 </body>
 </html>
