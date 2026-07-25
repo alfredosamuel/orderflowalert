@@ -136,6 +136,7 @@
   .overlay-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4;}
   .draw-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;}
   .draw-canvas.active{pointer-events:auto;cursor:crosshair;}
+  .bt-rr-tooltip{position:absolute;z-index:12;pointer-events:none;padding:3px 6px;border-radius:4px;background:rgba(7,10,16,.92);border:1px solid rgba(255,176,32,.35);color:var(--amber);font-size:10px;font-weight:700;font-family:'JetBrains Mono', monospace;box-shadow:0 6px 16px rgba(0,0,0,.35);display:none;}
   
   .live-flow-box { position: absolute; z-index: 4; pointer-events: none; display: none; background: rgba(7,10,16,0.5); border-left: 1px solid rgba(0,229,255,.25); border-right: 1px solid rgba(0,229,255,.25); font-family: 'JetBrains Mono', monospace; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
   .flow-row { position: absolute; display: flex; align-items: center; width: 100%; border-top: 1px solid rgba(255,255,255,.05); box-sizing: border-box; }
@@ -660,6 +661,7 @@
           </div>
 
           <button type="button" class="btn-primary amber" id="runBacktestBtn" style="margin-top:12px;">Ejecutar Backtest</button>
+          <button type="button" class="btn-secondary" id="clearBacktestOpsBtn" style="margin-top:8px;">Borrar Operaciones</button>
           <button type="button" class="btn-secondary" id="toggleBtWindowBtn" disabled>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
             Ver Resultados
@@ -957,6 +959,15 @@ function initApp() {
     });
   });
   document.getElementById('runBacktestBtn').addEventListener('click', runBacktest);
+  document.getElementById('clearBacktestOpsBtn').addEventListener('click', () => {
+    const inst = globalState.instances[globalState.activeChartIndex];
+    if (!inst) return;
+    inst.backtestTrades = [];
+    globalState.selectedItem = null;
+    inst.hideBacktestTooltip();
+    inst.drawDrawCanvas();
+    showToast('Backtest', 'Se borraron las operaciones pintadas.', 'alarm');
+  });
 
   // Ventana flotante de resultados: toggle, cerrar y arrastrar
   const btWindow = document.getElementById('btWindow');
@@ -1010,6 +1021,10 @@ function initApp() {
       else if (item.type === 'drawing') {
         const inst = globalState.instances[item.instIndex];
         inst.drawings = inst.drawings.filter(d => d.id !== item.id);
+        inst.drawDrawCanvas();
+      } else if (item.type === 'btTrade') {
+        const inst = globalState.instances[item.instIndex];
+        inst.backtestTrades = inst.backtestTrades.filter(t => t.id !== item.id);
         inst.drawDrawCanvas();
       }
       globalState.selectedItem = null;
@@ -1176,7 +1191,7 @@ function createChartInstance(cell, asset, interval, index) {
     liveBuyVol: 0, liveSellVol: 0, candleFlows: {}, bucketSize: 1, ws: null, pollTimer: null,
     hoveredAlarm: null, lastMouseY: null, isLoadingHistory: false, noMoreHistory: false,
     overlayCanvas: null, drawCanvas: null, chartEl: null, legendEl: null, priceTagEl: null, flowBoxEl: null, autoScaleBtn: null, status: 'conn',
-    drawings: [], isDrawing: false, currentDrawing: null,
+    drawings: [], isDrawing: false, currentDrawing: null, backtestTrades: [], hoveredBacktestTrade: null, rrTooltipEl: null, draggingTrade: null,
     vwapData: [], vwapUpper1Data: [], vwapLower1Data: [], vwapUpper2Data: [], vwapLower2Data: [],
     fractalMarkers: [], vpFractalMarkers: [], vpFractalRange: null,
     drawThrottle: null,
@@ -1188,6 +1203,7 @@ function createChartInstance(cell, asset, interval, index) {
     inst.drawThrottle = requestAnimationFrame(() => {
       inst.drawOverlayCanvas();
       inst.updateFlowBox();
+      inst.drawDrawCanvas();
       inst.drawThrottle = null;
     });
   };
@@ -1218,6 +1234,9 @@ function createChartInstance(cell, asset, interval, index) {
     inst.legendEl = inst.cell.querySelector('.chart-legend');
     inst.priceTagEl = inst.cell.querySelector('.chart-price-tag');
     inst.mainWrapEl = inst.cell.querySelector('.chart-main-wrap');
+    inst.rrTooltipEl = document.createElement('div');
+    inst.rrTooltipEl.className = 'bt-rr-tooltip';
+    inst.mainWrapEl.appendChild(inst.rrTooltipEl);
     inst.adxWrapEl = inst.cell.querySelector('.adx-pane-wrap');
     inst.adxHandleEl = inst.cell.querySelector('.adx-resize-handle');
     inst.adxContainerEl = inst.cell.querySelector('.adx-pane-container');
@@ -1363,6 +1382,65 @@ function createChartInstance(cell, asset, interval, index) {
       }
     });
     window.addEventListener('mouseup', () => { if(inst.isDrawing) { inst.isDrawing = false; inst.currentDrawing = null; } });
+
+    inst.chartEl.addEventListener('mousedown', (e) => {
+      if (globalState.activeTool !== 'cursor') return;
+      const rect = inst.chartEl.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const hitTrade = inst.findBacktestTradeAtPoint(x, y);
+      if (hitTrade) {
+        globalState.selectedItem = { type: 'btTrade', id: hitTrade.id, instIndex: inst.index };
+        inst.backtestTrades.forEach(t => t.selected = (t.id === hitTrade.id));
+        inst.draggingTrade = hitTrade;
+        inst.drawDrawCanvas();
+        e.preventDefault();
+        return;
+      }
+      inst.backtestTrades.forEach(t => t.selected = false);
+      globalState.selectedItem = null;
+      inst.drawDrawCanvas();
+      inst.hideBacktestTooltip();
+    });
+
+    inst.chartEl.addEventListener('mousemove', (e) => {
+      if (globalState.activeTool !== 'cursor') return;
+      const rect = inst.chartEl.getBoundingClientRect();
+      const trade = inst.findBacktestTradeAtPoint(e.clientX - rect.left, e.clientY - rect.top);
+      inst.hoveredBacktestTrade = trade || null;
+      if (trade) {
+        inst.showBacktestTooltip(e.clientX, e.clientY, trade.rr.toFixed(2));
+      } else {
+        inst.hideBacktestTooltip();
+      }
+    });
+    inst.chartEl.addEventListener('mouseleave', () => inst.hideBacktestTooltip());
+
+    window.addEventListener('mousemove', (e) => {
+      const draggingInst = globalState.instances.find(i => i.draggingTrade);
+      if (!draggingInst) return;
+      const rect = draggingInst.chartEl.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const time = draggingInst.chart.timeScale().coordinateToTime(x);
+      const price = draggingInst.candleSeries.coordinateToPrice(y);
+      if (time == null || price == null) return;
+      const trade = draggingInst.draggingTrade;
+      const deltaTime = time - trade.entryTime;
+      const deltaPrice = price - trade.entryPrice;
+      trade.entryTime = time;
+      trade.exitTime = (trade.exitTime == null ? time : trade.exitTime + deltaTime);
+      trade.entryPrice = price;
+      trade.tpPrice += deltaPrice;
+      trade.slPrice += deltaPrice;
+      draggingInst.drawDrawCanvas();
+    });
+    window.addEventListener('mouseup', () => {
+      const draggingInst = globalState.instances.find(i => i.draggingTrade);
+      if (!draggingInst) return;
+      draggingInst.draggingTrade = null;
+      draggingInst.hideBacktestTooltip();
+    });
 
     inst.chartEl.addEventListener('click', (e) => {
       if (globalState.activeTool !== 'cursor') return;
@@ -1906,6 +1984,98 @@ function createChartInstance(cell, asset, interval, index) {
     box.style.width = '130px';
   };
 
+  inst.findBacktestTradeAtPoint = function(x, y) {
+    if (!inst.backtestTrades || !inst.backtestTrades.length) return null;
+    for (let i = inst.backtestTrades.length - 1; i >= 0; i--) {
+      const trade = inst.backtestTrades[i];
+      const x1 = inst.chart.timeScale().timeToCoordinate(trade.entryTime);
+      const x2 = inst.chart.timeScale().timeToCoordinate(trade.exitTime || trade.entryTime);
+      const y1 = inst.candleSeries.priceToCoordinate(trade.entryPrice);
+      const yTp = inst.candleSeries.priceToCoordinate(trade.tpPrice);
+      const ySl = inst.candleSeries.priceToCoordinate(trade.slPrice);
+      if (x1 === null || x2 === null || y1 === null || yTp === null || ySl === null) continue;
+      const yMin = Math.min(y1, yTp, ySl);
+      const yMax = Math.max(y1, yTp, ySl);
+      const pxMin = Math.min(x1, x2) - 8;
+      const pxMax = Math.max(x1, x2) + 8;
+      const hitBox = x >= pxMin && x <= pxMax && y >= yMin - 8 && y <= yMax + 8;
+      if (!hitBox) continue;
+      const dist1 = inst.distancePointToSegment(x, y, x1, y1, x2, yTp);
+      const dist2 = inst.distancePointToSegment(x, y, x1, y1, x2, ySl);
+      if (dist1 <= 8 || dist2 <= 8) return trade;
+    }
+    return null;
+  };
+
+  inst.distancePointToSegment = function(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+    const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lenSq));
+    const projX = x1 + t * dx;
+    const projY = y1 + t * dy;
+    return Math.hypot(px - projX, py - projY);
+  };
+
+  inst.showBacktestTooltip = function(x, y, value) {
+    inst.rrTooltipEl.textContent = value;
+    inst.rrTooltipEl.style.display = 'block';
+    const rect = inst.mainWrapEl.getBoundingClientRect();
+    const left = Math.max(6, Math.min(rect.width - 44, x - rect.left + 10));
+    const top = Math.max(8, y - rect.top - 18);
+    inst.rrTooltipEl.style.left = left + 'px';
+    inst.rrTooltipEl.style.top = top + 'px';
+  };
+
+  inst.hideBacktestTooltip = function() {
+    inst.rrTooltipEl.style.display = 'none';
+  };
+
+  inst.drawBacktestTrade = function(ctx, trade) {
+    const x1 = inst.chart.timeScale().timeToCoordinate(trade.entryTime);
+    const x2 = inst.chart.timeScale().timeToCoordinate(trade.exitTime || trade.entryTime);
+    const yEntry = inst.candleSeries.priceToCoordinate(trade.entryPrice);
+    const yTp = inst.candleSeries.priceToCoordinate(trade.tpPrice);
+    const ySl = inst.candleSeries.priceToCoordinate(trade.slPrice);
+    if (x1 === null || x2 === null || yEntry === null || yTp === null || ySl === null) return;
+
+    const yTop = Math.min(yEntry, yTp, ySl);
+    const yBottom = Math.max(yEntry, yTp, ySl);
+    const xLeft = Math.min(x1, x2);
+    const xRight = Math.max(x1, x2);
+    const width = Math.max(4, xRight - xLeft);
+
+    ctx.save();
+    ctx.globalAlpha = trade.selected ? 0.9 : 0.75;
+    ctx.strokeStyle = trade.selected ? 'rgba(255,176,32,0.9)' : 'rgba(0,229,255,0.45)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(xLeft, yTop, width, yBottom - yTop);
+
+    ctx.strokeStyle = '#39ff88';
+    ctx.lineWidth = trade.selected ? 3 : 2;
+    ctx.beginPath();
+    ctx.moveTo(x1, yEntry);
+    ctx.lineTo(x2, yTp);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#ff2e88';
+    ctx.beginPath();
+    ctx.moveTo(x1, yEntry);
+    ctx.lineTo(x2, ySl);
+    ctx.stroke();
+
+    ctx.fillStyle = trade.selected ? '#ffb020' : '#00e5ff';
+    ctx.beginPath();
+    ctx.arc(x1, yEntry, trade.selected ? 4.5 : 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = trade.selected ? '#ffb020' : '#dce8f2';
+    ctx.font = "10px 'JetBrains Mono', monospace";
+    ctx.fillText(trade.rr.toFixed(2), x1 + 6, yEntry - 6);
+    ctx.restore();
+  };
+
   inst.drawDrawCanvas = function() {
     const canvas = inst.drawCanvas; const ctx = canvas.getContext('2d');
     if (canvas.width !== inst.chartEl.clientWidth || canvas.height !== inst.chartEl.clientHeight) { canvas.width = inst.chartEl.clientWidth; canvas.height = inst.chartEl.clientHeight; }
@@ -1926,6 +2096,8 @@ function createChartInstance(cell, asset, interval, index) {
       });
       ctx.stroke();
     });
+
+    inst.backtestTrades.forEach(trade => inst.drawBacktestTrade(ctx, trade));
   };
 
   inst.syncAlarmPriceLines = function() {
@@ -2061,6 +2233,7 @@ function runBacktest() {
   const stopAtrMult = parseFloat(document.getElementById('btStopAtr').value) || 1.5;
 
   const candles = inst.lastCandles;
+  inst.backtestTrades = [];
   const useVwapBands = globalState.btFilters.vwapBands;
   const useAdx = globalState.btFilters.adx;
   const useVp = globalState.btFilters.vp;
@@ -2092,7 +2265,7 @@ function runBacktest() {
 
   let equity = wallet, peakEquity = wallet, maxDD = 0;
   let trades = 0, wins = 0;
-  let position = null; // {dir, entry, stop, target, riskAmt}
+  let position = null; // {dir, entry, stop, target, riskAmt, tradeId, entryTime, entryPrice, tpPrice, slPrice}
   let dailyPnl = 0, curDayKey = null, dailyLossHit = false;
 
   // Trackers para las métricas extendidas
@@ -2119,6 +2292,12 @@ function runBacktest() {
       }
       if (exitPrice != null) {
         const pnl = position.dir === 'long' ? (exitPrice - position.entry) * position.qty : (position.entry - exitPrice) * position.qty;
+        const trade = inst.backtestTrades.find(t => t.id === position.tradeId);
+        if (trade) {
+          trade.exitTime = c.time;
+          trade.exitPrice = exitPrice;
+          trade.rr = Math.abs(trade.tpPrice - trade.entryPrice) / Math.max(Math.abs(trade.entryPrice - trade.slPrice), 0.000001);
+        }
         equity += pnl; dailyPnl += pnl;
         trades++; if (pnl > 0) wins++;
         peakEquity = Math.max(peakEquity, equity);
@@ -2158,7 +2337,20 @@ function runBacktest() {
         const target = vwapArr[i];
         const riskAmt = equity * (riskPct / 100);
         const qty = riskAmt / stopDist;
-        position = { dir, entry, stop, target, qty, riskAmt };
+        const tradeId = `bt_${Date.now()}_${trades + 1}`;
+        const trade = {
+          id: tradeId,
+          entryTime: c.time,
+          exitTime: c.time,
+          entryPrice: entry,
+          exitPrice: null,
+          tpPrice: target,
+          slPrice: stop,
+          rr: Math.abs(target - entry) / Math.max(stopDist, 0.000001),
+          selected: false
+        };
+        inst.backtestTrades.push(trade);
+        position = { dir, entry, stop, target, qty, riskAmt, tradeId, entryTime: c.time, entryPrice: entry, tpPrice: target, slPrice: stop };
       }
     }
   }
@@ -2183,6 +2375,7 @@ function runBacktest() {
   };
   const toggleBtn = document.getElementById('toggleBtWindowBtn');
   toggleBtn.disabled = false;
+  inst.drawDrawCanvas();
 
   renderBtWindow();
   openBtWindow();
