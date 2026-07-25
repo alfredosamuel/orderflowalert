@@ -2045,15 +2045,24 @@ function createChartInstance(cell, asset, interval, index) {
     const xLeft = Math.min(x1, x2);
     const xRight = Math.max(x1, x2);
     const width = Math.max(4, xRight - xLeft);
+    const entryRectH = Math.max(10, Math.abs(yBottom - yTop) * 0.2);
+    const entryRectY = yEntry - entryRectH / 2;
+    const entryRectW = Math.max(10, width * 0.6);
 
     ctx.save();
-    ctx.globalAlpha = trade.selected ? 0.9 : 0.75;
-    ctx.strokeStyle = trade.selected ? 'rgba(255,176,32,0.9)' : 'rgba(0,229,255,0.45)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(xLeft, yTop, width, yBottom - yTop);
+    ctx.globalAlpha = trade.selected ? 0.95 : 0.8;
+
+    ctx.fillStyle = 'rgba(255,46,136,0.35)';
+    ctx.fillRect(x1 - entryRectW / 2, entryRectY, entryRectW / 2, entryRectH);
+    ctx.fillStyle = 'rgba(57,255,136,0.35)';
+    ctx.fillRect(x1 + 1, entryRectY, entryRectW / 2 - 1, entryRectH);
+
+    ctx.strokeStyle = trade.selected ? '#ffb020' : '#00e5ff';
+    ctx.lineWidth = trade.selected ? 2.2 : 1.4;
+    ctx.strokeRect(x1 - entryRectW / 2, entryRectY, entryRectW, entryRectH);
 
     ctx.strokeStyle = '#39ff88';
-    ctx.lineWidth = trade.selected ? 3 : 2;
+    ctx.lineWidth = trade.selected ? 2.2 : 1.4;
     ctx.beginPath();
     ctx.moveTo(x1, yEntry);
     ctx.lineTo(x2, yTp);
@@ -2064,11 +2073,6 @@ function createChartInstance(cell, asset, interval, index) {
     ctx.moveTo(x1, yEntry);
     ctx.lineTo(x2, ySl);
     ctx.stroke();
-
-    ctx.fillStyle = trade.selected ? '#ffb020' : '#00e5ff';
-    ctx.beginPath();
-    ctx.arc(x1, yEntry, trade.selected ? 4.5 : 3.5, 0, Math.PI * 2);
-    ctx.fill();
 
     ctx.fillStyle = trade.selected ? '#ffb020' : '#dce8f2';
     ctx.font = "10px 'JetBrains Mono', monospace";
